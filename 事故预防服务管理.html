@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>事故预防服务管理 · 技术人员端</title>
+<link rel="stylesheet" href="tech-common.css">
+<style>
+  #grid{table-layout:fixed}
+  .pgbtns{display:flex;gap:6px}
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- 侧栏（公共组件，菜单在 tech-common.js 的 MENUS 中维护） -->
+  <aside class="side">
+    <div class="brand"><i class="logo"><i></i><b></b></i><span>安全服务端</span></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-toggle" onclick="toggleSide()" title="收起/展开菜单"><i>«</i></div>
+  </aside>
+
+  <main class="main">
+    <!-- 顶栏（公共组件） -->
+    <header class="topbar" id="topbar"></header>
+    <!-- 页签（公共组件） -->
+    <div class="tabs" id="tabs"></div>
+
+    <div class="page">
+      <!-- 查询：收起态只显示前 2 个条件，展开后显示全部（.adv 为展开才显示的条件） -->
+      <div class="card search grid" id="searchCard">
+        <div class="field"><label>保单号</label>
+          <input id="q_policy" placeholder="请输入保单号" onkeydown="if(event.key==='Enter')doSearch()"></div>
+        <div class="field"><label>企业名称</label>
+          <input id="q_company" placeholder="请输入企业名称" onkeydown="if(event.key==='Enter')doSearch()"></div>
+        <div class="field adv"><label>分配状态</label>
+          <select id="q_alloc"><option value="">请选择</option><option>已分配</option><option>未分配</option></select></div>
+        <div class="field adv"><label>服务状态</label>
+          <select id="q_status"><option value="">请选择</option><option>已完成</option><option>已逾期</option><option>服务中</option><option>待服务</option></select></div>
+        <div class="field adv"><label>计划年度</label>
+          <input id="q_year" type="date" placeholder="请选择计划年度"></div>
+        <div class="field adv"><label>开始时间</label>
+          <input id="q_start" type="date" placeholder="请选择开始时间"></div>
+        <div class="field adv"><label>结束时间</label>
+          <input id="q_end" type="date" placeholder="请选择结束时间"></div>
+        <div class="acts">
+          <button class="btn primary" onclick="doSearch()">查询</button>
+          <button class="btn" onclick="doReset()">重置</button>
+          <span class="expand" id="expBtn" onclick="toggleExpand()"><span id="expTxt">展开</span><i class="caret"></i></span>
+        </div>
+      </div>
+
+      <!-- 列表 -->
+      <div class="card table-wrap">
+        <table id="grid">
+          <colgroup id="cols"></colgroup>
+          <thead><tr id="thead"></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <span class="colset" title="列设置" onclick="toast('列设置（演示）')">⚙</span>
+      </div>
+
+      <!-- 分页 -->
+      <div class="pager">
+        <span class="total">共 <b id="total">0</b> 条</span>
+        <div class="right">
+          <select id="size" onchange="toast('每页 '+this.value)">
+            <option>10条/页</option><option>20条/页</option><option>50条/页</option>
+          </select>
+          <span class="pgbtns">
+            <button class="pgbtn" disabled>‹</button>
+            <button class="pgbtn on">1</button>
+            <button class="pgbtn" disabled>›</button>
+          </span>
+          <span class="jump">前往 <input type="number" min="1" value="1"> 页</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 演练准备弹窗 -->
+<div class="mask" id="dmask" onclick="if(event.target===this)closeDrill()">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle">演练准备 <span class="sub" id="drillId"></span></div>
+      <div class="mclose" onclick="closeDrill()">✕</div>
+    </div>
+    <div class="mbody">
+      <form class="form one" id="drillForm" onsubmit="return false">
+        <div class="fitem full">
+          <label>演练目的<span class="req">*</span><span class="hint">（可多选）</span></label>
+          <div class="opts" id="purpose">
+            <label class="chk"><input type="checkbox" value="检验预案">检验预案</label>
+            <label class="chk"><input type="checkbox" value="完善准备">完善准备</label>
+            <label class="chk"><input type="checkbox" value="锻炼队伍">锻炼队伍</label>
+            <label class="chk"><input type="checkbox" value="磨合机制">磨合机制</label>
+            <label class="chk"><input type="checkbox" value="科普宣教">科普宣教</label>
+          </div>
+        </div>
+        <div class="fitem">
+          <label>演练类型<span class="req">*</span></label>
+          <div class="opts" id="dtype">
+            <label class="rad"><input type="radio" name="dtype" value="综合应急演练">综合应急演练</label>
+            <label class="rad"><input type="radio" name="dtype" value="专项应急演练">专项应急演练</label>
+          </div>
+        </div>
+        <div class="fitem">
+          <label>演练方式<span class="req">*</span></label>
+          <div class="opts" id="dway">
+            <label class="rad"><input type="radio" name="dway" value="桌面推演">桌面推演</label>
+            <label class="rad"><input type="radio" name="dway" value="实战演练">实战演练</label>
+          </div>
+        </div>
+        <div class="fitem">
+          <label>演练地点<span class="req">*</span><span class="hint">（30字以内）</span></label>
+          <input type="text" id="dlocation" maxlength="30" placeholder="请输入演练地点">
+        </div>
+        <div class="fitem">
+          <label>演练名称<span class="req">*</span><span class="hint">（50字以内）</span></label>
+          <input type="text" id="dname" maxlength="50" placeholder="请输入演练名称">
+        </div>
+        <div class="fitem">
+          <label>总指挥<span class="req">*</span><span class="hint">（50字以内）</span></label>
+          <input type="text" id="dcommander" maxlength="50" placeholder="请输入总指挥">
+        </div>
+        <div class="fitem full">
+          <label>应急组织架构<span class="req">*</span><span class="hint">（可多选）</span></label>
+          <div class="opts" id="dorgs">
+            <label class="chk"><input type="checkbox" value="指挥部">指挥部</label>
+            <label class="chk"><input type="checkbox" value="抢险救援组">抢险救援组</label>
+            <label class="chk"><input type="checkbox" value="警戒疏散组">警戒疏散组</label>
+            <label class="chk"><input type="checkbox" value="医疗救护组">医疗救护组</label>
+            <label class="chk"><input type="checkbox" value="通讯联络组">通讯联络组</label>
+            <label class="chk"><input type="checkbox" value="后勤保障组">后勤保障组</label>
+            <label class="chk"><input type="checkbox" value="其他" onchange="document.getElementById('dorgsOther').style.display=this.checked?'inline-block':'none'">其他</label>
+            <input type="text" id="dorgsOther" placeholder="请填写其他" style="display:none;width:160px;height:34px;border:1px solid #dfe4ed;border-radius:5px;padding:0 10px">
+          </div>
+        </div>
+        <div class="fitem full">
+          <label>演练流程<span class="req">*</span><span class="hint">（500字以内）</span></label>
+          <textarea id="dprocess" maxlength="500" placeholder="请输入演练流程"></textarea>
+        </div>
+        <div class="fitem full">
+          <label>演练场景<span class="req">*</span><span class="hint">（500字以内）</span></label>
+          <textarea id="dscene" maxlength="500" placeholder="请输入演练场景"></textarea>
+        </div>
+        <div class="fitem full">
+          <label>演练物资<span class="req">*</span><span class="hint">（500字以内）</span></label>
+          <textarea id="dmaterial" maxlength="500" placeholder="请输入演练物资"></textarea>
+        </div>
+        <div class="fitem full">
+          <label>演练方案<span class="req">*</span></label>
+          <div class="opts" style="align-items:center">
+            <input type="file" id="dfile" accept=".pdf,application/pdf">
+            <button class="btn ai" type="button" onclick="genWord()"><svg viewBox="0 0 24 24"><path d="M12 0l2.6 9.4L24 12l-9.4 2.6L12 24l-2.6-9.4L0 12l9.4-2.6L12 0z"/></svg>大模型生成 Word 文档</button>
+          </div>
+          <div class="hint">支持 PDF 直接上传；或根据上方内容由大模型生成 Word 文档，人工编辑后通过上方上传。</div>
+        </div>
+      </form>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeDrill()">取消</button>
+      <button class="btn primary" onclick="saveDrill()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="tech-common.js"></script>
+<script>
+/* ===== 列表数据（演示）：六大服务项各展示一条 ===== */
+const ALL = [
+  {id:'2005475827917910018', policy:'0057a7c0-db0c-11ef-9f2a-0242ac110002', alloc:'已分配',
+   company:'福建建发信息有限公司', industry:'建筑施工', year:'2025',
+   content:'生产安全重大事故隐患排查', fee:'56000',
+   start:'2025-12-30', end:'2025-12-31', org:'中国人寿保险', status:'已逾期', tech:'张工'},
+
+  {id:'2002989912930779136', policy:'0057a7c0-db0c-11ef-9f2a-0242ac110002', alloc:'已分配',
+   company:'福建建发信息有限公司', industry:'建筑施工', year:'2025',
+   content:'安全风险辨识、评估和评价', fee:'23000',
+   start:'2025-12-23', end:'2025-12-23', org:'中国人寿保险', status:'已逾期', tech:'张工'},
+
+  {id:'2005475827917910020', policy:'0057a7c0-db0c-11ef-9f2a-0242ac110002', alloc:'已分配',
+   company:'厦门海沧石化有限公司', industry:'危险化学品', year:'2025',
+   content:'安全生产宣传教育培训', fee:'12000',
+   start:'2025-11-10', end:'2025-11-15', org:'中国人寿保险', status:'已完成', tech:'张工'},
+
+  {id:'2005475827917910021', policy:'0057a7c0-db0c-11ef-9f2a-0242ac110002', alloc:'已分配',
+   company:'泉州港务集团有限公司', industry:'交通运输', year:'2025',
+   content:'安全生产应急救援演练', fee:'18000',
+   start:'2026-01-08', end:'2026-01-10', org:'中国人寿保险', status:'服务中', tech:'张工'},
+
+  {id:'2005475827917910022', policy:'0057a7c0-db0c-11ef-9f2a-0242ac110002', alloc:'未分配',
+   company:'漳州机械制造有限公司', industry:'机械制造', year:'2026',
+   content:'安全生产应急预案编制', fee:'34000',
+   start:'2026-02-01', end:'2026-02-20', org:'中国人寿保险', status:'待服务', tech:'-'},
+
+  {id:'2005475827917910023', policy:'0057a7c0-db0c-11ef-9f2a-0242ac110002', alloc:'已分配',
+   company:'龙岩矿业股份有限公司', industry:'非煤矿山', year:'2025',
+   content:'安全生产标准化管理体系建设', fee:'45000',
+   start:'2025-10-12', end:'2025-12-12', org:'中国人寿保险', status:'已完成', tech:'张工'}
+];
+
+/* ===== 列定义：列表始终展示全部字段（不随展开/收起变化） ===== */
+const COLS = [
+  {k:'sel',     h:'',             w:36,  cls:'c-sel'},
+  {k:'id',      h:'预防服务ID',    w:170},
+  {k:'policy',  h:'保单号',        w:150, ellip:true},
+  {k:'alloc',   h:'分配状态',      w:90},
+  {k:'company', h:'企业名称',      w:170},
+  {k:'industry',h:'所属行业',      w:90},
+  {k:'year',    h:'计划年度',      w:80},
+  {k:'content', h:'服务内容',      w:160, ellip:true},
+  {k:'fee',     h:'服务费用（元）', w:110},
+  {k:'start',   h:'计划开始日期',  w:110},
+  {k:'end',     h:'计划结束日期',  w:110},
+  {k:'org',     h:'承保机构',      w:110},
+  {k:'status',  h:'服务状态',      w:100},
+  {k:'tech',    h:'服务技术人员',  w:110},
+  {k:'op',      h:'操作',          w:90,  cls:'op'}
+];
+
+let rows = ALL.slice();
+
+function badge(v, cls){ return (v && v !== '-') ? `<span class="badge ${cls}">${esc(v)}</span>` : esc(v == null ? '-' : v); }
+
+function cell(c, r){
+  switch(c.k){
+    case 'sel':    return '<td class="c-sel"><input type="checkbox"></td>';
+    case 'alloc':  return `<td>${badge(r.alloc, 'blue')}</td>`;
+    case 'status': { const m={'已逾期':'red','服务中':'blue','已完成':'green','待服务':'gray'}; return `<td>${badge(r.status, m[r.status] || 'gray')}</td>`; }
+    case 'op': {
+      const prep = r.content === '安全生产应急救援演练'
+        ? `<div><span class="link" onclick="openDrill('${r.id}')">演练准备</span></div>` : '';
+      return `<td class="op">${prep}<span class="link" onclick="detail('${r.id}')">查看详情</span></td>`;
+    }
+    case 'policy': case 'content':
+      return `<td class="c-ellip" title="${esc(r[c.k])}">${esc(r[c.k])}</td>`;
+    default:       return `<td>${esc(r[c.k])}</td>`;
+  }
+}
+
+function renderTable(){
+  const cols = COLS;
+  document.getElementById('cols').innerHTML  = cols.map(c => `<col style="width:${c.w}px">`).join('');
+  document.getElementById('thead').innerHTML = cols.map(c =>
+    `<th${c.cls ? ' class="' + c.cls + '"' : ''}>${c.k === 'sel' ? '<input type="checkbox" onclick="toggleAll(this)">' : esc(c.h)}</th>`).join('');
+  document.getElementById('tbody').innerHTML = rows.length
+    ? rows.map(r => `<tr>${cols.map(c => cell(c, r)).join('')}</tr>`).join('')
+    : `<tr><td class="empty" colspan="${cols.length}">暂无数据</td></tr>`;
+  document.getElementById('total').textContent = rows.length;
+}
+
+/* ===== 查询 / 重置 / 查询条件展开收起 ===== */
+const QIDS = ['q_policy','q_company','q_alloc','q_status','q_year','q_start','q_end'];
+function qv(id){ return (document.getElementById(id).value || '').trim(); }
+
+function filterRows(){
+  const p = qv('q_policy').toLowerCase(), c = qv('q_company').toLowerCase();
+  const alloc = qv('q_alloc'), status = qv('q_status'), year = qv('q_year').slice(0, 4);
+  const start = qv('q_start'), end = qv('q_end');
+  return ALL.filter(r =>
+    (!p || r.policy.toLowerCase().indexOf(p) >= 0) &&
+    (!c || r.company.toLowerCase().indexOf(c) >= 0) &&
+    (!alloc || r.alloc === alloc) &&
+    (!status || r.status === status) &&
+    (!year || r.year === year) &&
+    (!start || (r.start !== '-' && r.start >= start)) &&
+    (!end || (r.end !== '-' && r.end <= end)));
+}
+function doSearch(){ rows = filterRows(); renderTable(); toast('查询完成，共 ' + rows.length + ' 条'); }
+function doReset(){
+  QIDS.forEach(id => { document.getElementById(id).value = ''; });
+  rows = ALL.slice(); renderTable();
+}
+/* 展开/收起仅作用于查询条件，列表始终展示全部字段 */
+function toggleExpand(){
+  const open = document.getElementById('searchCard').classList.toggle('open');
+  document.getElementById('expTxt').textContent = open ? '收起' : '展开';
+  document.getElementById('expBtn').classList.toggle('up', open);
+}
+function toggleAll(el){
+  document.querySelectorAll('#tbody input[type=checkbox]').forEach(x => { x.checked = el.checked; });
+}
+function detail(id){ toast('查看详情：' + id); }
+
+/* ===== 演练准备弹窗 ===== */
+function openDrill(id){
+  document.getElementById('drillForm').reset();
+  document.getElementById('dorgsOther').style.display = 'none';
+  document.getElementById('drillId').textContent = id ? '· ' + id : '';
+  document.getElementById('dmask').classList.add('show');
+}
+function closeDrill(){ document.getElementById('dmask').classList.remove('show'); }
+
+function genWord(){
+  const g = id => (document.getElementById(id).value || '').trim();
+  const getChk = wrap => [...document.querySelectorAll('#' + wrap + ' input:checked')].map(x => x.value);
+  const orgs = getChk('dorgs').filter(v => v !== '其他');
+  const other = g('dorgsOther'); if (other) orgs.push('其他：' + other);
+  const data = [
+    ['演练名称',   g('dname') || '（未填写）'],
+    ['演练目的',   getChk('purpose').join('、') || '（未填写）'],
+    ['演练类型',   (document.querySelector('input[name=dtype]:checked') || {}).value || '（未填写）'],
+    ['演练方式',   (document.querySelector('input[name=dway]:checked') || {}).value || '（未填写）'],
+    ['演练地点',   g('dlocation') || '（未填写）'],
+    ['总指挥',     g('dcommander') || '（未填写）'],
+    ['应急组织架构', orgs.join('、') || '（未填写）'],
+    ['演练流程',   g('dprocess') || '（未填写）'],
+    ['演练场景',   g('dscene') || '（未填写）'],
+    ['演练物资',   g('dmaterial') || '（未填写）']
+  ];
+  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body>';
+  html += '<h1 style="text-align:center">应急演练方案</h1><table border="1" cellspacing="0" cellpadding="6" style="width:100%;border-collapse:collapse;font-size:14px">';
+  data.forEach(([k, v]) => { html += `<tr><td style="width:120px;background:#f2f4f8;font-weight:bold">${k}</td><td>${(v || '').replace(/\n/g, '<br>')}</td></tr>`; });
+  html += '</table></body></html>';
+  const blob = new Blob(['﻿' + html], { type: 'application/msword' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (g('dname') || '演练方案') + '.doc';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('已生成 Word 文档，请编辑后通过上方上传');
+}
+
+function saveDrill(){
+  const g = id => (document.getElementById(id).value || '').trim();
+  const checks = [
+    [[...document.querySelectorAll('#purpose input:checked')].length > 0, '请选择演练目的'],
+    [!!document.querySelector('input[name=dtype]:checked'), '请选择演练类型'],
+    [g('dlocation'), '请填写演练地点'],
+    [!!document.querySelector('input[name=dway]:checked'), '请选择演练方式'],
+    [g('dname'), '请填写演练名称'],
+    [g('dcommander'), '请填写总指挥'],
+    [[...document.querySelectorAll('#dorgs input:checked')].length > 0, '请选择应急组织架构'],
+    [g('dprocess'), '请填写演练流程'],
+    [g('dscene'), '请填写演练场景'],
+    [g('dmaterial'), '请填写演练物资']
+  ];
+  for (const [ok, msg] of checks) { if (!ok) { toast(msg); return; } }
+  if (!document.getElementById('dfile').files[0]) { toast('请上传演练方案 PDF，或先生成 Word 文档后上传'); return; }
+  toast('演练准备已保存（演示）');
+  closeDrill();
+}
+
+/* ===== 初始化（公共组件入口） ===== */
+initTech({
+  bread:['事故预防服务管理'],
+  active:'事故预防服务管理',
+  tabs:['事故预防服务管理'],
+  tabActive:'事故预防服务管理'
+});
+renderTable();
+</script>
+</body>
+</html>

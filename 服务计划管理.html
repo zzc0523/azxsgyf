@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>服务计划管理 · 保险机构端</title>
+<link rel="stylesheet" href="ins-common.css">
+<style>
+  .card{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(20,30,60,.04);}
+
+  /* 查询卡片 */
+  .search{padding:18px 20px;}
+  .sline{display:flex;align-items:center;gap:22px;}
+  .sline+.sline{margin-top:16px;}
+  .sline .fi{flex:1;min-width:0;display:flex;align-items:center;}
+  .sline .fi label{flex:0 0 auto;padding-right:10px;color:#4a5568;white-space:nowrap;}
+  .sline .fi input,.sline .fi select{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
+  .sline .fi input:focus,.sline .fi select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .sline .acts{margin-left:auto;display:flex;align-items:center;gap:10px;flex:0 0 auto;}
+
+  /* 按钮 */
+  .btn{height:32px;padding:0 18px;border-radius:4px;border:1px solid #dfe4ed;background:#fff;color:#3a4354;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
+  .btn:hover{border-color:#c7d0de;}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .btn.primary:hover{background:var(--brand-d);border-color:var(--brand-d);}
+  .btn.link{border:none;background:none;color:var(--brand);padding:0 4px;}
+  .btn.link svg{width:11px;height:11px;transition:.2s;}
+  .btn.link.up svg{transform:rotate(180deg);}
+
+  /* 工具栏 */
+  .toolbar{display:flex;align-items:center;gap:12px;margin:14px 0;}
+
+  /* 表格 */
+  .table-wrap{overflow:hidden;overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:1430px;}
+  thead th{background:#f7f9fc;color:#5d6879;font-weight:600;text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:13px;}
+  tbody td{padding:13px 14px;border-bottom:1px solid var(--line);color:#2b3242;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  tbody tr:hover{background:#f9fbff;}
+  th.ck,td.ck{padding-left:16px;padding-right:0;}
+  input[type=checkbox]{width:14px;height:14px;vertical-align:middle;cursor:pointer;accent-color:var(--brand);}
+  td.op a{color:var(--brand);cursor:pointer;}
+  td.op a:hover{text-decoration:underline;}
+  .empty{text-align:center;color:#9aa3b2;padding:38px 0 !important;}
+  .st{display:inline-block;padding:2px 11px;border-radius:3px;font-size:12px;}
+  .st.pending{color:#3b7cff;background:rgba(59,124,255,.1);}
+  .st.done{color:#2fa96b;background:rgba(47,169,107,.12);}
+
+  /* 分页 */
+  .pager{display:flex;align-items:center;gap:12px;padding:14px 18px;color:#5d6879;font-size:13px;flex-wrap:wrap;}
+  .pager .right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .pager .pgbtn{min-width:30px;height:30px;padding:0 8px;border:1px solid #e2e7f0;border-radius:4px;background:#fff;cursor:pointer;color:#3a4354;font-size:13px;}
+  .pager .pgbtn:hover:not(:disabled){border-color:#c7d0de;}
+  .pager .pgbtn.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .pager .pgbtn:disabled{opacity:.45;cursor:not-allowed;}
+  .pager .sizesel{height:30px;border:1px solid #e2e7f0;border-radius:4px;padding:0 8px;color:#3a4354;background:#fff;}
+  .pager .go input{width:44px;height:30px;border:1px solid #e2e7f0;border-radius:4px;padding:0 6px;text-align:center;}
+
+  /* 弹窗 */
+  .mask{position:fixed;inset:0;background:rgba(15,22,36,.45);display:none;align-items:center;justify-content:center;z-index:50;}
+  .mask.show{display:flex;}
+  .modal{width:min(1040px,96vw);height:min(760px,92vh);background:#fff;border-radius:6px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .mhead{height:52px;flex:0 0 52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);}
+  .mtitle{font-size:15px;font-weight:600;display:flex;align-items:center;gap:9px;}
+  .mtitle::before{content:"";width:3px;height:15px;background:var(--brand);border-radius:2px;}
+  .mclose{font-size:18px;color:#9aa3b2;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;}
+  .mclose:hover{background:#f0f2f7;}
+  .mbody{flex:1;overflow-x:hidden;overflow-y:auto;padding:22px 26px 30px;}
+  .secttl{font-size:14px;color:#5d6879;margin-bottom:20px;font-weight:600;}
+  .form{display:grid;grid-template-columns:1fr 1fr;gap:18px 40px;min-width:0;}
+  .fitem{display:flex;align-items:center;min-width:0;}
+  .fitem.span2{grid-column:1 / -1;}
+  .fitem > label{flex:0 0 158px;width:158px;text-align:right;padding-right:10px;font-size:13px;color:#3a4354;line-height:32px;white-space:nowrap;}
+  .fitem .req{color:#f04438;margin-right:3px;}
+  .fitem input,.fitem select{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
+  .fitem input:focus,.fitem select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .fitem .range{flex:1;display:flex;align-items:center;gap:8px;min-width:0;}
+  .fitem .range input{flex:1;}
+  .fitem .range .sep{color:#8a93a5;flex:0 0 14px;text-align:center;}
+  select:disabled,input:disabled{background:#f5f7fa;border-color:#eef1f6;color:#2b3242;-webkit-text-fill-color:#2b3242;cursor:default;}
+  .mfoot{flex:0 0 60px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 26px;border-top:1px solid var(--line);}
+  .fitem .ctl{flex:1;min-width:0;}
+  .fitem .ctl > input,.fitem .ctl > select,.fitem .ctl > .wd{width:100%;}
+  .fitem.top{align-items:flex-start;}
+  .fitem.top > label{padding-top:8px;line-height:1.5;}
+
+  /* 单选组 */
+  .radios{display:flex;align-items:center;gap:18px;}
+  .pick{display:flex;align-items:center;gap:10px;}
+  .radios label,.pick label{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#2b3242;cursor:pointer;white-space:nowrap;}
+  .radios input,.pick input{width:14px;height:14px;margin:0;accent-color:var(--brand);cursor:pointer;}
+
+  /* 服务项目子表 */
+  .itable{width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;border:1px solid var(--line);border-radius:6px;overflow:hidden;font-size:13px;background:#fff;}
+  .itable thead th{background:#f7f9fc;color:#5d6879;font-weight:600;text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:12.5px;}
+  .itable tbody td{padding:7px 12px;border-bottom:1px solid #eef1f6;color:#2b3242;vertical-align:middle;}
+  .itable tbody tr:last-child td{border-bottom:none;}
+  .itable .rng{display:flex;align-items:center;gap:4px;}
+  .itable .rng input[type=date]{width:100%;min-width:0;flex:1;height:30px;border:1px solid #dfe4ed;border-radius:4px;padding:0 6px;font-size:12px;color:#1f2329;background:#fff;outline:none;}
+  .itable .rng input[type=date]:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .itable .rng i{color:#8a93a5;font-style:normal;flex:0 0 auto;}
+  .itable select{width:100%;height:30px;border:1px solid #dfe4ed;border-radius:4px;padding:0 8px;font-size:12.5px;color:#1f2329;background:#fff;outline:none;}
+  .itable select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .itable select:disabled{background:#f5f7fa;color:#aab2c0;-webkit-text-fill-color:#aab2c0;cursor:default;}
+  .itable .must{display:inline-block;padding:2px 10px;border-radius:3px;font-size:12px;color:#2fa96b;background:rgba(47,169,107,.12);}
+  .itable .no{display:inline-block;padding:2px 10px;border-radius:3px;font-size:12px;color:#9aa3b2;background:rgba(154,163,178,.12);}
+
+  /* 文本域 */
+  .wd{position:relative;}
+  .wd textarea{width:100%;min-height:92px;resize:vertical;border:1px solid #dfe4ed;border-radius:4px;padding:9px 10px;font-size:13px;line-height:1.6;color:#1f2329;background:#fff;outline:none;font-family:inherit;}
+  .wd textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .wd .cnt{position:absolute;right:10px;bottom:8px;font-size:12px;color:#9aa3b2;}
+
+  @media (max-width:1024px){
+    .sline{flex-wrap:wrap;}
+    .sline .fi{flex:1 1 100%;}
+    .sline .acts{margin-left:0;}
+    .form{grid-template-columns:1fr;gap:16px 0;}
+    .fitem > label{flex:0 0 132px;width:132px;}
+  }
+  @media (max-width:768px){
+    .search{padding:14px;}
+    .toolbar{flex-wrap:wrap;}
+    .modal{height:92vh;}
+    .mbody{padding:16px;}
+    .pager .right{width:100%;margin-left:0;justify-content:flex-start;}
+    .itable .rng{flex-wrap:wrap;}
+    .fitem.top > label{flex:0 0 100%;width:100%;text-align:left;padding:0 0 8px;}
+    .fitem.top{align-items:stretch;}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="side">
+    <div class="brand"><i class="logo"><i></i><b></b></i><span>保险机构端</span></div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+
+  <main class="main">
+    <header class="topbar" id="topbar"></header>
+
+    <div class="page">
+      <div class="card search">
+        <div class="sline">
+          <div class="fi"><label>计划年度：</label><input id="q_year" placeholder="请选择计划年度" onkeydown="if(event.key==='Enter')doSearch()"></div>
+          <div class="fi"><label>企业名称：</label><input id="q_company" placeholder="请输入企业名称" onkeydown="if(event.key==='Enter')doSearch()"></div>
+          <div class="acts">
+            <button class="btn primary" onclick="doSearch()">查询</button>
+            <button class="btn" onclick="doReset()">重置</button>
+            <button class="btn link up" id="collapseBtn" onclick="toggleCollapse()">展开<svg viewBox="0 0 16 16"><path d="M4 10l4-4 4 4" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+        </div>
+        <div class="sline" id="more" style="display:none">
+          <div class="fi"><label>状态：</label><select id="q_status">
+            <option value="">请选择</option><option>已确认</option><option>待确认</option>
+          </select></div>
+          <div class="fi"><label>是否大中型被保险人：</label><select id="q_big">
+            <option value="">请选择</option><option>是</option><option>否</option>
+          </select></div>
+          <div class="acts"></div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn primary" onclick="openCreate()">创建计划</button>
+        <button class="btn primary" onclick="doExport()">导出</button>
+      </div>
+
+      <div class="card table-wrap">
+        <table>
+          <colgroup>
+            <col style="width:40px"><col style="width:150px"><col style="width:60px"><col style="width:137px">
+            <col style="width:72px"><col style="width:130px"><col style="width:60px"><col style="width:130px">
+            <col style="width:130px"><col style="width:98px"><col style="width:98px"><col style="width:52px">
+          </colgroup>
+          <thead><tr>
+            <th class="ck"><input type="checkbox" id="checkAll" onchange="checkAllRows(this.checked)"></th>
+            <th>企业名称</th><th>行业</th><th>是否大中型被保险人</th>
+            <th>计划年度</th><th>服务项目</th><th>状态</th><th>保单号</th>
+            <th>服务地址</th><th>计划开始日期</th><th>计划结束日期</th><th>操作</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="pager" id="pager"></div>
+    </div>
+  </main>
+</div>
+
+<!-- 弹窗 -->
+<div class="mask" id="mask">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle" id="mtitle">新增服务计划</div>
+      <div class="mclose" onclick="closeModal()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="form" id="form">
+        <div class="fitem"><label><i class="req">*</i>选择服务企业：</label>
+          <div class="ctl"><select id="f_company" onchange="onCompanyChange()"><option value="">请选择</option></select></div>
+        </div>
+        <div class="fitem"><label><i class="req">*</i>选择保单号：</label>
+          <div class="ctl"><select id="f_policy"><option value="">请选择</option></select></div>
+        </div>
+        <div class="fitem"><label><i class="req">*</i>是否大中型被保险人：</label>
+          <div class="ctl"><div class="radios" id="f_bigbox">
+            <label><input type="radio" name="f_big" value="是" onchange="onBigChange()">是</label>
+            <label><input type="radio" name="f_big" value="否" onchange="onBigChange()">否</label>
+          </div></div>
+        </div>
+        <div class="fitem"><label><i class="req">*</i>计划年度：</label>
+          <div class="ctl"><select id="f_year"></select></div>
+        </div>
+        <div class="fitem top span2"><label><i class="req">*</i>所需服务项目：</label>
+          <div class="ctl">
+            <table class="itable">
+              <colgroup><col style="width:30%"><col style="width:13%"><col style="width:35%"><col style="width:22%"></colgroup>
+              <thead><tr><th>服务内容</th><th>是否必做</th><th>服务时间</th><th>服务频次（次/年/保单）</th></tr></thead>
+              <tbody id="itbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="fitem top span2" style="margin-bottom:0"><label><i class="req">*</i>服务说明：</label>
+          <div class="ctl"><div class="wd"><textarea id="f_remark" maxlength="200" placeholder="请输入" oninput="cntRemark()"></textarea><span class="cnt" id="remarkCnt">0/200</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="mfoot" id="mfoot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="ins-common.js"></script>
+<script>
+/* ===== 枚举/字典 ===== */
+const YEARS=['2024','2025','2026','2027','2028','2029','2030'];
+const FREQ=[0,1];
+const COMPANIES=[
+  {name:'福建厦发信息有限公司',industry:'建筑施工',addr:'福州鼓楼中闽大厦'},
+  {name:'福建金牛山建设集团有限公司',industry:'制造业',addr:'福州金牛山'},
+  {name:'福州东街建设工程有限公司',industry:'交通运输',addr:'福州鼓楼区东街中闽大厦B座'},
+  {name:'福建闽通矿业有限公司',industry:'矿山',addr:'福州马尾区罗星塔路'},
+  {name:'福建华信化工有限公司',industry:'危险化学品',addr:'福州长乐区金峰镇'},
+  {name:'福建恒安机械制造有限公司',industry:'制造业',addr:'福州晋安区福新中路'}
+];
+const POLICIES=[
+  {no:'b732e94a-d9ff-1110-ae43-3f8a5d0e1c21',company:'福建厦发信息有限公司'},
+  {no:'986bb439-e52b-1110-ae43-2c7d1f0a9b33',company:'福建厦发信息有限公司'},
+  {no:'0b57a7cc-dbcc-1110-ae43-9e2f4a6c8d10',company:'福建厦发信息有限公司'},
+  {no:'3d9f1b62-77aa-1110-ae43-5b1c8e2d4f70',company:'福建金牛山建设集团有限公司'},
+  {no:'7c1e5a90-4b33-1110-ae43-8d2f6c0a1e45',company:'福州东街建设工程有限公司'},
+  {no:'a1c8e3f4-9d21-1110-ae43-6a3b7e5c2d80',company:'福建闽通矿业有限公司'},
+  {no:'5e7b2d18-6f44-1110-ae43-1c9d3a8b6e02',company:'福建华信化工有限公司'}
+];
+/* 事故预防服务项目：must=固定必做；either=二选一；no=默认否 */
+const SERVICE_ITEMS=[
+  {key:'train',name:'安全生产宣传教育培训',type:'must'},
+  {key:'trouble',name:'生产安全重大事故隐患排查',type:'either'},
+  {key:'risk',name:'安全风险辨识、评估、评价',type:'either'},
+  {key:'drill',name:'安全生产应急救援演练',type:'no'},
+  {key:'plan',name:'安全生产应急预案编制',type:'no'},
+  {key:'std',name:'安全生产标准化管理体系建设',type:'no'}
+];
+function fillSelect(id,arr,sel){$(id).innerHTML='<option value="">请选择</option>'+arr.map(o=>`<option ${String(o)===String(sel)?'selected':''}>${o}</option>`).join('');}
+function setSelectValue(sel,value){
+  if(!value)return;
+  if(![...sel.options].some(o=>o.value===value)){const o=document.createElement('option');o.value=value;o.textContent=value;sel.appendChild(o);}
+  sel.value=value;
+}
+
+/* ===== 数据 ===== */
+const POL=['b732e94a-d9ff-1110-ae43-3f8a5d0e1c21','986bb439-e52b-1110-ae43-2c7d1f0a9b33','0b57a7cc-dbcc-1110-ae43-9e2f4a6c8d10'];
+const ADDR=['福州鼓楼中闽大厦','福州金牛山','福州鼓楼区东街中闽大厦B座'];
+const PROJ=['安全生产宣传教育培训,安全生产标准化管理体系建设','安全生产宣传教育培训,安全风险辨识、评估、评价','安全生产宣传教育培训,生产安全重大事故隐患排查'];
+const DATES=[['2026-01-04','2026-01-16'],['2026-01-01','2026-01-24'],['2025-12-31','2026-01-20'],['2025-12-31','2026-01-02'],['2025-12-31','2026-01-13'],['2025-12-30','2026-01-15'],['2025-12-27','2026-01-02'],['2025-12-27','2026-01-31'],['2025-12-26','2026-01-15'],['2025-12-26','2025-12-31']];
+const BIG=[false,true,true,true,true,true,false,true,true,false];
+function seed(){
+  const out=[];
+  for(let i=0;i<27;i++){
+    const d=DATES[i%10];
+    out.push({company:'福建厦发信息有限公司',industry:'建筑施工',big:BIG[i%10],year:'2025',project:PROJ[i%3],
+      status:'已确认',policy:POL[i%3],addr:ADDR[i%3],start:d[0],end:d[1]});
+  }
+  return out;
+}
+let DATA=[];
+function load(){try{const s=localStorage.getItem('ins_plans');if(s){const a=JSON.parse(s);if(Array.isArray(a)&&a.length)return a;}}catch(e){}return seed();}
+function save(){try{localStorage.setItem('ins_plans',JSON.stringify(DATA));}catch(e){}}
+DATA=load();
+
+/* ===== 查询/分页/渲染 ===== */
+let state={page:1,size:10,q:{year:'',company:'',status:'',big:''}};
+function filtered(){
+  const {year,company,status,big}=state.q;
+  return DATA.filter(r=>(!year||String(r.year||'').includes(year))
+    &&(!company||(r.company||'').toLowerCase().includes(company))
+    &&(!status||r.status===status)
+    &&(!big||(r.big?'是':'否')===big));
+}
+function stCls(s){return s==='已确认'?'done':'pending';}
+function doSearch(){
+  state.q={year:$('#q_year').value.trim().toLowerCase(),company:$('#q_company').value.trim().toLowerCase(),
+    status:$('#q_status').value,big:$('#q_big').value};
+  state.page=1;renderTable();
+}
+function doReset(){
+  $('#q_year').value='';$('#q_company').value='';$('#q_status').value='';$('#q_big').value='';
+  state.q={year:'',company:'',status:'',big:''};state.page=1;renderTable();
+}
+let moreShown=false;
+function toggleCollapse(){
+  moreShown=!moreShown;
+  $('#more').style.display=moreShown?'flex':'none';
+  const b=$('#collapseBtn');
+  b.classList.toggle('up',!moreShown);
+  b.firstChild.textContent=moreShown?'收起':'展开';
+}
+function doExport(){
+  const n=filtered().length;
+  toast(n?('已导出 '+n+' 条服务计划'):'暂无可导出数据');
+}
+function setSize(v){state.size=+v;state.page=1;renderTable();}
+function gotoPage(p){state.page=p;renderTable();}
+function checkAllRows(on){
+  document.querySelectorAll('#tbody input[type=checkbox]').forEach(c=>{c.checked=on;});
+}
+
+function renderTable(){
+  const rows=filtered();const total=rows.length,size=state.size;
+  const pages=Math.max(1,Math.ceil(total/size));
+  if(state.page>pages)state.page=pages;
+  const start=(state.page-1)*size;const cur=rows.slice(start,start+size);
+  const ck=$('#checkAll'); if(ck) ck.checked=false;
+  $('#tbody').innerHTML=cur.length?cur.map((r,i)=>{
+    const idx=DATA.indexOf(r);
+    return `<tr>
+      <td class="ck"><input type="checkbox" onclick="event.stopPropagation()"></td>
+      <td title="${esc(r.company)}">${esc(r.company)}</td>
+      <td>${esc(r.industry)}</td>
+      <td>${r.big?'是':'否'}</td>
+      <td>${esc(r.year)}</td>
+      <td title="${esc(r.project)}">${esc(r.project)}</td>
+      <td><span class="st ${stCls(r.status)}">${esc(r.status)}</span></td>
+      <td title="${esc(r.policy)}">${esc(r.policy)}</td>
+      <td title="${esc(r.addr)}">${esc(r.addr)}</td>
+      <td>${esc(r.start||'-')}</td>
+      <td>${esc(r.end||'-')}</td>
+      <td class="op"><a onclick="openDetail(${idx})">详情</a></td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="12" class="empty">暂无数据</td></tr>`;
+  renderPager(total,pages,start,cur.length);
+}
+function renderPager(total,pages,start,cnt){
+  let pg='';const cur=state.page;const wS=Math.max(1,cur-2),wE=Math.min(pages,cur+2);
+  for(let i=wS;i<=wE;i++)pg+=`<button class="pgbtn ${i===cur?'on':''}" onclick="gotoPage(${i})">${i}</button>`;
+  $('#pager').innerHTML=
+    `<span>共 ${total} 条</span>`+
+    `<span class="right">`+
+      `<select class="sizesel" onchange="setSize(this.value)">${[10,20,50].map(n=>`<option ${n===state.size?'selected':''}>${n}</option>`).join('')}</select><span>条/页</span>`+
+      `<button class="pgbtn" onclick="gotoPage(${Math.max(1,cur-1)})" ${cur===1?'disabled':''}>‹</button>`+
+      pg+
+      `<button class="pgbtn" onclick="gotoPage(${Math.min(pages,cur+1)})" ${cur===pages?'disabled':''}>›</button>`+
+      `<span class="go">前往<input type="number" min="1" max="${pages}" value="${cur}" onchange="gotoPage(Math.min(${pages},Math.max(1,+this.value||1)))">页</span>`+
+    `</span>`;
+}
+
+/* ===== 弹窗 ===== */
+const FORM={big:false,req:{},freq:{}};
+let locked=false;
+function val(id){return $('#'+id).value.trim();}
+function setLocked(lock){
+  locked=lock;
+  ['f_company','f_policy','f_year','f_remark'].forEach(id=>{$('#'+id).disabled=lock;});
+  document.querySelectorAll('#f_bigbox input,#itbody input,#itbody select').forEach(e=>{e.disabled=lock;});
+  if(!lock)syncItems();
+}
+function closeModal(){$('#mask').classList.remove('show');}
+$('#mask').addEventListener('click',e=>{if(e.target===$('#mask'))closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+function resetReq(){SERVICE_ITEMS.forEach(it=>{FORM.req[it.key]=it.type==='must';FORM.freq[it.key]=it.type==='must'?1:0;});}
+function isReq(k){return !!FORM.req[k];}
+function cntRemark(){$('#remarkCnt').textContent=$('#f_remark').value.length+'/200';}
+function renderItems(){
+  $('#itbody').innerHTML=SERVICE_ITEMS.map(it=>{
+    const req=isReq(it.key);
+    let must;
+    if(it.type==='must'){
+      must='<span class="must">是</span>';
+    }else if(it.type==='no'||!FORM.big){
+      must='<span class="no">否</span>';
+    }else{
+      must=`<div class="pick">
+        <label><input type="radio" name="pk_${it.key}" value="1" ${req?'checked':''} onchange="pickEither('${it.key}',true)">是</label>
+        <label><input type="radio" name="pk_${it.key}" value="0" ${req?'':'checked'} onchange="pickEither('${it.key}',false)">否</label>
+      </div>`;
+    }
+    return `<tr>
+      <td>${esc(it.name)}</td>
+      <td>${must}</td>
+      <td><div class="rng"><input type="date" id="s_${it.key}" title="开始时间"><i>-</i><input type="date" id="e_${it.key}" title="结束时间"></div></td>
+      <td><select id="f_${it.key}" onchange="onFreq('${it.key}',this.value)">${FREQ.map(n=>`<option ${n===FORM.freq[it.key]?'selected':''}>${n}</option>`).join('')}</select></td>
+    </tr>`;
+  }).join('');
+}
+function syncItems(){
+  SERVICE_ITEMS.forEach(it=>{
+    const sel=$('#f_'+it.key);
+    if(sel){ sel.disabled=false; sel.value=String(FORM.freq[it.key]); }
+    if(it.type==='either'&&FORM.big){
+      const y=document.querySelector(`input[name="pk_${it.key}"][value="1"]`);
+      const n=document.querySelector(`input[name="pk_${it.key}"][value="0"]`);
+      if(y&&n){y.checked=FORM.req[it.key];n.checked=!FORM.req[it.key];}
+    }
+  });
+}
+function onFreq(key,v){FORM.freq[key]=+v;}
+function redrawItems(){
+  const keep={};
+  SERVICE_ITEMS.forEach(it=>{keep[it.key]={s:val('s_'+it.key),e:val('e_'+it.key)};});
+  renderItems();
+  SERVICE_ITEMS.forEach(it=>{
+    if(keep[it.key].s)$('#s_'+it.key).value=keep[it.key].s;
+    if(keep[it.key].e)$('#e_'+it.key).value=keep[it.key].e;
+  });
+  syncItems();setLocked(locked);
+}
+function onBigChange(){
+  const v=(document.querySelector('input[name=f_big]:checked')||{}).value;
+  FORM.big=(v==='是');
+  if(FORM.big&&FORM.freq.trouble<1&&FORM.freq.risk<1){FORM.req.risk=true;FORM.freq.risk=1;}
+  redrawItems();
+}
+function pickEither(key,yes){
+  FORM.req[key]=yes;FORM.freq[key]=yes?1:0;
+  if(yes)SERVICE_ITEMS.forEach(it=>{if(it.type==='either'&&it.key!==key){FORM.req[it.key]=false;FORM.freq[it.key]=0;}});
+  syncItems();
+}
+function onCompanyChange(){fillPolicySelect('');}
+function fillPolicySelect(cur){
+  const c=$('#f_company').value;
+  const list=POLICIES.filter(p=>!c||p.company===c);
+  const sel=$('#f_policy');
+  sel.innerHTML='<option value="">请选择</option>'+list.map(p=>`<option value="${p.no}">${p.no}</option>`).join('');
+  if(cur)setSelectValue(sel,cur);
+}
+function fillForm(r){
+  r=r||{};
+  fillSelect('#f_company',COMPANIES.map(c=>c.name),'');
+  setSelectValue($('#f_company'),r.company||'');
+  fillPolicySelect(r.policy||'');
+  FORM.big=!!r.big;
+  const rb=document.querySelector(`input[name=f_big][value="${FORM.big?'是':'否'}"]`);
+  if(rb)rb.checked=true;
+  resetReq();
+  (r.items||[]).forEach(i=>{const it=SERVICE_ITEMS.find(x=>x.name===i.name);if(it){FORM.req[it.key]=true;FORM.freq[it.key]=+i.freq||1;}});
+  fillSelect('#f_year',YEARS,r.year||'2026');
+  renderItems();
+  (r.items||[]).forEach(i=>{
+    const it=SERVICE_ITEMS.find(x=>x.name===i.name);if(!it)return;
+    if(i.start)$('#s_'+it.key).value=i.start;
+    if(i.end)$('#e_'+it.key).value=i.end;
+    if(i.freq!==undefined)$('#f_'+it.key).value=String(i.freq);
+  });
+  $('#f_remark').value=r.remark||'';
+  cntRemark();
+  syncItems();
+}
+function openDetail(i){
+  fillForm(DATA[i]);
+  setLocked(true);
+  $('#mtitle').textContent='服务计划详情';
+  $('#mfoot').innerHTML='<button class="btn primary" onclick="closeModal()">关闭</button>';
+  $('#mask').classList.add('show');
+}
+function openCreate(){
+  fillForm({big:false,year:'2026'});
+  setLocked(false);
+  $('#mtitle').textContent='新增服务计划';
+  $('#mfoot').innerHTML='<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveCreate()">确定</button>';
+  $('#mask').classList.add('show');
+}
+function saveCreate(){
+  if(!val('f_company'))return toast('请选择服务企业');
+  if(!val('f_policy'))return toast('请选择保单号');
+  if(!document.querySelector('input[name=f_big]:checked'))return toast('请选择是否为大中型被保险人');
+  if(!val('f_year'))return toast('请选择计划年度');
+  if(FORM.big&&FORM.freq.trouble<1&&FORM.freq.risk<1)return toast('大中型被保险人需在「安全风险辨识、评估、评价」与「生产安全重大事故隐患排查」中二选一必做');
+  for(const it of SERVICE_ITEMS){
+    const f=FORM.freq[it.key]||0;
+    if(f<1)continue;
+    const s=val('s_'+it.key),e=val('e_'+it.key);
+    if((s&&!e)||(!s&&e))return toast('「'+it.name+'」服务时间需完整填写开始与结束时间');
+    if(s&&e&&e<s)return toast('「'+it.name+'」结束时间不能早于开始时间');
+  }
+  if(!val('f_remark'))return toast('请输入服务说明');
+  const company=val('f_company'),co=COMPANIES.find(c=>c.name===company)||{};
+  const items=SERVICE_ITEMS.filter(it=>(FORM.freq[it.key]||0)>=1).map(it=>({name:it.name,start:val('s_'+it.key),end:val('e_'+it.key),freq:FORM.freq[it.key]}));
+  const ds=items.map(i=>i.start).filter(Boolean).sort();
+  const de=items.map(i=>i.end).filter(Boolean).sort();
+  DATA.unshift({
+    company,industry:co.industry||'-',big:FORM.big,year:val('f_year'),
+    project:items.map(i=>i.name).join('、'),status:'待确认',policy:val('f_policy'),addr:co.addr||'-',
+    start:ds[0]||'',end:de[de.length-1]||'',remark:val('f_remark'),items
+  });
+  save();state.page=1;closeModal();renderTable();toast('服务计划创建成功');
+}
+
+/* ===== 初始化 ===== */
+initIns({bread:['事故预防服务管理','服务计划管理'], active:'服务计划管理'});
+renderTable();
+</script>
+</body>
+</html>

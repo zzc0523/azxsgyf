@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>现场评分</title>
+<style>
+  :root{--blue:#2b5ce6;--blue-d:#1f49c4;--text:#1f2329;--sub:#9aa0ad;--val:#3a4050;--bg:#f4f6fb;--line:#eef0f5;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:20}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.22;z-index:30}
+
+  .header{flex:none;position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 100%);color:#fff;z-index:10}
+  .header::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent) 90% 40%/200px 130px no-repeat,
+               radial-gradient(closest-side,rgba(255,255,255,.10),transparent) 6% 90%/170px 110px no-repeat}
+  .statusbar{position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .navbar{position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:2px 16px 4px;height:46px}
+  .back{width:26px;height:26px;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
+  .navtitle{font-size:17px;font-weight:700;letter-spacing:.5px}
+
+  .body{flex:1;overflow-y:auto;padding-bottom:8px}
+  .body::-webkit-scrollbar{display:none}
+  .card{background:#fff;border-radius:14px;margin:0 16px;padding:4px 16px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .sec{font-size:15px;font-weight:700;color:var(--text);padding:16px 16px 8px;display:flex;align-items:center}
+  .sec::before{content:"";width:3px;height:15px;background:var(--blue);border-radius:2px;margin-right:8px}
+
+  .info .frow{display:flex;padding:9px 0;border:none;font-size:13.5px;line-height:1.5}
+  .info .k{color:#8b91a0;flex:none}
+  .info .v{color:#1f2329;font-weight:600;flex:1;min-width:0;word-break:break-word}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid #dde2ec;color:#5b6472;background:#fff;padding:6px 14px;border-radius:18px;font-size:13px;cursor:pointer;transition:.12s}
+  .chip.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:500}
+
+  /* 评分项 */
+  .sitem{display:flex;gap:10px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .sitem:last-child{border-bottom:none}
+  .sno{flex:none;width:20px;height:20px;border-radius:50%;background:#eef2fb;color:var(--blue);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:2px}
+  .sbody{flex:1;min-width:0}
+  .stitle{font-size:13.5px;color:var(--text);line-height:1.6;font-weight:500}
+  .smeta{font-size:12px;color:var(--blue);background:#f4f7fe;display:inline-block;padding:2px 8px;border-radius:6px;margin-top:7px}
+  .sway{font-size:12px;color:var(--sub);line-height:1.6;margin-top:7px}
+  .srow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px}
+  .sdeduct{display:flex;align-items:center;gap:6px;font-size:13px;color:#5b6472}
+  .sdeduct input{width:62px;height:32px;border:1px solid #dde2ec;border-radius:7px;text-align:center;font-size:14px;outline:none}
+  .hazard-btn{margin-top:10px;width:100%;height:34px;border:1px dashed #efb0b3;border-radius:8px;background:#fdf5f5;color:#e5484d;font-size:13px;cursor:pointer}
+  .hide{display:none}
+
+  /* 隐患查看入口 */
+  .hz{display:flex;align-items:center;justify-content:space-between;padding:11px 0;cursor:pointer;border-radius:8px;transition:background .12s}
+  .hz:active{background:#f7f9fd}
+  .hz .t{color:var(--text);font-size:13.5px;font-weight:500}
+  .hz .r{display:flex;align-items:center;gap:8px}
+  .hz .n{color:#e5484d;font-size:16px;font-weight:700;line-height:1}
+  .hz .g{color:#bcc3d0;font-size:16px}
+
+  .calc{background:#f7f9fd;border:1px solid #eceff6;border-radius:10px;padding:12px}
+  .calc .line{font-size:13px;color:#5b6472;margin:7px 0}
+  .calc .line b{color:var(--blue);font-size:15px}
+  .calc .line.total b{color:#1f2329}
+
+  .footer{flex:none;padding:10px 16px 24px;background:var(--bg);display:flex;gap:10px}
+  .btn-ghost{flex:1;height:46px;border:1px solid #dfe3ec;background:#fff;border-radius:10px;color:#6b7280;font-size:15px;cursor:pointer}
+  .btn-main{flex:1.4;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
+
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:40;display:none;max-width:74%;text-align:center;line-height:1.6}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/></svg>
+      </span>
+    </div>
+    <div class="navbar"><div class="back" onclick="history.back()">‹</div><div class="navtitle">现场评分</div></div>
+  </div>
+
+  <div class="body" id="body"></div>
+
+  <div class="footer">
+    <button class="btn-ghost" onclick="history.back()">返回</button>
+    <button class="btn-main" onclick="saveScore()">保存评分</button>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const q = new URLSearchParams(location.search);
+const ORDER   = q.get('no') || 'YF2131900';
+const PROJECT = q.get('project') || '安全生产标准化管理体系建设';
+const TABLE   = q.get('name') || '安全管理类评分表';
+const COMPANY = '福州无比欢信息科技有限公司';
+
+/* 评分项（演示数据；实际由服务准备阶段在电脑端编辑上传的行业评分表引用） */
+function seedItems(){
+  return [
+    {l1:'1 目标职责',l2:'1.1 目标',crit:'1.1.1 建立安全生产和职业健康目标的管理制度，明确目标与指标的制定、分解、实施、检查、考核等环节内容。',score:2,way:'制度未正式发布生效的，不得分；缺少环节内容的，发现一项扣1分，发现两项不得分。'},
+    {l1:'1 目标职责',l2:'1.1 目标',crit:'1.1.2 制定文件化的总体和年度安全生产与职业健康目标，并纳入企业总体生产经营目标。',score:2,way:'目标未正式发布生效的，不得分；仅有结果性指标无过程性指标的，扣1分。'},
+    {l1:'1 目标职责',l2:'1.1 目标',crit:'1.1.3 根据所属基层单位和部门职能，将目标分解为指标，签订各层级目标责任书，制定实施计划和考核办法并定期考核。',score:4,way:'未分解目标的，发现一处扣1分，发现两处不得分；未分解至班组的，发现一处扣1分。'},
+    {l1:'1 目标职责',l2:'1.2 机构设置',crit:'1.2.1 按规定设置安全生产和职业健康管理机构，配备专职管理人员。',score:3,way:'未设置机构的不得分；未配备专职管理人员的，扣2分。'},
+    {l1:'2 制度化管理',l2:'2.1 法规标准',crit:'2.1.1 建立识别和获取适用的安全生产和职业健康法律法规、标准规范的制度。',score:2,way:'未建立制度的不得分；未及时更新法规标准清单的，扣1分。'},
+    {l1:'2 制度化管理',l2:'2.2 规章制度',crit:'2.2.1 建立健全安全生产和职业健康规章制度，并发放到相关工作岗位。',score:3,way:'规章制度缺失的，每缺一项扣1分；未发放到相关岗位的，发现一处扣1分。'},
+    {l1:'3 教育培训',l2:'3.1 培训计划',crit:'3.1.1 制定年度安全生产教育培训计划并覆盖全员。',score:3,way:'无计划的不得分；计划未覆盖全员的，扣1分。'},
+    {l1:'3 教育培训',l2:'3.2 人员培训',crit:'3.2.1 主要负责人、安全管理人员、特种作业人员持证上岗。',score:4,way:'发现一人未持证上岗扣2分，发现两人不得分。'}
+  ];
+}
+let ITEMS = seedItems();
+ITEMS.forEach(it=>{ it.state='无问题'; it.deduct=0; });
+
+function render(){
+  const list = ITEMS.map((it,i)=>`
+    <div class="sitem">
+      <div class="sno">${i+1}</div>
+      <div class="sbody">
+        <div class="stitle">${it.crit}</div>
+        <div class="smeta">${it.l1} › ${it.l2} · 标准分值 ${it.score} 分</div>
+        <div class="sway">评分方式：${it.way}</div>
+        <div class="srow">
+          <div class="chips" data-kind="single" data-idx="${i}">
+            <span class="chip ${it.state==='无问题'?'on':''}">无问题</span>
+            <span class="chip ${it.state==='有问题'?'on':''}">有问题</span>
+          </div>
+          <div class="sdeduct ${it.state==='有问题'?'':'hide'}" data-deduct="${i}">
+            扣分 <input type="number" min="0" step="0.5" value="${it.deduct}" oninput="onDeduct(${i},this.value)">
+          </div>
+        </div>
+        <button class="hazard-btn ${it.state==='有问题'?'':'hide'}" data-haz="${i}" onclick="addHazard(${i})">＋ 新增隐患</button>
+      </div>
+    </div>`).join('');
+
+  const total  = ITEMS.reduce((s,x)=>s+ (+x.score||0), 0);
+  const deduct = ITEMS.reduce((s,x)=>s+ (+x.deduct||0), 0);
+  const score  = Math.max(0, total - deduct);
+  const pct    = total>0 ? (score/total*100) : 0;
+
+  document.getElementById('body').innerHTML = `
+    <div class="sec">评分表信息</div>
+    <div class="card info">
+      <div class="frow"><span class="k">预防服务工单：</span><span class="v">${ORDER}</span></div>
+      <div class="frow"><span class="k">企业名称：</span><span class="v">${COMPANY}</span></div>
+      <div class="frow"><span class="k">服务项目：</span><span class="v">${PROJECT}</span></div>
+      <div class="frow"><span class="k">评分表：</span><span class="v">${TABLE}</span></div>
+    </div>
+
+    <div class="sec">评分汇总</div>
+    <div class="card"><div class="calc">
+      <div class="line total">标准总分：<b id="cTotal">${total}</b> 分</div>
+      <div class="line">累计扣分：<b id="cDeduct">${deduct}</b> 分</div>
+      <div class="line">评定得分 = 标准总分 − 扣除分 → <b id="cScore">${score}</b></div>
+      <div class="line">百分制总分 = 评定得分 ÷ 标准总分 × 100 → <b id="cPct">${pct.toFixed(1)}</b> 分</div>
+    </div></div>
+
+    <div class="sec">隐患</div>
+    <div class="card"><div class="hz" onclick="goHazards()">
+      <div class="t">隐患总数</div>
+      <div class="r"><span class="n">${hazardCount()}</span><span class="g">›</span></div>
+    </div></div>
+
+    <div class="sec">评分项（共 ${ITEMS.length} 项）</div>
+    <div class="card">${list}</div>`;
+}
+
+function calc(){
+  const total  = ITEMS.reduce((s,x)=>s+ (+x.score||0), 0);
+  const deduct = ITEMS.reduce((s,x)=>s+ (+x.deduct||0), 0);
+  const score  = Math.max(0, total - deduct);
+  const pct    = total>0 ? (score/total*100) : 0;
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  set('cTotal', total); set('cDeduct', deduct); set('cScore', score); set('cPct', pct.toFixed(1));
+}
+function onDeduct(i,v){
+  ITEMS[i].deduct = Math.max(0, +v||0);
+  calc();
+}
+
+document.addEventListener('click', e=>{
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  const box = chip.closest('.chips'); if(!box) return;
+  const i = +box.dataset.idx;
+  box.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
+  chip.classList.add('on');
+  ITEMS[i].state = chip.textContent.trim();
+  if(ITEMS[i].state !== '有问题') ITEMS[i].deduct = 0;
+  render(); calc();
+  if(ITEMS[i].state === '有问题'){
+    const inp = document.querySelector('[data-deduct="'+i+'"] input');
+    if(inp) inp.value = ITEMS[i].deduct;
+  }
+});
+
+function addHazard(i){
+  location.href = '新增隐患_生产安全重大事故隐患排查.html?no=' + encodeURIComponent(ORDER)
+                + '&project=' + encodeURIComponent(PROJECT);
+}
+function hazardCount(){ try{ return Math.max(0, +localStorage.getItem('hazardcount_'+PROJECT) || 0); }catch(e){ return 0; } }
+function goHazards(){
+  location.href = '隐患列表.html?no=' + encodeURIComponent(ORDER)
+                + '&project=' + encodeURIComponent(PROJECT);
+}
+
+/* 保存：标记该评分表已完成，返回服务登记页 */
+function saveScore(){
+  try{
+    const key = 'score_' + PROJECT;
+    const list = JSON.parse(localStorage.getItem(key) || '[]');
+    const it = list.filter(x=>x.name === TABLE)[0];
+    if(it){ it.done = true; localStorage.setItem(key, JSON.stringify(list)); }
+  }catch(e){}
+  toast('评分已保存');
+  setTimeout(()=>history.back(), 700);
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1600);}
+
+render();
+calc();
+</script>
+</body>
+</html>

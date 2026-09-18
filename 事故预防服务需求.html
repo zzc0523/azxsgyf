@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>事故预防服务需求 · 保险机构端</title>
+<link rel="stylesheet" href="ins-common.css">
+<style>
+  .card{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(20,30,60,.04);}
+  /* 查询卡片 */
+  .search{padding:18px 20px;margin-bottom:14px;}
+  .fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+  .fi{display:flex;align-items:center;}
+  .fi label{width:104px;flex:0 0 104px;text-align:right;padding-right:10px;color:#4a5568;white-space:nowrap;}
+  .fi input,.fi select{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
+  .fi input:focus,.fi select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .acts{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap;}
+  .spacer{flex:1;}
+  .btn{height:32px;padding:0 18px;border-radius:4px;border:1px solid #dfe4ed;background:#fff;color:#3a4354;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
+  .btn:hover{border-color:#c7d0de;}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .btn.primary:hover{background:var(--brand-d);border-color:var(--brand-d);}
+  .btn.link{border:none;background:none;color:#7c8aa0;padding:0 4px;}
+  .btn.link svg{width:11px;height:11px;transition:.2s;}
+  .btn.link.up svg{transform:rotate(180deg);}
+
+  /* 表格卡片工具条 */
+  .tbar{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);}
+  .tbar .spacer{flex:1;}
+  .btn.icon{width:32px;padding:0;justify-content:center;font-size:15px;}
+
+  /* 表格 */
+  .table-wrap{overflow:hidden;overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:1460px;}
+  thead th{background:#f7f9fc;color:#5d6879;font-weight:600;text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:13px;}
+  tbody td{padding:13px 14px;border-bottom:1px solid var(--line);color:#2b3242;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  tbody tr:hover{background:#f9fbff;}
+  th.op,td.op a{color:var(--brand);cursor:pointer;}
+  td.op a:hover{text-decoration:underline;}
+  td.op a+a{margin-left:10px;}
+  td.ck,th.ck{text-align:center;}
+  input[type=checkbox]{width:15px;height:15px;cursor:pointer;}
+  .empty{text-align:center;color:#9aa3b2;padding:38px 0 !important;}
+  .st{display:inline-block;padding:2px 11px;border-radius:3px;font-size:12px;}
+  .st.done{color:#2fa96b;background:rgba(47,169,107,.12);}
+  .st.idle{color:#5d6879;background:#eef1f6;}
+
+  /* 分页 */
+  .pager{display:flex;align-items:center;gap:12px;padding:14px 18px;color:#5d6879;font-size:13px;flex-wrap:wrap;}
+  .pager .right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .pager .pgbtn{min-width:30px;height:30px;padding:0 8px;border:1px solid #e2e7f0;border-radius:4px;background:#fff;cursor:pointer;color:#3a4354;font-size:13px;}
+  .pager .pgbtn:hover:not(:disabled){border-color:#c7d0de;}
+  .pager .pgbtn.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .pager .pgbtn:disabled{opacity:.45;cursor:not-allowed;}
+  .pager .sizesel{height:30px;border:1px solid #e2e7f0;border-radius:4px;padding:0 8px;color:#3a4354;background:#fff;}
+  .pager .go input{width:44px;height:30px;border:1px solid #e2e7f0;border-radius:4px;padding:0 6px;text-align:center;}
+
+  /* ===== 弹窗 ===== */
+  .mask{position:fixed;inset:0;background:rgba(15,22,36,.45);display:none;align-items:center;justify-content:center;z-index:50;}
+  .mask.show{display:flex;}
+  .modal{width:min(1120px,94vw);max-height:88vh;background:#fff;border-radius:6px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .modal.sm{width:min(540px,94vw);}
+  .mhead{height:52px;flex:0 0 52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);}
+  .mtitle{font-size:15px;font-weight:600;display:flex;align-items:center;gap:9px;}
+  .mtitle::before{content:"";width:3px;height:15px;background:var(--brand);border-radius:2px;}
+  .mclose{font-size:18px;color:#9aa3b2;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;}
+  .mclose:hover{background:#f0f2f7;}
+  .mbody{flex:1;overflow:auto;padding:22px 26px 30px;}
+  .secttl{font-size:14px;color:#5d6879;margin-bottom:20px;font-weight:600;}
+  .form{display:grid;grid-template-columns:1fr 1fr;gap:18px 44px;}
+  .fitem{display:flex;align-items:center;}
+  .fitem.span2{grid-column:1 / -1;}
+  .fitem label{flex:0 0 120px;width:120px;text-align:right;padding-right:12px;font-size:13px;color:#3a4354;line-height:32px;}
+  .fitem .req{color:#f04438;margin-right:3px;}
+  .fitem input,.fitem select{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
+  .fitem input:focus,.fitem select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  select:disabled,input:disabled{background:#f5f7fa;border-color:#eef1f6;color:#2b3242;-webkit-text-fill-color:#2b3242;cursor:default;}
+  .etip{margin-top:14px;padding:10px 12px;background:#f7f9fc;border:1px solid #e6eaf2;border-radius:4px;font-size:12.5px;color:#5d6879;}
+  .mfoot{flex:0 0 60px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 26px;border-top:1px solid var(--line);}
+
+  .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:rgba(20,28,46,.92);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:80;display:none;}
+  .toast.show{display:block;animation:pop .2s;}
+  @keyframes pop{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1}}
+
+  /* ===== 自适应 ===== */
+  @media (max-width:1366px){ .search .fields{grid-template-columns:1fr 1fr;} }
+  @media (max-width:1024px){
+    .search .fields{grid-template-columns:1fr;}
+    .form{grid-template-columns:1fr;gap:16px 0;}
+    .fi label{width:92px;flex:0 0 92px;}
+    .fitem label{flex:0 0 104px;width:104px;}
+  }
+  @media (max-width:768px){
+    .topbar{padding:0 12px;}
+    .page{padding:12px 10px 20px;}
+    .card.search{padding:14px;}
+    .modal{max-height:92vh;}
+    .mbody{padding:16px;}
+    .pager .right{width:100%;margin-left:0;justify-content:flex-start;}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="side">
+    <div class="brand"><i class="logo"><i></i><b></b></i><span>保险机构端</span></div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+
+  <main class="main">
+    <header class="topbar" id="topbar"></header>
+
+    <div class="page">
+      <div class="card search" id="searchCard">
+        <div class="fields" id="fields">
+          <div class="fi"><label>保单号：</label><input id="q_policy" placeholder="请输入保单号" onkeydown="if(event.key==='Enter')doSearch()"></div>
+          <div class="fi"><label>企业名称：</label><input id="q_company" placeholder="请输入企业名称" onkeydown="if(event.key==='Enter')doSearch()"></div>
+        </div>
+        <div class="fields more" id="moreFields" style="display:none;margin-top:16px">
+          <div class="fi"><label>状态：</label><select id="q_status">
+            <option value="">请选择</option><option>未委托</option><option>已委托</option>
+          </select></div>
+          <div class="fi"><label>计划年度：</label><input id="q_year" type="date" placeholder="请选择计划年度"></div>
+          <div class="fi"><label>开始时间：</label><input id="q_start" type="date" placeholder="请选择开始时间"></div>
+          <div class="fi"><label>结束时间：</label><input id="q_end" type="date" placeholder="请选择结束时间"></div>
+        </div>
+        <div class="acts">
+          <button class="btn primary" onclick="doSearch()">查询</button>
+          <button class="btn" onclick="doReset()">重置</button>
+          <button class="btn link" id="collapseBtn" onclick="toggleCollapse()">展开<svg viewBox="0 0 16 16"><path d="M4 10l4-4 4 4" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+
+      <div class="card table-wrap">
+        <div class="tbar">
+          <button class="btn primary" onclick="openBatchEntrust()">批量委托</button>
+          <span class="spacer"></span>
+          <button class="btn icon" title="列设置" onclick="toast('列设置（演示）')">⚙</button>
+        </div>
+        <table>
+          <colgroup>
+            <col style="width:44px"><col style="width:184px"><col style="width:236px"><col style="width:172px"><col style="width:108px"><col style="width:92px"><col style="width:184px"><col style="width:158px"><col style="width:92px"><col style="width:122px"><col style="width:122px"><col style="width:160px"><col style="width:104px">
+          </colgroup>
+          <thead><tr>
+            <th class="ck"><input type="checkbox" id="selAll" onchange="toggleAll(this)"></th>
+            <th>预防服务ID</th><th>保单号</th><th>企业名称</th>
+            <th>所属行业</th><th>计划年度</th><th>服务项目</th><th>服务地址</th><th>状态</th>
+            <th>计划开始日期</th><th>计划结束日期</th><th>委托机构</th><th class="op">操作</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="pager" id="pager"></div>
+    </div>
+  </main>
+</div>
+
+<!-- 委托弹窗 -->
+<div class="mask" id="emask">
+  <div class="modal sm">
+    <div class="mhead">
+      <div class="mtitle" id="etitle">委托服务机构</div>
+      <div class="mclose" onclick="closeEMask()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="form" style="grid-template-columns:1fr">
+        <div class="fitem"><label><i class="req">*</i>委托机构：</label><select id="e_org"><option value="">请选择</option></select></div>
+      </div>
+      <div class="etip" id="e_tip"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeEMask()">取消</button>
+      <button class="btn primary" onclick="confirmEntrust()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 详情弹窗 -->
+<div class="mask" id="dmask">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle">需求详情</div>
+      <div class="mclose" onclick="closeDMask()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="secttl">事故预防服务需求信息</div>
+      <div class="form" id="dform">
+        <div class="fitem"><label>预防服务ID：</label><input id="d_id" disabled></div>
+        <div class="fitem"><label>保单号：</label><input id="d_policy" disabled></div>
+        <div class="fitem"><label>企业名称：</label><input id="d_company" disabled></div>
+        <div class="fitem"><label>所属行业：</label><input id="d_industry" disabled></div>
+        <div class="fitem"><label>计划年度：</label><input id="d_year" disabled></div>
+        <div class="fitem"><label>服务项目：</label><input id="d_project" disabled></div>
+        <div class="fitem span2"><label>服务地址：</label><input id="d_addr" disabled></div>
+        <div class="fitem"><label>状态：</label><input id="d_status" disabled></div>
+        <div class="fitem"><label>委托机构：</label><input id="d_org" disabled></div>
+        <div class="fitem"><label>计划开始日期：</label><input id="d_start" disabled></div>
+        <div class="fitem"><label>计划结束日期：</label><input id="d_end" disabled></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn primary" onclick="closeDMask()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="ins-common.js"></script>
+<script>
+/* ===== 枚举 ===== */
+const COMPANIES=['福建厦发信息有限公司','黑龙江超发商贸有限公司','哈尔滨远大建筑安装有限公司','黑龙江农垦经贸有限公司','哈尔滨供热集团有限责任公司','黑龙江建工集团第一工程公司','福州海峡建设投资集团有限公司','厦门路桥工程有限公司','宁德时代新能源科技有限公司','泉州石化炼化有限公司','漳州古雷港经济开发区管委会','杭州城投建设有限公司'];
+const INDUSTRIES=['建筑施工','制造业','矿山','危险化学品','交通运输','其他'];
+const PROJECTS=['安全风险辨识、评估、评价','生产安全重大事故隐患排查','安全生产宣传教育培训','安全生产应急预案编制','安全生产应急救援演练','安全生产标准化管理体系建设'];
+const ADDRS=['福州鼓楼中闽大厦','福州台江区金融街','厦门思明区软件园','哈尔滨南岗区开发区','杭州滨江区物联网街','泉州丰泽区东海大厦','漳州古雷港片区','宁德蕉城区新能源园'];
+const ORGS=['事故预防示范机构','中国人寿保险','安全服务机构人员测试','安全生产技术服务中心','福建建安安全评价有限公司'];
+
+/* ===== 数据 ===== */
+const _SID=2083531398322040833;
+function uuid(){const s='0123456789abcdef';let o='';for(let i=0;i<32;i++){o+=s[Math.floor(Math.random()*16)];if(i===7||i===11||i===15||i===19)o+='-';}return o;}
+function seed(){
+  const rows=[],n=77;
+  for(let i=0;i<n;i++){
+    const company=COMPANIES[i%COMPANIES.length];
+    const industry=INDUSTRIES[i%INDUSTRIES.length];
+    const project=PROJECTS[i%PROJECTS.length];
+    const addr=ADDRS[i%ADDRS.length];
+    const status=i%9===0?'未委托':'已委托';
+    const org=status==='已委托'?ORGS[(i+1)%ORGS.length]:'-';
+    const year=2025+(i%2);
+    const m=String((i%11)+1).padStart(2,'0'), d=String((i%25)+1).padStart(2,'0');
+    const start=year+'-'+m+'-'+d;
+    const end=year+'-'+String((i%11)+5).padStart(2,'0')+'-'+String((i%27)+1).padStart(2,'0');
+    rows.push({id:''+(_SID+i),policyNo:uuid(),company,industry,year,project,addr,status,start,end,org});
+  }
+  return rows;
+}
+let DATA=seed();
+
+/* ===== 查询/分页/渲染 ===== */
+const selected=new Set();
+let state={page:1,size:10,q:{policy:'',company:'',status:'',year:'',start:'',end:''}};
+function filtered(){
+  const {policy,company,status,year,start,end}=state.q;
+  return DATA.filter(r=>
+    (!policy||(r.policyNo||'').toLowerCase().includes(policy.toLowerCase()))&&
+    (!company||(r.company||'').includes(company))&&
+    (!status||r.status===status)&&
+    (!year||String(r.year)===String(year).slice(0,4))&&
+    (!start||r.start>=start)&&
+    (!end||r.end<=end)
+  );
+}
+function toggleCollapse(){const f=$('#moreFields'),b=$('#collapseBtn');const hid=f.style.display!=='none';f.style.display=hid?'none':'grid';b.classList.toggle('up',!hid);b.firstChild.textContent=hid?'展开':'收起';}
+function doSearch(){state.q={policy:$('#q_policy').value.trim().toLowerCase(),company:$('#q_company').value.trim(),status:$('#q_status').value,year:$('#q_year').value,start:$('#q_start').value,end:$('#q_end').value};state.page=1;renderTable();}
+function doReset(){$('#q_policy').value='';$('#q_company').value='';$('#q_status').value='';$('#q_year').value='';$('#q_start').value='';$('#q_end').value='';state.q={policy:'',company:'',status:'',year:'',start:'',end:''};state.page=1;renderTable();}
+function setSize(v){state.size=+v;state.page=1;renderTable();}
+function gotoPage(p){state.page=p;renderTable();}
+
+function renderTable(){
+  const rows=filtered();const total=rows.length,size=state.size;
+  const pages=Math.max(1,Math.ceil(total/size));
+  if(state.page>pages)state.page=pages;
+  const start=(state.page-1)*size;const cur=rows.slice(start,start+size);
+  $('#tbody').innerHTML=cur.length?cur.map(r=>{
+    const ck=selected.has(r.id)?'checked':'';
+    const op=`<a onclick="openDetail('${r.id}')">详情</a>`+(r.status==='未委托'?` <a onclick="openEntrust('${r.id}')">委托</a>`:'');
+    return `<tr>
+      <td class="ck"><input type="checkbox" class="rowck" data-id="${r.id}" ${ck} onchange="onCheck(this,'${r.id}')"></td>
+      <td title="${esc(r.id)}">${esc(r.id)}</td>
+      <td title="${esc(r.policyNo)}">${esc(r.policyNo)}</td>
+      <td title="${esc(r.company)}">${esc(r.company)}</td>
+      <td>${esc(r.industry)}</td>
+      <td>${esc(r.year)}</td>
+      <td title="${esc(r.project)}">${esc(r.project)}</td>
+      <td title="${esc(r.addr)}">${esc(r.addr)}</td>
+      <td><span class="st ${r.status==='已委托'?'done':'idle'}">${esc(r.status)}</span></td>
+      <td>${esc(r.start)}</td><td>${esc(r.end)}</td>
+      <td>${r.org&&r.org!=='-'?esc(r.org):'-'}</td>
+      <td class="op">${op}</td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="13" class="empty">暂无数据</td></tr>`;
+  syncSelAll();
+  renderPager(total,pages);
+}
+function renderPager(total,pages){
+  let pg='';const cur=state.page;const wS=Math.max(1,cur-2),wE=Math.min(pages,cur+2);
+  for(let i=wS;i<=wE;i++)pg+=`<button class="pgbtn ${i===cur?'on':''}" onclick="gotoPage(${i})">${i}</button>`;
+  $('#pager').innerHTML=
+    `<span>共 ${total} 条</span>`+
+    `<span class="right">`+
+      `<span>每页</span><select class="sizesel" onchange="setSize(this.value)">${[10,20,50].map(n=>`<option ${n===state.size?'selected':''}>${n}</option>`).join('')}</select><span>条</span>`+
+      `<button class="pgbtn" onclick="gotoPage(${Math.max(1,cur-1)})" ${cur===1?'disabled':''}>‹</button>`+
+      pg+
+      `<button class="pgbtn" onclick="gotoPage(${Math.min(pages,cur+1)})" ${cur===pages?'disabled':''}>›</button>`+
+      `<span class="go">前往<input type="number" min="1" max="${pages}" value="${cur}" onchange="gotoPage(Math.min(${pages},Math.max(1,+this.value||1)))">页</span>`+
+    `</span>`;
+}
+
+/* ===== 选择 ===== */
+function onCheck(box,id){if(box.checked)selected.add(id);else selected.delete(id);syncSelAll();}
+function toggleAll(box){document.querySelectorAll('.rowck').forEach(c=>{c.checked=box.checked;if(box.checked)selected.add(c.dataset.id);else selected.delete(c.dataset.id);});}
+function syncSelAll(){const cs=document.querySelectorAll('.rowck');const all=cs.length&&[...cs].every(c=>c.checked);$('#selAll').checked=all;}
+
+/* ===== 委托 ===== */
+let entrustIds=[],entrustMode='single';
+function openEntrust(id){entrustMode='single';entrustIds=[id];openEMask('委托服务机构','将对该条需求进行机构委托。');}
+function openBatchEntrust(){if(!selected.size){toast('请先勾选要委托的需求');return;}entrustMode='batch';entrustIds=[...selected];openEMask('批量委托','已选择 '+entrustIds.length+' 条需求，确认后统一委托给所选机构。');}
+function openEMask(title,tip){$('#etitle').textContent=title;$('#e_tip').textContent=tip;$('#e_org').innerHTML='<option value="">请选择</option>'+ORGS.map(o=>`<option>${o}</option>`).join('');$('#e_org').value='';$('#emask').classList.add('show');}
+function closeEMask(){$('#emask').classList.remove('show');}
+function confirmEntrust(){
+  const org=$('#e_org').value;if(!org){toast('请选择委托机构');return;}
+  let cnt=0;entrustIds.forEach(id=>{const r=DATA.find(x=>x.id===id);if(r&&r.status!=='已委托'){r.status='已委托';r.org=org;cnt++;}});
+  closeEMask();selected.clear();renderTable();
+  toast(entrustMode==='batch'?('已委托 '+cnt+' 条需求'):'委托成功');
+}
+$('#emask').addEventListener('click',e=>{if(e.target===$('#emask'))closeEMask();});
+
+/* ===== 详情 ===== */
+function openDetail(id){const r=DATA.find(x=>x.id===id);if(!r)return;
+  $('#d_id').value=r.id;$('#d_policy').value=r.policyNo;$('#d_company').value=r.company;$('#d_industry').value=r.industry;
+  $('#d_year').value=r.year;$('#d_project').value=r.project;$('#d_addr').value=r.addr;$('#d_status').value=r.status;
+  $('#d_org').value=r.org&&r.org!=='-'?r.org:'-';$('#d_start').value=r.start;$('#d_end').value=r.end;
+  $('#dmask').classList.add('show');
+}
+function closeDMask(){$('#dmask').classList.remove('show');}
+$('#dmask').addEventListener('click',e=>{if(e.target===$('#dmask'))closeDMask();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeEMask();closeDMask();}});
+
+/* ===== 初始化 ===== */
+initIns({bread:['事故预防服务管理','事故预防服务需求'], active:'事故预防服务需求'});
+renderTable();
+</script>
+</body>
+</html>

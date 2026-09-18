@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>投保查询 · 保险机构端</title>
+<link rel="stylesheet" href="ins-common.css">
+<style>
+  .card{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(20,30,60,.04);}
+  /* 查询卡片 */
+  .search{padding:18px 20px;margin-bottom:14px;}
+  .fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+  .fi{display:flex;align-items:center;}
+  .fi label{width:104px;flex:0 0 104px;text-align:right;padding-right:10px;color:#4a5568;white-space:nowrap;}
+  .fi input,.fi select{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
+  .fi input:focus,.fi select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .acts{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap;}
+  .spacer{flex:1;}
+  .btn{height:32px;padding:0 18px;border-radius:4px;border:1px solid #dfe4ed;background:#fff;color:#3a4354;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
+  .btn:hover{border-color:#c7d0de;}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .btn.primary:hover{background:var(--brand-d);border-color:var(--brand-d);}
+  .btn.link{border:none;background:none;color:#7c8aa0;padding:0 4px;}
+  .btn.link svg{width:11px;height:11px;transition:.2s;}
+  .btn.link.up svg{transform:rotate(180deg);}
+
+  /* 表格 */
+  .table-wrap{overflow:hidden;overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:1060px;}
+  thead th{background:#f7f9fc;color:#5d6879;font-weight:600;text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:13px;}
+  tbody td{padding:13px 14px;border-bottom:1px solid var(--line);color:#2b3242;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  tbody tr:hover{background:#f9fbff;}
+  colgroup col{ }
+  td.op a{color:var(--brand);cursor:pointer;}
+  td.op a:hover{text-decoration:underline;}
+  .empty{text-align:center;color:#9aa3b2;padding:38px 0 !important;}
+  .st{display:inline-block;padding:2px 11px;border-radius:3px;font-size:12px;}
+  .st.pending{color:#3b7cff;background:rgba(59,124,255,.1);}
+  .st.done{color:#2fa96b;background:rgba(47,169,107,.12);}
+  .st.dead{color:#98a2b3;background:#f2f4f8;}
+
+  /* 分页 */
+  .pager{display:flex;align-items:center;gap:12px;padding:14px 18px;color:#5d6879;font-size:13px;flex-wrap:wrap;}
+  .pager .right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .pager .pgbtn{min-width:30px;height:30px;padding:0 8px;border:1px solid #e2e7f0;border-radius:4px;background:#fff;cursor:pointer;color:#3a4354;font-size:13px;}
+  .pager .pgbtn:hover:not(:disabled){border-color:#c7d0de;}
+  .pager .pgbtn.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .pager .pgbtn:disabled{opacity:.45;cursor:not-allowed;}
+  .pager .sizesel{height:30px;border:1px solid #e2e7f0;border-radius:4px;padding:0 8px;color:#3a4354;background:#fff;}
+  .pager .go input{width:44px;height:30px;border:1px solid #e2e7f0;border-radius:4px;padding:0 6px;text-align:center;}
+
+  /* ===== 弹窗 ===== */
+  .mask{position:fixed;inset:0;background:rgba(15,22,36,.45);display:none;align-items:center;justify-content:center;z-index:50;}
+  .mask.show{display:flex;}
+  .modal{width:min(1120px,94vw);height:min(760px,88vh);background:#fff;border-radius:6px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .mhead{height:52px;flex:0 0 52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);}
+  .mtitle{font-size:15px;font-weight:600;display:flex;align-items:center;gap:9px;}
+  .mtitle::before{content:"";width:3px;height:15px;background:var(--brand);border-radius:2px;}
+  .mclose{font-size:18px;color:#9aa3b2;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;}
+  .mclose:hover{background:#f0f2f7;}
+  .mbody{flex:1;overflow:auto;padding:22px 26px 30px;}
+  .secttl{font-size:14px;color:#5d6879;margin-bottom:20px;font-weight:600;}
+  .form{display:grid;grid-template-columns:1fr 1fr;gap:18px 44px;}
+  .fitem{display:flex;align-items:center;}
+  .fitem.span2{grid-column:1 / -1;}
+  .fitem label{flex:0 0 132px;width:132px;text-align:right;padding-right:12px;font-size:13px;color:#3a4354;line-height:32px;}
+  .fitem .req{color:#f04438;margin-right:3px;}
+  .fitem input,.fitem select{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
+  .fitem input:focus,.fitem select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .fitem .range{flex:1;display:flex;align-items:center;gap:8px;min-width:0;}
+  .fitem .range input{flex:1;}
+  .fitem .range .sep{color:#8a93a5;flex:0 0 14px;text-align:center;}
+  select:disabled,input:disabled{background:#f5f7fa;border-color:#eef1f6;color:#2b3242;-webkit-text-fill-color:#2b3242;cursor:default;}
+
+  /* 地区联动 */
+  .fitem .region{flex:1;display:flex;align-items:center;gap:8px;min-width:0;}
+  .fitem .region select{flex:1;min-width:0;}
+  .fitem .region .slash{color:#9aa3b2;}
+
+  /* 地图 */
+  .mapbox{position:relative;height:300px;border:1px solid #e2e7f0;border-radius:4px;overflow:hidden;background:#e8efe6;cursor:crosshair;}
+  .mapbox.locked{cursor:default;}
+  .mapbg{position:absolute;inset:0;transform-origin:50% 50%;transition:transform .15s;}
+  .road{position:absolute;background:#fff;box-shadow:0 0 0 1px #e6e6e6;}
+  .road-h{left:0;right:0;height:13px;}
+  .road-v{top:0;bottom:0;width:13px;}
+  .blk{position:absolute;background:#dfe9db;border-radius:3px;}
+  .lbl{position:absolute;font-size:11px;color:#7c8a78;white-space:nowrap;transform:translate(-50%,-50%);}
+  .poi{position:absolute;font-size:11px;color:#52607a;white-space:nowrap;transform:translate(-50%,-50%);background:rgba(255,255,255,.7);padding:1px 5px;border-radius:3px;}
+  .pin{position:absolute;left:50%;top:46%;width:22px;height:30px;transform:translate(-50%,-100%);pointer-events:none;z-index:3;}
+  .pin::before{content:"";position:absolute;inset:0;background:#f04438;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 3px 6px rgba(240,68,56,.4);}
+  .pin::after{content:"";position:absolute;left:50%;top:8px;width:8px;height:8px;margin-left:-4px;background:#fff;border-radius:50%;}
+  .mctrl{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:4;}
+  .mctrl button{width:28px;height:28px;border:1px solid #e2e7f0;background:#fff;border-radius:4px;cursor:pointer;font-size:15px;color:#5d6879;box-shadow:0 1px 3px rgba(20,30,60,.1);display:flex;align-items:center;justify-content:center;}
+  .mctrl button:hover{background:#f5f7fa;}
+  .mapinfo{display:flex;align-items:center;gap:14px;margin-top:10px;font-size:12px;color:#8a93a5;}
+  .mapinfo .loc{color:#3a4354;font-family:ui-monospace,Menlo,Consolas,monospace;}
+  .mapinfo .mini{margin-left:auto;height:28px;padding:0 12px;border:1px solid #dfe4ed;border-radius:4px;background:#fff;color:#3a4354;cursor:pointer;}
+  .mapinfo .mini:hover{border-color:#c7d0de;}
+
+  .mfoot{flex:0 0 60px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 26px;border-top:1px solid var(--line);}
+
+  .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:rgba(20,28,46,.92);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:80;display:none;}
+  .toast.show{display:block;animation:pop .2s;}
+  @keyframes pop{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1}}
+
+  /* ===== 自适应 ===== */
+  @media (max-width:1366px){
+    .search .fields{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:1024px){
+    .search .fields{grid-template-columns:1fr;}
+    .form{grid-template-columns:1fr;gap:16px 0;}
+    .fi label{width:92px;flex:0 0 92px;}
+    .fitem label{flex:0 0 116px;width:116px;}
+  }
+  @media (max-width:768px){
+    .topbar{padding:0 12px;}
+    .page{padding:12px 10px 20px;}
+    .card.search{padding:14px;}
+    .modal{height:92vh;}
+    .mbody{padding:16px;}
+    .pager .right{width:100%;margin-left:0;justify-content:flex-start;}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="side">
+    <div class="brand"><i class="logo"><i></i><b></b></i><span>保险机构端</span></div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+
+  <main class="main">
+    <header class="topbar" id="topbar"></header>
+
+    <div class="page">
+      <div class="card search" id="searchCard">
+        <div class="fields" id="fields">
+          <div class="fi"><label>保单号：</label><input id="q_no" placeholder="请输入" onkeydown="if(event.key==='Enter')doSearch()"></div>
+          <div class="fi"><label>投保单号：</label><input id="q_apply" placeholder="请输入" onkeydown="if(event.key==='Enter')doSearch()"></div>
+          <div class="fi"><label>保单申请状态：</label><select id="q_status">
+            <option value="">请选择</option><option>待审核</option><option>已完成</option><option>已失效</option>
+          </select></div>
+        </div>
+        <div class="acts">
+          <button class="btn primary" onclick="doSearch()">查询</button>
+          <button class="btn" onclick="doReset()">重置</button>
+          <button class="btn link" id="collapseBtn" onclick="toggleCollapse()">收起<svg viewBox="0 0 16 16"><path d="M4 10l4-4 4 4" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <span class="spacer"></span>
+          <button class="btn primary" onclick="openAdd()">＋ 新增保单</button>
+        </div>
+      </div>
+
+      <div class="card table-wrap">
+        <table>
+          <colgroup>
+            <col style="width:52px"><col style="width:200px"><col style="width:230px"><col style="width:170px">
+            <col style="width:74px"><col style="width:110px"><col style="width:150px"><col style="width:150px"><col style="width:104px"><col style="width:90px">
+          </colgroup>
+          <thead><tr>
+            <th>序号</th><th>保单号</th><th>投保单号</th><th>投保企业</th>
+            <th>投保人数</th><th>保费(元)</th><th>保单开始时间</th><th>保单结束时间</th><th>保单申请状态</th><th>操作</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="pager" id="pager"></div>
+    </div>
+  </main>
+</div>
+
+<!-- 弹窗 -->
+<div class="mask" id="mask">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle" id="mtitle">投保信息</div>
+      <div class="mclose" onclick="closeModal()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="secttl">投保信息</div>
+      <div class="form" id="form">
+        <div class="fitem"><label><i class="req">*</i>投保人名称：</label><input id="f_name" placeholder="请输入投保人名称"></div>
+        <div class="fitem"><label>投保人统一社会信用代码：</label><input id="f_uscc" placeholder="请输入"></div>
+        <div class="fitem"><label>联系人：</label><input id="f_contact" placeholder="请输入"></div>
+        <div class="fitem"><label>联系电话：</label><input id="f_phone" placeholder="请输入"></div>
+        <div class="fitem"><label>投保人详细地址：</label><input id="f_addr" placeholder="请输入"></div>
+        <div class="fitem"><label>邮编：</label><input id="f_zip" placeholder="请输入"></div>
+        <div class="fitem"><label>行业：</label><select id="f_industry"><option value="">请选择</option></select></div>
+        <div class="fitem"><label><i class="req">*</i>投保人数：</label><input id="f_people" type="number" min="0" placeholder="请输入"></div>
+        <div class="fitem"><label><i class="req">*</i>工程名称：</label><input id="f_engineer" placeholder="请输入"></div>
+        <div class="fitem"><label><i class="req">*</i>工程造价类型：</label><select id="f_costType"><option value="">请选择</option></select></div>
+        <div class="fitem"><label><i class="req">*</i>工程所在地：</label>
+          <div class="region">
+            <select id="f_prov" onchange="onProv()"></select><span class="slash">/</span><select id="f_dist"></select>
+          </div>
+        </div>
+        <div class="fitem"><label><i class="req">*</i>工程详细地址：</label><input id="f_engineerAddr" placeholder="请输入"></div>
+        <div class="fitem span2"><label><i class="req">*</i>工程地图位置：</label>
+          <div style="flex:1;min-width:0">
+            <div class="mapbox" id="mapbox">
+              <div class="mapbg" id="mapbg"></div>
+              <div class="pin" id="pin"></div>
+              <div class="mctrl">
+                <button onclick="zoomMap(1)" title="放大">＋</button>
+                <button onclick="zoomMap(-1)" title="缩小">－</button>
+                <button onclick="locateMe()" title="定位">◎</button>
+              </div>
+            </div>
+            <div class="mapinfo"><span>经纬度：<span class="loc" id="coord">--</span></span><button class="mini" onclick="locateMe()">获取当前定位</button></div>
+          </div>
+        </div>
+        <div class="fitem"><label><i class="req">*</i>保费(元)：</label><input id="f_premium" type="number" min="0" placeholder="请输入"></div>
+        <div class="fitem"><label><i class="req">*</i>工程造价(万元)：</label><input id="f_cost" type="number" min="0" placeholder="请输入"></div>
+        <div class="fitem"><label><i class="req">*</i>保险起止日期：</label>
+          <div class="range"><input id="f_insStart" type="date"><span class="sep">至</span><input id="f_insEnd" type="date"></div>
+        </div>
+        <div class="fitem"><label><i class="req">*</i>安全生产许可证号码：</label><input id="f_licNo" placeholder="请输入"></div>
+        <div class="fitem span2"><label><i class="req">*</i>安全生产许可证有效期：</label>
+          <div class="range"><input id="f_licStart" type="date"><span class="sep">至</span><input id="f_licEnd" type="date"></div>
+        </div>
+      </div>
+    </div>
+    <div class="mfoot" id="mfoot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="ins-common.js"></script>
+<script>
+/* ===== 枚举/地区 ===== */
+const INDUSTRY=['建筑施工','制造业','矿山','危险化学品','交通运输','其他'];
+const COSTTYPE=['工程合同造价','安装工程费','设备购置费','建筑工程费','其他'];
+const REGION={'福建省':['福州市','厦门市','泉州市','漳州市'],'黑龙江省':['哈尔滨市','齐齐哈尔市','牡丹江市'],'广东省':['广州市','深圳市','珠海市'],'浙江省':['杭州市','宁波市','温州市']};
+const DISTRICT={
+ '福州市':['鼓楼区','台江区','仓山区','晋安区','马尾区','长乐区'],'厦门市':['思明区','湖里区','集美区','海沧区'],'泉州市':['鲤城区','丰泽区','洛江区','晋江市'],'漳州市':['芗城区','龙文区','龙海区'],
+ '哈尔滨市':['道里区','南岗区','香坊区','松北区'],'齐齐哈尔市':['龙沙区','建华区','铁锋区'],'牡丹江市':['东安区','西安区','爱民区'],
+ '广州市':['越秀区','天河区','海珠区','番禺区'],'深圳市':['福田区','南山区','宝安区','龙岗区'],'珠海市':['香洲区','斗门区','金湾区'],
+ '杭州市':['上城区','拱墅区','西湖区','滨江区'],'宁波市':['海曙区','江北区','鄞州区'],'温州市':['鹿城区','龙湾区','瓯海区']
+};
+function fillSelect(id,arr,sel){$(id).innerHTML='<option value="">请选择</option>'+arr.map(o=>`<option ${o===sel?'selected':''}>${o}</option>`).join('');}
+fillSelect('#f_industry',INDUSTRY,''); fillSelect('#f_costType',COSTTYPE,'');
+
+/* ===== 模拟地图 ===== */
+function buildMap(){
+  const bg=$('#mapbg');
+  let h=`<span class="road road-h" style="top:32%"></span><span class="road road-h" style="top:68%"></span>
+    <span class="road road-v" style="left:25%"></span><span class="road road-v" style="left:58%"></span><span class="road road-v" style="left:84%"></span>`;
+  const blks=[[4,6,17,22],[28,6,24,22],[63,6,18,22],[88,6,8,22],[4,38,17,26],[28,38,24,26],[63,38,18,26],[88,38,8,26],[4,72,17,22],[28,72,24,22],[63,72,18,22],[88,72,8,22]];
+  h+=blks.map(b=>`<span class="blk" style="left:${b[0]}%;top:${b[1]}%;width:${b[2]}%;height:${b[3]}%"></span>`).join('');
+  const pois=[['杨桥东路',50,32],['中闽大厦',46,46],['A座',33,18],['B座',40,50],['C座',70,20],['中国农业银行',71,46],['宏建大厦',38,44],['三友大厦',92,16],['严复故居',16,30],['林觉民·冰心故居',16,52],['天后宫（郎官巷）',33,62],['林则徐纪念馆',71,62],['光禄坊',50,82]];
+  h+=pois.map(p=>`<span class="poi" style="left:${p[1]}%;top:${p[2]}%">${p[0]}</span>`).join('');
+  h+=`<span class="lbl" style="left:12%;top:32%">杨桥西路</span><span class="lbl" style="left:50%;top:68%">东街口</span>`;
+  bg.innerHTML=h;
+}
+let mapZoom=1, mapPos={x:50,y:46};
+function setPin(x,y){ mapPos={x,y}; const p=$('#pin'); p.style.left=x+'%'; p.style.top=y+'%'; updateCoord(); }
+function updateCoord(){
+  const lon=(119.288 + (mapPos.x-50)/100*0.024).toFixed(5);
+  const lat=(26.094 - (mapPos.y-50)/100*0.020).toFixed(5);
+  $('#coord').textContent=lon+', '+lat;
+}
+$('#mapbox').addEventListener('click',e=>{
+  if($('#mapbox').classList.contains('locked')) return;
+  const r=$('#mapbox').getBoundingClientRect();
+  setPin((e.clientX-r.left)/r.width*100,(e.clientY-r.top)/r.height*100);
+});
+function zoomMap(d){ mapZoom=Math.max(0.6,Math.min(2.4,mapZoom+d*0.25)); $('#mapbg').style.transform='scale('+mapZoom+')'; }
+function locateMe(){ setPin(50,46); toast('已定位到当前位置'); }
+
+/* ===== 数据 ===== */
+function uuid(){const s='0123456789abcdef';let o='';for(let i=0;i<32;i++){o+=s[Math.floor(Math.random()*16)];if(i===7||i===11||i===15||i===19)o+='-';}return o;}
+function seed(){
+  const R=[
+   ['e71defed-f3b0-111f-aae6-1c0c9ea3f5b1','be85d5f1-f53d-4066-be65-aa3b25243c9e','福建厦发信息有限公司',123,'2026-06-10','2026-06-30','已失效'],
+   ['','d1328ce0-9e80-4816-9001-0d3ae62a7b3f','黑龙江省超发商贸有限公司',1230,'2026-06-10','2026-07-04','待审核'],
+   ['','217ab202-352f-49bc-9b8c-5ae2a0c2f4d1','黑龙江省超发商贸有限公司',123,'2026-06-10','2026-07-08','待审核'],
+   ['','6b007515-639e-4b15-a44c-839a9c5e7b2a','黑龙江省超发商贸有限公司',120,'2026-06-10','2026-07-07','待审核'],
+   ['','46dc27fc-e8b0-4d12-9d78-4979b5993c8f','黑龙江省超发商贸有限公司',344,'2026-06-10','2026-06-30','待审核'],
+   ['','29b24718-8fb8-46b8-8538-c9e4e808a1d3','黑龙江省超发商贸有限公司',20,'2026-06-10','2026-06-10','待审核'],
+   ['','8d120ae3-9744-4c86-bc1a-ce258a45f6e9','黑龙江省超发商贸有限公司',34,'2026-06-10','2026-06-11','待审核'],
+   ['','1aa10440-57b6-4c24-8d28-7a8f75986b2c','黑龙江省超发商贸有限公司',123,'2026-06-10','2026-06-12','待审核'],
+   ['','6b05100c-9e8d-4a83-8851-ff59d3407a1b','黑龙江省超发商贸有限公司',4566,'2026-06-10','2026-07-09','已失效'],
+   ['','9a2330d1-4129-4622-a8c0-8fbe5a9a2e47','黑龙江省超发商贸有限公司',321,'2026-06-09','2026-07-28','已完成'],
+   ['','a12b3001-1111-2222-3333-444455556666','哈尔滨远大建筑安装有限公司',88,'2026-06-08','2026-07-15','待审核'],
+   ['','b23c4112-2222-3333-4444-555566667777','黑龙江农垦经贸有限公司',210,'2026-06-07','2026-08-01','待审核'],
+   ['','c34d5223-3333-4444-5555-666677778888','哈尔滨供热集团有限责任公司',560,'2026-06-06','2026-07-20','已完成'],
+   ['','d45e6334-4444-5555-6666-777788889999','黑龙江建工集团第一工程公司',340,'2026-06-05','2026-06-25','待审核'],
+   ['','e56f7445-5555-6666-7777-888899990000','福州海峡建设投资集团有限公司',980,'2026-06-04','2026-07-30','已完成'],
+   ['','f67a8556-6666-7777-8888-999900001111','厦门路桥工程有限公司',430,'2026-06-03','2026-07-12','已失效'],
+   ['','17bb9667-7777-8888-9999-000011112222','宁德时代新能源科技有限公司',1500,'2026-06-02','2026-08-10','已完成'],
+   ['','28cc0778-8888-9999-0000-111122223333','泉州石化炼化有限公司',760,'2026-06-01','2026-07-18','待审核'],
+   ['','39dd1889-9999-0000-1111-222233334444','漳州古雷港经济开发区管委会',290,'2026-05-31','2026-06-28','已失效'],
+   ['','40ee2990-0000-1111-2222-333344445555','杭州城投建设有限公司',610,'2026-05-30','2026-07-22','待审核']
+  ];
+  return R.map(([p,a,c,n,s,e,st],idx)=>{
+    const premium=Math.round(n*(420+(idx%6)*130)+(idx*37));
+    const rec={policyNo:p,applyNo:a,company:c,people:n,premium,start:s+' 00:00:00',end:e+' 23:59:59',status:st,detail:null};
+    if(idx===0){rec.detail={name:'福建厦发信息有限公司',uscc:'91310000MA1H39AU4A',contact:'王云强',phone:'15160623252',addr:'杨桥路东街口南后街中闽大厦16层',zip:'',industry:'建筑施工',engineer:'123321',costType:'工程合同造价',province:'福建省',district:'鼓楼区',engineerAddr:'12333',lon:119.3002,lat:26.0868,cost:'1230',insStart:'2026-06-10',insEnd:'2026-06-30',licNo:'12333',licStart:'2026-06-01',licEnd:'2027-07-22'};}
+    return rec;
+  });
+}
+let DATA=[];
+function load(){try{const s=localStorage.getItem('ins_policies');if(s)return JSON.parse(s);}catch(e){}return seed();}
+function save(){try{localStorage.setItem('ins_policies',JSON.stringify(DATA));}catch(e){}}
+DATA=load();
+
+/* ===== 查询/分页/渲染 ===== */
+let state={page:1,size:10,q:{no:'',apply:'',status:''}};
+function filtered(){
+  const {no,apply,status}=state.q;
+  return DATA.filter(r=>(!no||(r.policyNo||'').toLowerCase().includes(no.toLowerCase()))
+    &&(!apply||(r.applyNo||'').toLowerCase().includes(apply.toLowerCase()))
+    &&(!status||r.status===status));
+}
+function stCls(s){return s==='已完成'?'done':s==='待审核'?'pending':'dead';}
+function doSearch(){state.q={no:$('#q_no').value.trim().toLowerCase(),apply:$('#q_apply').value.trim().toLowerCase(),status:$('#q_status').value};state.page=1;renderTable();}
+function doReset(){$('#q_no').value='';$('#q_apply').value='';$('#q_status').value='';state.q={no:'',apply:'',status:''};state.page=1;renderTable();}
+function toggleCollapse(){const f=$('#fields'),b=$('#collapseBtn');const hid=f.style.display!=='none';f.style.display=hid?'none':'grid';b.classList.toggle('up',hid);b.firstChild.textContent=hid?'展开':'收起';}
+function setSize(v){state.size=+v;state.page=1;renderTable();}
+function gotoPage(p){state.page=p;renderTable();}
+
+function renderTable(){
+  const rows=filtered();const total=rows.length,size=state.size;
+  const pages=Math.max(1,Math.ceil(total/size));
+  if(state.page>pages)state.page=pages;
+  const start=(state.page-1)*size;const cur=rows.slice(start,start+size);
+  $('#tbody').innerHTML=cur.length?cur.map((r,i)=>{
+    const idx=DATA.indexOf(r);
+    return `<tr>
+      <td>${start+i+1}</td>
+      <td title="${esc(r.policyNo)}">${r.policyNo?esc(r.policyNo):'-'}</td>
+      <td title="${esc(r.applyNo)}">${esc(r.applyNo)}</td>
+      <td title="${esc(r.company)}">${esc(r.company)}</td>
+      <td>${r.people}</td>
+      <td>${r.premium!=null&&r.premium!==''?r.premium:'-'}</td>
+      <td>${esc(r.start)}</td><td>${esc(r.end)}</td>
+      <td><span class="st ${stCls(r.status)}">${esc(r.status)}</span></td>
+      <td class="op"><a onclick="openView(${idx})">查看详情</a></td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="9" class="empty">暂无数据</td></tr>`;
+  renderPager(total,pages,start,cur.length);
+}
+function renderPager(total,pages,start,cnt){
+  let pg='';const cur=state.page;const wS=Math.max(1,cur-2),wE=Math.min(pages,cur+2);
+  for(let i=wS;i<=wE;i++)pg+=`<button class="pgbtn ${i===cur?'on':''}" onclick="gotoPage(${i})">${i}</button>`;
+  $('#pager').innerHTML=
+    `<span>共 ${total} 条</span>`+
+    `<span class="right">`+
+      `<span>每页</span><select class="sizesel" onchange="setSize(this.value)">${[10,20,50].map(n=>`<option ${n===state.size?'selected':''}>${n}</option>`).join('')}</select><span>条</span>`+
+      `<button class="pgbtn" onclick="gotoPage(${Math.max(1,cur-1)})" ${cur===1?'disabled':''}>‹</button>`+
+      pg+
+      `<button class="pgbtn" onclick="gotoPage(${Math.min(pages,cur+1)})" ${cur===pages?'disabled':''}>›</button>`+
+      `<span class="go">前往<input type="number" min="1" max="${pages}" value="${cur}" onchange="gotoPage(Math.min(${pages},Math.max(1,+this.value||1)))">页</span>`+
+    `</span>`;
+}
+
+/* ===== 弹窗 ===== */
+function setLocked(lock){
+  ['f_name','f_uscc','f_contact','f_phone','f_addr','f_zip','f_industry','f_people','f_engineer','f_costType','f_premium','f_prov','f_dist','f_engineerAddr','f_cost','f_insStart','f_insEnd','f_licNo','f_licStart','f_licEnd'].forEach(id=>{$('#'+id).disabled=lock;});
+  $('#mapbox').classList.toggle('locked',lock);
+}
+function onProv(){
+  const p=$('#f_prov').value;
+  $('#f_dist').innerHTML='<option value="">请选择</option>'+(DISTRICT[p]||[]).map(d=>`<option>${d}</option>`).join('');
+}
+function detailOf(r){return r.detail||{name:r.company,uscc:'',contact:'',phone:'',addr:'',zip:'',industry:'',engineer:'',costType:'',province:'',district:'',engineerAddr:'',lon:119.3002,lat:26.0868,cost:'',premium:r.premium,insStart:(r.start||'').slice(0,10),insEnd:(r.end||'').slice(0,10),licNo:'',licStart:'',licEnd:''};}
+function setForm(d){
+  $('#f_name').value=d.name||''; $('#f_uscc').value=d.uscc||''; $('#f_contact').value=d.contact||'';
+  $('#f_phone').value=d.phone||''; $('#f_addr').value=d.addr||''; $('#f_zip').value=d.zip||'';
+  fillSelect('#f_industry',INDUSTRY,d.industry||''); $('#f_people').value=d.people||'';
+  $('#f_engineer').value=d.engineer||''; fillSelect('#f_costType',COSTTYPE,d.costType||'');
+  $('#f_premium').value=d.premium!=null&&d.premium!==''?d.premium:'';
+  $('#f_prov').innerHTML='<option value="">请选择</option>'+Object.keys(REGION).map(p=>`<option ${p===d.province?'selected':''}>${p}</option>`).join('');
+  $('#f_dist').innerHTML='<option value="">请选择</option>'+(DISTRICT[d.province]||[]).map(x=>`<option ${x===d.district?'selected':''}>${x}</option>`).join('');
+  $('#f_engineerAddr').value=d.engineerAddr||''; $('#f_cost').value=d.cost||'';
+  $('#f_insStart').value=d.insStart||''; $('#f_insEnd').value=d.insEnd||'';
+  $('#f_licNo').value=d.licNo||''; $('#f_licStart').value=d.licStart||''; $('#f_licEnd').value=d.licEnd||'';
+  mapZoom=1; $('#mapbg').style.transform='scale(1)';
+  const xx=50+((d.lon||119.3002)-119.288)/0.024*100, yy=50-((d.lat||26.0868)-26.094)/0.020*100;
+  setPin(Math.max(2,Math.min(98,xx)),Math.max(2,Math.min(98,yy)));
+}
+function closeModal(){$('#mask').classList.remove('show');}
+$('#mask').addEventListener('click',e=>{if(e.target===$('#mask'))closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+function openView(i){const r=DATA[i];setForm(detailOf(r));setLocked(true);$('#mtitle').textContent='查看详情';$('#mfoot').innerHTML='<button class="btn primary" onclick="closeModal()">关闭</button>';$('#mask').classList.add('show');}
+function openAdd(){
+  setForm({province:'',district:'',lon:119.3002,lat:26.0868});setLocked(false);
+  ['f_name','f_uscc','f_contact','f_phone','f_addr','f_zip','f_people','f_engineer','f_engineerAddr','f_cost','f_premium','f_insStart','f_insEnd','f_licNo','f_licStart','f_licEnd'].forEach(id=>{$('#'+id).value='';});
+  $('#mtitle').textContent='新增投保单';
+  $('#mfoot').innerHTML='<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveAdd()">保存</button>';
+  $('#mask').classList.add('show');
+}
+function val(id){return $('#'+id).value.trim();}
+function saveAdd(){
+  const reqs=[
+    ['f_name','投保人名称'],['f_people','投保人数'],['f_premium','保费(元)'],['f_engineer','工程名称'],['f_costType','工程造价类型'],
+    ['f_prov','工程所在地(省)'],['f_dist','工程所在地(区)'],['f_engineerAddr','工程详细地址'],
+    ['f_cost','工程造价(万元)'],['f_insStart','保险起止日期(开始)'],['f_insEnd','保险起止日期(结束)'],
+    ['f_licNo','安全生产许可证号码'],['f_licStart','安全生产许可证有效期(开始)'],['f_licEnd','安全生产许可证有效期(结束)']
+  ];
+  for(const [id,label] of reqs){ if(!val(id)){toast('请填写'+label);return;} }
+  const lon=(119.288+(mapPos.x-50)/100*0.024).toFixed(5), lat=(26.094-(mapPos.y-50)/100*0.020).toFixed(5);
+  const rec={
+    policyNo:uuid(), applyNo:uuid(), company:val('f_name'), people:+val('f_people'),
+    start:val('f_insStart')+' 00:00:00', end:val('f_insEnd')+' 23:59:59', status:'待审核',
+    detail:{name:val('f_name'),uscc:val('f_uscc'),contact:val('f_contact'),phone:val('f_phone'),addr:val('f_addr'),zip:val('f_zip'),
+      industry:$('#f_industry').value,engineer:val('f_engineer'),costType:val('f_costType'),province:$('#f_prov').value,district:$('#f_dist').value,premium:val('f_premium')?+val('f_premium'):0,
+      engineerAddr:val('f_engineerAddr'),lon:+lon,lat:+lat,cost:val('f_cost'),insStart:val('f_insStart'),insEnd:val('f_insEnd'),
+      licNo:val('f_licNo'),licStart:val('f_licStart'),licEnd:val('f_licEnd')}
+  };
+  DATA.unshift(rec);save();state.q={no:'',apply:'',status:''};$('#q_no').value='';$('#q_apply').value='';$('#q_status').value='';state.page=1;
+  closeModal();renderTable();toast('投保单新增成功');
+}
+
+/* ===== 初始化 ===== */
+initIns({bread:['保险业务管理','投保查询'], active:'投保查询'});
+buildMap();renderTable();
+</script>
+</body>
+</html>

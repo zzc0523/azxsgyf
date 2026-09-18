@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>新增隐患 · 生产安全重大事故隐患排查</title>
+<style>
+  :root{--blue:#2b5ce6;--blue-d:#1f49c4;--text:#1f2329;--sub:#9aa0ad;--val:#3a4050;--bg:#f4f6fb;--line:#eef0f5;--red:#e5484d;--pur:#6b46e0;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:30}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.22;z-index:30}
+
+  .header{flex:none;position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 100%);color:#fff;z-index:10}
+  .header::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent) 90% 40%/200px 130px no-repeat,
+               radial-gradient(closest-side,rgba(255,255,255,.10),transparent) 6% 90%/170px 110px no-repeat}
+  .statusbar{position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .navbar{position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:2px 16px 8px;height:46px}
+  .back{width:26px;height:26px;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
+  .navtitle{font-size:17px;font-weight:700;letter-spacing:.5px}
+  .capsule{margin-left:auto;display:flex;align-items:center;height:32px;padding:0 13px;border-radius:16px;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .cap-dots{font-size:14px;letter-spacing:2px;line-height:1;padding-bottom:5px;cursor:pointer}
+  .cap-line{width:1px;height:15px;background:rgba(255,255,255,.4);margin:0 9px}
+  .cap-circ{width:17px;height:17px;border-radius:50%;border:1.6px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .cap-circ i{width:6px;height:6px;border-radius:50%;background:#fff;display:block}
+  .ctx{position:relative;z-index:5;padding:0 16px 12px;font-size:12px;color:rgba(255,255,255,.9)}
+  .ctx b{font-weight:600}
+
+  .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .body::-webkit-scrollbar{display:none}
+  .card{background:#fff;border-radius:14px;margin:14px 16px;padding:6px 16px 14px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .card-title{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:700;color:var(--text);padding:14px 0 6px}
+  .card-title i{width:3px;height:15px;border-radius:2px;background:var(--blue);display:block}
+  .field{padding:13px 0;border-top:1px solid var(--line)}
+  .field:first-of-type{border-top:none}
+  .flbl{display:flex;align-items:center;color:var(--sub);font-size:13.5px;margin-bottom:10px}
+  .flbl .req{color:var(--red);margin-right:3px}
+  .hint{font-size:12px;color:#b3b9c6;margin:-4px 0 10px;line-height:1.5}
+
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{padding:8px 15px;border:1px solid #d8dde8;border-radius:18px;font-size:13.5px;color:var(--val);background:#fff;cursor:pointer;user-select:none;transition:.12s}
+  .chip.on{background:rgba(43,92,230,.10);border-color:var(--blue);color:var(--blue);font-weight:600}
+
+  .inp{width:100%;height:40px;border:1px solid #e0e5ef;border-radius:9px;padding:0 12px;font-size:14px;color:var(--val);outline:none;background:#fff;font-family:inherit}
+  .inp:focus{border-color:var(--blue)}
+  .area{min-height:96px;height:auto;padding:10px 12px;line-height:1.6;resize:none}
+
+  /* 照片 */
+  .photos{display:flex;flex-wrap:wrap;gap:10px}
+  .thumb{position:relative;width:78px;height:78px;border-radius:10px;overflow:hidden;flex:none;
+    display:flex;align-items:flex-end;box-shadow:0 3px 9px rgba(30,50,110,.14)}
+  .thumb .tag{position:absolute;left:0;top:0;background:rgba(0,0,0,.32);color:#fff;font-size:10px;padding:2px 6px;border-bottom-right-radius:8px}
+  .thumb .x{position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:13px;line-height:17px;text-align:center;cursor:pointer}
+  .thumb .ic{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:26px;height:26px;opacity:.9}
+  .add{width:78px;height:78px;border-radius:10px;border:1px dashed #c7cedd;background:#fafbfe;color:#9aa0ad;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font-size:24px;flex:none}
+  .add span{font-size:11px;font-weight:400}
+
+  /* AI 生成按钮 */
+  .ai-row{margin-top:10px;display:flex;flex-wrap:wrap;gap:9px}
+  .ai-btn{display:inline-flex;align-items:center;gap:5px;height:38px;padding:0 14px;border:none;
+    background:linear-gradient(135deg,#7b5bef,#5b3ef2);color:#fff;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer}
+  .ai-btn:active{opacity:.9}
+
+  /* AI 辨识候选（5 条备选隐患） */
+  .cand{margin-top:10px;border:1px solid #ece9f9;border-radius:10px;background:#faf9fe;overflow:hidden}
+  .cand-tip{font-size:12px;color:var(--pur);padding:9px 12px;border-bottom:1px solid #ece9f9;line-height:1.5}
+  .cand-opt{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;cursor:pointer;border-top:1px solid #f1eef9}
+  .cand-opt:first-of-type{border-top:none}
+  .cand-opt .box{flex:none;width:17px;height:17px;border-radius:5px;border:1.5px solid #c4bce8;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
+  .cand-opt.on{background:#f1ecfd}
+  .cand-opt.on .box{background:var(--pur);border-color:var(--pur)}
+  .cand-opt .txt{font-size:13px;color:var(--val);line-height:1.5}
+
+  .footer{flex:none;padding:10px 16px 24px;background:var(--bg)}
+  .btn-main{width:100%;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
+  .btn-main:active{background:var(--blue-d)}
+
+  .mask{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:60;display:none}
+  .mask.show{display:block}
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:61;background:#fff;border-radius:16px 16px 0 0;transform:translateY(100%);transition:.25s;padding:8px 0 22px}
+  .sheet.show{transform:translateY(0)}
+  .sheet-title{text-align:center;color:#9aa0ad;font-size:13px;padding:12px 0 8px}
+  .sheet-opt{display:block;width:100%;border:none;background:#fff;text-align:center;font-size:16px;color:var(--val);padding:15px 0;cursor:pointer;border-top:1px solid var(--line)}
+  .sheet-opt:active{background:#f4f6fb}
+  .sheet-cancel{display:block;width:calc(100% - 32px);margin:14px 16px 0;height:46px;border:none;border-radius:10px;background:#f1f3f8;color:var(--val);font-size:16px;font-weight:600;cursor:pointer}
+
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:80;display:none;max-width:74%;text-align:center;line-height:1.6}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/></svg>
+      </span>
+    </div>
+    <div class="navbar">
+      <div class="back" onclick="history.back()">‹</div>
+      <div class="navtitle">新增隐患</div>
+      <div class="capsule"><span class="cap-dots" onclick="toast('更多')">•••</span><span class="cap-line"></span><span class="cap-circ" onclick="toast('设置')"><i></i></span></div>
+    </div>
+    <div class="ctx">工单号 <b id="ctxNo">YF2131900</b> · <span id="ctxProj">生产安全重大事故隐患排查</span></div>
+  </div>
+
+  <div class="body" id="body">
+    <div class="card">
+      <div class="card-title"><i></i>生产安全重大事故隐患排查 · 新增隐患</div>
+
+      <div class="field">
+        <div class="flbl"><span class="req">*</span>隐患图片</div>
+        <div class="hint">上传 1 张现场照片，可用于大模型隐患辨识</div>
+        <div class="photos" id="photos" data-max="1"><div class="add" onclick="openSheetFor(this)">+<span>添加</span></div></div>
+      </div>
+
+      <div class="field">
+        <div class="flbl"><span class="req">*</span>行业类别</div>
+        <div class="chips" data-key="industry" data-type="single">
+          <span class="chip on" data-v="安全管理类">安全管理类</span>
+          <span class="chip" data-v="现场用电类">现场用电类</span>
+          <span class="chip" data-v="消防安全类">消防安全类</span>
+          <span class="chip" data-v="特种设备类">特种设备类</span>
+          <span class="chip" data-v="危化品类">危化品类</span>
+          <span class="chip" data-v="工贸类">工贸类</span>
+          <span class="chip" data-v="建筑施工类">建筑施工类</span>
+          <span class="chip" data-v="矿山类">矿山类</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="flbl"><span class="req">*</span>隐患描述</div>
+        <textarea class="inp area" id="f_desc" maxlength="200" placeholder="请手动填写隐患描述（200字以内），或上传图片后点击「大模型辨识隐患」"></textarea>
+        <div class="ai-row">
+          <button class="ai-btn" onclick="genIdentify(this)">✦ 大模型辨识隐患</button>
+        </div>
+        <div class="cand" id="candBox" style="display:none"></div>
+      </div>
+
+      <div class="field">
+        <div class="flbl"><span class="req">*</span>排查依据</div>
+        <textarea class="inp area" id="f_basis" maxlength="200" placeholder="请手动填写排查依据，或点击「大模型生成」"></textarea>
+        <div class="ai-row">
+          <button class="ai-btn" onclick="genBasis(this)">✦ 大模型生成排查依据</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="flbl"><span class="req">*</span>事故种类</div>
+        <div class="hint">27 项可多选；或点击「大模型生成」按行业与描述自动勾选</div>
+        <div class="chips" data-key="accident" data-type="multi" id="accidentChips">
+          <span class="chip" data-v="物体打击">物体打击</span>
+          <span class="chip" data-v="厂（场）内车辆致害">厂（场）内车辆致害</span>
+          <span class="chip" data-v="道路（轨道）车辆致害">道路（轨道）车辆致害</span>
+          <span class="chip" data-v="机械致害">机械致害</span>
+          <span class="chip" data-v="起重致害">起重致害</span>
+          <span class="chip" data-v="触电">触电</span>
+          <span class="chip" data-v="淹溺">淹溺</span>
+          <span class="chip" data-v="灼烫">灼烫</span>
+          <span class="chip" data-v="火灾">火灾</span>
+          <span class="chip" data-v="高处坠落">高处坠落</span>
+          <span class="chip" data-v="跌落">跌落</span>
+          <span class="chip" data-v="坍塌">坍塌</span>
+          <span class="chip" data-v="水害">水害</span>
+          <span class="chip" data-v="容器爆炸">容器爆炸</span>
+          <span class="chip" data-v="管道爆炸">管道爆炸</span>
+          <span class="chip" data-v="可燃气体爆炸">可燃气体爆炸</span>
+          <span class="chip" data-v="可燃液体蒸气爆炸">可燃液体蒸气爆炸</span>
+          <span class="chip" data-v="粉尘爆炸">粉尘爆炸</span>
+          <span class="chip" data-v="民用爆炸物品爆炸">民用爆炸物品爆炸</span>
+          <span class="chip" data-v="烟花爆竹爆炸">烟花爆竹爆炸</span>
+          <span class="chip" data-v="其他可燃固体爆炸">其他可燃固体爆炸</span>
+          <span class="chip" data-v="高温熔融物爆炸">高温熔融物爆炸</span>
+          <span class="chip" data-v="中毒">中毒</span>
+          <span class="chip" data-v="窒息">窒息</span>
+          <span class="chip" data-v="滑坡">滑坡</span>
+          <span class="chip" data-v="泄漏">泄漏</span>
+          <span class="chip" data-v="其他">其他</span>
+        </div>
+        <div class="ai-row">
+          <button class="ai-btn" onclick="genAccident(this)">✦ 大模型生成事故种类</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="flbl"><span class="req">*</span>整改建议</div>
+        <textarea class="inp area" id="f_advice" maxlength="200" placeholder="请手动填写整改建议，或点击「大模型生成」"></textarea>
+        <div class="ai-row">
+          <button class="ai-btn" onclick="genAdvice(this)">✦ 大模型生成整改建议</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="flbl"><span class="req">*</span>隐患等级</div>
+        <div class="chips" data-key="level" data-type="single">
+          <span class="chip on" data-v="重大隐患">重大隐患</span>
+          <span class="chip" data-v="一般隐患">一般隐患</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="flbl"><span class="req">*</span>整改责任人</div>
+        <input class="inp" id="f_owner" type="text" maxlength="20" placeholder="请填写整改责任人">
+      </div>
+
+      <div class="field">
+        <div class="flbl">整改期限</div>
+        <input class="inp" id="f_deadline" type="text" maxlength="20" placeholder="如 2026-09-30">
+      </div>
+
+      <div class="field">
+        <div class="flbl"><span class="req">*</span>整改状态</div>
+        <div class="chips" data-key="status" data-type="single">
+          <span class="chip on" data-v="未整改">未整改</span>
+          <span class="chip" data-v="整改中">整改中</span>
+          <span class="chip" data-v="已整改">已整改</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer"><button class="btn-main" onclick="submitForm()">新增隐患</button></div>
+
+  <div class="mask" id="mask" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-title" id="sheetTitle">选择照片来源</div>
+    <div id="sheetOpts"></div>
+    <button class="sheet-cancel" onclick="closeSheet()">取消</button>
+  </div>
+
+  <div class="home-ind"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const q = new URLSearchParams(location.search);
+document.getElementById('ctxNo').textContent   = q.get('no') || 'YF2131900';
+document.getElementById('ctxProj').textContent = q.get('project') || '生产安全重大事故隐患排查';
+
+document.getElementById('body').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip');
+  if(chip){
+    const box = chip.closest('.chips');
+    if(box.dataset.type==='single'){
+      box.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+      chip.classList.add('on');
+    } else {
+      chip.classList.toggle('on');
+    }
+    return;
+  }
+  const cand = e.target.closest('.cand-opt');
+  if(cand){ cand.classList.toggle('on'); syncDescFromCand(); }
+});
+
+function selKey(k){ const c=document.querySelector(`.chips[data-key="${k}"] .chip.on`); return c?c.dataset.v:''; }
+function val(id){ return (document.getElementById(id).value||'').trim(); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1400); }
+
+/* ===== 照片来源弹层 ===== */
+const SRC = ['拍照','引用照片库'];
+function openSheetFor(el){
+  const ph = el.closest('.photos');
+  const max = +ph.dataset.max || 1;
+  if(ph.querySelectorAll('.thumb').length >= max){ toast('最多添加'+max+'张'); return; }
+  document.getElementById('sheetTitle').textContent = '选择照片来源（最多 '+max+' 张）';
+  document.getElementById('sheetOpts').innerHTML = SRC.map(s=>`<button class="sheet-opt" onclick="pickSrc('${s}')">${s}</button>`).join('');
+  document.getElementById('mask').classList.add('show');
+  document.getElementById('sheet').classList.add('show');
+}
+function pickSrc(src){
+  const ph = document.getElementById('photos');
+  const max = +ph.dataset.max || 1;
+  if(ph.querySelectorAll('.thumb').length >= max){ closeSheet(); toast('最多添加'+max+'张'); return; }
+  const div = document.createElement('div');
+  div.className='thumb';
+  div.innerHTML = `<span class="tag">${src==='拍照'?'拍':'库'}</span><span class="x" onclick="this.parentNode.remove()">×</span><span class="ic">📷</span>`;
+  ph.insertBefore(div, ph.querySelector('.add'));
+  if(ph.querySelectorAll('.thumb').length >= max) ph.querySelector('.add').style.display='none';
+  closeSheet();
+}
+function closeSheet(){ document.getElementById('mask').classList.remove('show'); document.getElementById('sheet').classList.remove('show'); }
+
+/* ===== 大模型（示例数据，后续对接真实接口） ===== */
+const INDUSTRY = ['安全管理类','现场用电类','消防安全类','特种设备类','危化品类','工贸类','建筑施工类','矿山类'];
+const CAND_DESC = {
+  '安全管理类':['安全管理制度未落实，隐患排查治理台账缺失','从业人员未按要求佩戴劳动防护用品','安全培训记录不完整、流于形式','应急预案未定期演练或更新','安全责任制未逐级签订落实'],
+  '现场用电类':['临时用电线缆拖地敷设未做穿管防护','配电箱未上锁且缺少安全警示标识','用电设备未做保护接地（接零）','漏电保护装置失效或未按期检测','私拉乱接、一闸多机现象'],
+  '消防安全类':['消防通道被杂物堵塞，影响应急疏散','灭火器过期或配置数量不足','疏散指示标志缺失或失效','易燃物堆放区未配备防火设施','消防控制室无人值守'],
+  '特种设备类':['起重机限位装置失效，存在超限风险','压力容器未定期检验、超期运行','电梯未按期维护保养','特种设备作业人员无证上岗','叉车制动性能不良'],
+  '危化品类':['危化品未按要求分区分类存放','易燃液体库房通风不良、未防爆','危化品泄漏收集设施缺失','剧毒化学品未落实双人双锁','危险化学品安全周知卡缺失'],
+  '工贸类':['机械设备旋转部位防护罩缺失','冲压设备双手启动装置失效','作业平台临边防护栏杆缺失','物料堆放超高、堵塞通道','砂轮机等工具防护不当'],
+  '建筑施工类':['高处作业人员未系挂安全带','脚手架连墙件缺失、搭设不规范','临边洞口防护不到位','深基坑边坡支护不符合方案','模板支撑体系超载'],
+  '矿山类':['采场边坡出现裂缝、有滑坡征兆','矿井通风不良、有害气体超标','支护滞后、空顶作业','提升设备安全保护装置失效','井下排水系统能力不足']
+};
+const ACCIDENT_MAP = {
+  '安全管理类':['物体打击','高处坠落','其他'],
+  '现场用电类':['触电','火灾','容器爆炸'],
+  '消防安全类':['火灾','中毒','窒息'],
+  '特种设备类':['起重致害','容器爆炸','机械致害'],
+  '危化品类':['火灾','可燃气体爆炸','中毒','泄漏'],
+  '工贸类':['机械致害','物体打击','触电'],
+  '建筑施工类':['高处坠落','坍塌','物体打击'],
+  '矿山类':['坍塌','中毒','滑坡']
+};
+
+function hasPhoto(){ return document.getElementById('photos').querySelectorAll('.thumb').length > 0; }
+function industry(){ return selKey('industry') || '安全管理类'; }
+
+/* 隐患辨识：图片或行业 → 5 条备选，人工选择（可多选） */
+function genIdentify(btn){
+  const pool = (CAND_DESC[industry()] || CAND_DESC['安全管理类']).slice();
+  const box = document.getElementById('candBox');
+  box.innerHTML = `<div class="cand-tip">大模型已辨识出以下 5 条备选隐患，请人工选择（可多选，已选内容将填入隐患描述）</div>` +
+    pool.map(t=>`<div class="cand-opt"><span class="box">✓</span><span class="txt">${t}</span></div>`).join('');
+  box.style.display = 'block';
+  toast(hasPhoto() ? '已基于图片辨识隐患' : '已基于行业类别辨识隐患');
+}
+function syncDescFromCand(){
+  const sel = [...document.querySelectorAll('#candBox .cand-opt.on .txt')].map(e=>e.textContent);
+  document.getElementById('f_desc').value = sel.join('；');
+}
+
+/* 排查依据：依据行业类别 + 隐患描述 */
+function genBasis(btn){
+  const ind = industry();
+  const d = val('f_desc') || ind + '现场';
+  document.getElementById('f_basis').value =
+    `依据《安全生产事故隐患排查治理暂行规定》及${ind}相关标准规范，针对「${d}」开展现场隐患排查，确认不符合项并按期整改闭环。`;
+  toast('已生成排查依据');
+}
+
+/* 事故种类：依据行业类别 + 隐患描述 自动勾选 */
+function genAccident(btn){
+  const list = ACCIDENT_MAP[industry()] || [];
+  const chips = document.querySelectorAll('#accidentChips .chip');
+  chips.forEach(c=>c.classList.remove('on'));
+  let n = 0;
+  chips.forEach(c=>{ if(list.includes(c.dataset.v)){ c.classList.add('on'); n++; } });
+  toast(n ? `已自动勾选 ${n} 项事故种类` : '未匹配到事故种类');
+}
+
+/* 整改建议：依据隐患描述 */
+function genAdvice(btn){
+  const d = val('f_desc');
+  if(!d){ toast('请先填写或辨识隐患描述'); return; }
+  document.getElementById('f_advice').value =
+    `针对「${d}」，建议：立即采取临时管控措施，明确整改责任人并限期闭环；完善相关安全管理制度与现场防护，整改完成后组织复查验收，防止同类隐患反复出现。`;
+  toast('已生成整改建议');
+}
+
+function submitForm(){
+  const miss = [];
+  const desc = val('f_desc');    if(!desc)    miss.push('隐患描述');
+  const basis= val('f_basis');   if(!basis)   miss.push('排查依据');
+  const advice=val('f_advice'); if(!advice)  miss.push('整改建议');
+  if(!selKey('industry'))  miss.push('行业类别');
+  if(!selKey('level'))     miss.push('隐患等级');
+  if(!selKey('status'))    miss.push('整改状态');
+  if(!val('f_owner'))      miss.push('整改责任人');
+  const acc = [...document.querySelectorAll('#accidentChips .chip.on')].map(c=>c.dataset.v);
+  if(!acc.length) miss.push('事故种类');
+  if(miss.length){ toast('请完善：'+miss.join('、')); return; }
+  try{ const k='hazardcount_'+(q.get('project')||'生产安全重大事故隐患排查'); localStorage.setItem(k, Math.max(0,+localStorage.getItem(k)||0)+1); }catch(e){}
+  toast('隐患已新增');
+  setTimeout(()=>{ history.back(); }, 1100);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>人脸活体检测</title>
+<style>
+  :root{--text:#1f2329;--sub:#9aa0ad;--blue:#2b5ce6;--green:#07c160;--line:#eef0f5;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:#fff;border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55)}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:60}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.4;z-index:60}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;background:#fff}
+  .screen.hidden{display:none}
+
+  /* 状态栏（深色图标） */
+  .statusbar{flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;color:var(--text)}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+
+  .topbar{flex:none;height:44px;display:flex;align-items:center;padding:0 16px}
+  .back{width:26px;height:26px;font-size:26px;line-height:22px;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
+
+  /* ===== 第一屏：告知授权 ===== */
+  .s1-body{flex:1;display:flex;flex-direction:column;padding:8px 24px 0}
+  .brand{display:flex;align-items:center;gap:9px}
+  .brand .badge{width:26px;height:26px;border-radius:50%;background:#1677ff;display:flex;align-items:center;justify-content:center;flex:none}
+  .brand .name{font-size:15.5px;font-weight:700;color:var(--text)}
+  .brand .apply{font-size:15.5px;color:var(--text);margin-left:2px}
+  .headline{margin:18px 0 0;font-size:20px;line-height:1.68;color:var(--text);letter-spacing:.2px}
+  .headline b{font-weight:700}
+  .s1-foot{padding-bottom:6px}
+  .agree{font-size:12.5px;line-height:1.9;color:#8a9099;margin-bottom:16px}
+  .agree a{color:#1677ff;text-decoration:none}
+  .btn-green{width:100%;height:46px;border:none;border-radius:6px;background:var(--green);color:#fff;font-size:17px;font-weight:500;cursor:pointer;transition:.15s}
+  .btn-green:active{background:#06ad56}
+  .help{text-align:center;font-size:13px;color:var(--text);padding:16px 0 10px;cursor:pointer}
+
+  /* ===== 第二屏：活体检测 ===== */
+  .topline{flex:none;height:5px;margin:2px 10px 0;border-radius:3px;background:#eceef1;overflow:hidden}
+  .topline i{display:block;height:100%;width:0;background:#c9ccd2;transition:width .3s linear}
+  .cam-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:52px}
+  .cam{position:relative;width:210px;height:210px;border-radius:50%;border:3px solid var(--blue);overflow:hidden;background:#e3e7ee;box-shadow:0 0 0 1px rgba(43,92,230,.12)}
+  .cam video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
+  .cam .ph{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(180deg,#eef2f8,#dfe5ef)}
+  .cam.nofeed .ph{display:flex}
+  .cam .ring{position:absolute;inset:0;border-radius:50%;pointer-events:none;
+    background:conic-gradient(from 0deg,rgba(43,92,230,.55) 0turn,transparent .18turn,transparent 1turn);opacity:.6}
+  .tip{margin-top:18px;font-size:14px;color:var(--sub)}
+  .prog{flex:none;margin:0 40px 44px;height:8px;border-radius:4px;background:#e8eaee;overflow:hidden}
+  .prog i{display:block;height:100%;width:0;border-radius:4px;background:#8f959e;transition:width .3s linear}
+
+  /* 成功浮层 */
+  .mask{position:absolute;inset:0;background:rgba(255,255,255,.96);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:50;padding:0 40px}
+  .mask.show{display:flex}
+  .ok-circle{width:76px;height:76px;border-radius:50%;background:#e9f6ef;display:flex;align-items:center;justify-content:center}
+  .mask h3{margin:20px 0 6px;font-size:20px;color:var(--text);font-weight:700}
+  .mask p{margin:0;font-size:13.5px;color:#8a9099;line-height:1.7;text-align:center}
+  .mask button{margin-top:28px;width:100%;height:46px;border:none;border-radius:8px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:70;display:none;max-width:74%;text-align:center;line-height:1.6}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <!-- ============ 第一屏：告知与授权 ============ -->
+  <div class="screen" id="s1">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#1f2329"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#1f2329"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 5.8 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#1f2329" stroke-opacity=".35" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#1f2329"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#1f2329" fill-opacity=".35"/></svg>
+      </span>
+    </div>
+    <div class="topbar"><div class="back" onclick="history.back()">‹</div></div>
+
+    <div class="s1-body">
+      <div class="brand">
+        <span class="badge">
+          <svg viewBox="0 0 20 20" width="15" height="15" fill="none">
+            <circle cx="10" cy="6.6" r="3.4" fill="#fff"/>
+            <path d="M3.6 16.6c.6-3.3 3.2-5.2 6.4-5.2s5.8 1.9 6.4 5.2z" fill="#fff"/>
+          </svg>
+        </span>
+        <span class="name">福建省综合风险减量服务平台</span><span class="apply">申请使用</span>
+      </div>
+
+      <h2 class="headline">人脸识别功能验证你的身份信息，请确保为 <b id="personName">刘某某</b> 本人操作</h2>
+
+      <div style="flex:1"></div>
+
+      <div class="s1-foot">
+        <div class="agree">您知悉并同意服务提供者授权腾讯按照《个人信息处理规则》实施个人信息处理并用于身份核验，详见<a href="javascript:void(0)" onclick="toast('查看《个人信息处理规则》')">《个人信息处理规则》</a></div>
+        <button class="btn-green" onclick="startDetect()">下一步</button>
+        <div class="help" onclick="toast('打开帮助中心')">帮助中心</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 第二屏：活体检测 ============ -->
+  <div class="screen hidden" id="s2">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#1f2329"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#1f2329"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 5.8 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#1f2329" stroke-opacity=".35" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#1f2329"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#1f2329" fill-opacity=".35"/></svg>
+      </span>
+    </div>
+    <div class="topline"><i id="topBar"></i></div>
+    <div class="topbar"><div class="back" onclick="backToIntro()">‹</div></div>
+
+    <div class="cam-area">
+      <div class="cam" id="cam">
+        <video id="video" playsinline muted autoplay></video>
+        <div class="ph">
+          <svg viewBox="0 0 90 90" width="120" height="120" fill="none">
+            <circle cx="45" cy="34" r="17" fill="#c3cbda"/>
+            <path d="M12 84c3-17 16-27 33-27s30 10 33 27z" fill="#c3cbda"/>
+          </svg>
+        </div>
+        <div class="ring"></div>
+      </div>
+      <div class="tip" id="tip">请保持光线充足</div>
+    </div>
+
+    <div class="prog"><i id="botBar"></i></div>
+  </div>
+
+  <!-- 检测通过 -->
+  <div class="mask" id="mask">
+    <div class="ok-circle">
+      <svg viewBox="0 0 32 32" width="38" height="38" fill="none" stroke="#2f9e6b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 17l6 6 12-13"/>
+      </svg>
+    </div>
+    <h3>活体检测通过</h3>
+    <p>身份核验成功 · 人脸相似度 98.6%<br><span id="okTime"></span></p>
+    <button onclick="finish()">完成</button>
+  </div>
+
+  <div class="home-ind"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const q = new URLSearchParams(location.search);
+const orderNo = q.get('no') || 'YF2132102';
+const project = q.get('project') || '安全风险辨识、评估、评价';
+const person  = q.get('person') || '刘某某';
+document.getElementById('personName').textContent = person;
+
+let stream = null, timer = null, pct = 0;
+
+/* 进入活体检测 */
+function startDetect(){
+  document.getElementById('s1').classList.add('hidden');
+  document.getElementById('s2').classList.remove('hidden');
+  openCamera();
+  runDetect();
+}
+
+function backToIntro(){
+  stopCamera();
+  clearInterval(timer);
+  pct = 0; paint(0);
+  document.getElementById('s2').classList.add('hidden');
+  document.getElementById('s1').classList.remove('hidden');
+}
+
+/* 调用摄像头，失败则用占位图 */
+function openCamera(){
+  const cam = document.getElementById('cam'), video = document.getElementById('video');
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ cam.classList.add('nofeed'); return; }
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:640},audio:false})
+    .then(s=>{ stream = s; video.srcObject = s; video.play().catch(()=>{}); })
+    .catch(()=>{ cam.classList.add('nofeed'); });
+}
+function stopCamera(){ if(stream){ stream.getTracks().forEach(t=>t.stop()); stream = null; } }
+
+function paint(v){
+  document.getElementById('topBar').style.width = v + '%';
+  document.getElementById('botBar').style.width = v + '%';
+}
+
+/* 模拟活体检测进度 */
+function runDetect(){
+  pct = 0; paint(0);
+  const tip = document.getElementById('tip');
+  const steps = ['请保持光线充足','请正视屏幕','请缓慢眨眼','检测完成'];
+  clearInterval(timer);
+  timer = setInterval(()=>{
+    pct = Math.min(100, pct + Math.random()*9 + 3);
+    paint(pct);
+    tip.textContent = steps[Math.min(3, Math.floor(pct/26))];
+    if(pct >= 100){
+      clearInterval(timer);
+      stopCamera();
+      const d = new Date(), p = n=>String(n).padStart(2,'0');
+      document.getElementById('okTime').textContent =
+        `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+      document.getElementById('mask').classList.add('show');
+    }
+  }, 260);
+}
+
+/* 完成打卡：写入签到记录并跳转至对应项目服务登记页 */
+const SERVICE_FORM = {
+  '安全风险辨识、评估、评价' : '服务登记_安全风险辨识评估评价.html',
+  '安全生产宣传教育培训'     : '服务登记_安全生产宣传教育培训.html',
+  '安全生产应急救援演练'     : '服务登记_安全生产应急救援演练.html',
+  '安全生产应急预案编制'     : '服务登记_安全生产应急预案编制.html',
+  '生产安全重大事故隐患排查' : '服务登记_生产安全重大事故隐患排查.html',
+  '安全生产标准化管理体系建设' : '服务登记_安全生产标准化管理体系建设.html'
+};
+function finish(){
+  const file = SERVICE_FORM[project] || '服务登记_安全风险辨识评估评价.html';
+  location.href = file + '?no=' + encodeURIComponent(orderNo) + '&project=' + encodeURIComponent(project);
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
+</script>
+</body>
+</html>

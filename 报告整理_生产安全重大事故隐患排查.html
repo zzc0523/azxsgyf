@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>报告整理 · 生产安全重大事故隐患排查</title>
+<style>
+  :root{--blue:#2b5ce6;--blue-d:#1f49c4;--text:#1f2329;--sub:#9aa0ad;--val:#3a4050;--bg:#f4f6fb;--line:#eef0f5;--red:#e5484d;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:20}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.22;z-index:30}
+
+  .header{flex:none;position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 100%);color:#fff;z-index:10}
+  .header::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent) 90% 40%/200px 130px no-repeat,
+               radial-gradient(closest-side,rgba(255,255,255,.10),transparent) 6% 90%/170px 110px no-repeat}
+  .statusbar{position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .navbar{position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:2px 16px 4px;height:46px}
+  .back{width:26px;height:26px;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
+  .navtitle{font-size:17px;font-weight:700;letter-spacing:.5px}
+
+  .body{flex:1;overflow-y:auto}
+  .body::-webkit-scrollbar{display:none}
+  .card{background:#fff;border-radius:14px;margin:0 16px;padding:4px 16px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .card.first{margin-top:0}
+  .sec-title{font-size:13px;font-weight:600;color:#8b91a0;padding:16px 16px 8px}
+  .sec{font-size:15px;font-weight:700;color:var(--text);padding:18px 16px 8px;display:flex;align-items:center}
+  .sec::before{content:"";width:3px;height:15px;background:var(--blue);border-radius:2px;margin-right:8px}
+
+  .info .frow{display:flex;padding:9px 0;border:none;font-size:13.5px;line-height:1.5}
+  .info .k{color:#8b91a0;flex:none}
+  .info .v{color:#1f2329;font-weight:600;flex:1;min-width:0;word-break:break-word}
+
+  .frow{border-bottom:1px solid var(--line);padding:12px 0;font-size:13.5px}
+  .frow:last-child{border-bottom:none}
+
+  .right{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+  .go{color:#bcc3d0;font-size:16px}
+  .pstat{font-size:13px;font-weight:600}
+  .pstat.ok{color:#2f9e6b}
+  .pstat.no{color:var(--red)}
+  .pstat.gray{color:#c2c8d4}
+  .rcount{color:var(--red);font-size:16px;font-weight:700;line-height:1}
+  .pcap{color:var(--sub);font-size:12.5px}
+  .lrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;cursor:pointer;border-radius:8px;transition:background .12s}
+  .lrow:active{background:#f7f9fd}
+  .lrow .ltxt{color:var(--text);font-size:13.5px;font-weight:500;line-height:1.4;flex:1;min-width:0;word-break:break-word}
+  .lrow .right{flex:none;justify-content:flex-end}
+
+  .phead{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line)}
+  .ptitle{font-size:15px;font-weight:700;color:var(--text)}
+  .plus{font-size:21px;line-height:1;color:#3a4050;cursor:pointer;padding:0 2px}
+  .minus{flex:none;width:18px;height:18px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;margin-right:11px;cursor:pointer}
+  .minus i{width:9px;height:2px;background:#fff;border-radius:1px;display:block}
+
+  .footer{flex:none;padding:10px 16px 24px;background:var(--bg);display:flex;gap:10px}
+  .btn-main{flex:1;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
+  .btn-main:active{background:var(--blue-d)}
+
+  /* 报告预览（PDF） */
+  .preview{position:absolute;inset:0;background:#f4f6fb;z-index:70;display:none;flex-direction:column}
+  .preview.show{display:flex}
+  .preview-head{flex:none;padding:30px 16px 14px;background:linear-gradient(180deg,#3f6ef2,#5b86f5);color:#fff}
+  .preview-title{font-size:17px;font-weight:700}
+  .preview-sub{font-size:12px;opacity:.92;margin-top:5px}
+  .pdf-frame{flex:1;width:100%;border:none;background:#525659}
+
+  #reportHost{position:absolute;left:-10000px;top:0;width:794px;overflow:hidden}
+  .rpt{width:794px;background:#fff;padding:48px 54px;box-sizing:border-box;
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:#1f2329}
+  .rpt-h{text-align:center;font-size:26px;font-weight:700;letter-spacing:1px}
+  .rpt-sub{text-align:center;font-size:13px;color:#8b91a0;margin-top:10px}
+  .rpt-rule{height:0;border-top:1.5px solid #d8dde8;margin:18px 0 8px}
+  .rpt-sec{font-size:16px;font-weight:700;color:#2b5ce6;margin:20px 0 6px}
+  .rpt-row{padding:10px 0;border-bottom:1px dashed #e6e9f0}
+  .rpt-k{font-size:14px;font-weight:700;color:#3a4050;margin-bottom:4px}
+  .rpt-v{font-size:13.5px;line-height:1.7;color:#3a4050;white-space:pre-wrap;word-break:break-all}
+  .rpt-risk{border:1px solid #eef0f5;border-radius:8px;padding:12px 14px;margin:10px 0}
+  .rpt-risk .rt{font-size:14px;font-weight:700;color:#1f2329;margin-bottom:6px}
+  .rpt-risk .rr{font-size:13px;line-height:1.7;color:#3a4050}
+  .preview-foot{flex:none;display:flex;gap:12px;padding:10px 16px 24px;background:var(--bg)}
+  .preview-foot button{flex:1 1 0;min-width:0;height:46px;margin:0;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit}
+  .preview-foot .btn-main{box-shadow:0 6px 16px rgba(43,92,230,.28)}
+  .preview-foot .btn-ghost{border:1px solid var(--blue);background:#fff;color:var(--blue)}
+  .preview-foot .btn-ghost:active{background:#eef2fc}
+
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:80;display:none;max-width:74%;text-align:center;line-height:1.6}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/></svg>
+      </span>
+    </div>
+    <div class="navbar"><div class="back" onclick="history.back()">‹</div><div class="navtitle">报告整理</div></div>
+  </div>
+
+  <div class="body" id="body"></div>
+
+  <div class="footer"><button class="btn-main" onclick="generateReport()">生成报告</button></div>
+
+  <div class="preview" id="preview">
+    <div class="preview-head">
+      <div class="preview-title">报告预览 · PDF</div>
+      <div class="preview-sub" id="previewSub"></div>
+    </div>
+    <iframe class="pdf-frame" id="pdfFrame"></iframe>
+    <div class="preview-foot">
+      <button class="btn-ghost" onclick="closePreview()">重新整理</button>
+      <button class="btn-main" onclick="doSubmit()">提交报告</button>
+    </div>
+  </div>
+
+  <div id="reportHost"><div id="reportDoc" class="rpt"></div></div>
+  <div class="home-ind"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="libs/html2canvas.min.js"></script>
+<script src="libs/jspdf.umd.min.js"></script>
+<script>
+const PROJECT = '生产安全重大事故隐患排查';
+const q = new URLSearchParams(location.search);
+const orderNo  = q.get('no') || 'YF2131900';
+const project  = q.get('project') || PROJECT;
+const COMPANY  = '福州无比欢信息科技有限公司';
+const PLACE    = '福州马尾区海峡广场A座';
+const DATE     = '2025.01.01-2025.01.05';
+
+const PIN = '<svg viewBox="0 0 12 15" width="11" height="14" style="vertical-align:-2px;margin-left:4px"><path d="M6 0a6 6 0 0 0-6 6c0 4.2 6 9 6 9s6-4.8 6-9A6 6 0 0 0 6 0Zm0 8.2A2.2 2.2 0 1 1 6 3.8a2.2 2.2 0 0 1 0 4.4Z" fill="#2b5ce6"/></svg>';
+const TEL = '<svg viewBox="0 0 15 15" width="13" height="13" style="vertical-align:-2px;margin-left:4px"><path d="M3.1 1C2.5 1 1.9 1.6 1.9 2.3c0 6.5 4.3 10.8 10.8 10.8.7 0 1.3-.6 1.3-1.2v-1.9c0-.5-.3-.9-.7-1l-2.1-.7c-.4-.1-.8 0-1 .3l-.6.8a8.9 8.9 0 0 1-3.3-3.3l.8-.6c.3-.2.4-.6.3-1l-.7-2.1c-.1-.5-.5-.7-1-.7H3.1Z" fill="#2b5ce6"/></svg>';
+
+/* ===== 现场照片（回显采集状态；默认回显已采集） ===== */
+const PHOTO_DEFAULT = {'企业（项目）门牌照':2, '技术人员现场服务照片':2, '现场检查照片':0};
+function photoCount(n){
+  try{ const v = localStorage.getItem('photo_'+n); if(v != null) return Math.max(0, +v||0); }catch(e){}
+  return PHOTO_DEFAULT[n] || 0;
+}
+const PHOTOS = [
+  {name:'企业（项目）门牌照', max:2, need:true},
+  {name:'技术人员现场服务照片', max:2, need:true},
+  {name:'现场检查照片', max:50},
+];
+
+/* ===== 现场排查（回显本地存储，可增删；默认已完成） ===== */
+const PATROL_TYPES = ['安全管理类排查表','现场用电类排查表','消防安全类排查表','特种设备类排查表','危化品类排查表','工贸类排查表','建筑施工类排查表','矿山类排查表'];
+function patrolKey(){ return 'patrol_'+project; }
+function patrolLoad(){
+  let list = null;
+  try{ const s = localStorage.getItem(patrolKey()); if(s != null) list = JSON.parse(s); }catch(e){}
+  if(!Array.isArray(list) || !list.length) list = [{name:'现场用电类排查表'}, {name:'安全管理类排查表'}];
+  const out = list.map(r=>({name:(r && r.name) ? r.name : String(r), done:true}));
+  patrolSave(out);
+  return out;
+}
+function patrolSave(list){ try{ localStorage.setItem(patrolKey(), JSON.stringify(list)); }catch(e){} }
+
+/* ===== 隐患（同源隐患列表；缺省示例 4 条） ===== */
+function loadHazards(){
+  try{ const s = localStorage.getItem('hazardlist_'+project); if(s) return JSON.parse(s); }catch(e){}
+  return [
+    {name:'消防通道被杂物堵塞，影响应急疏散', category:'消防安全类', owner:'张伟', deadline:'2026-09-30', status:'整改中', level:'重大隐患'},
+    {name:'配电箱未上锁且缺少安全警示标识', category:'现场用电类', owner:'李强', deadline:'2026-10-15', status:'未整改', level:'一般隐患'},
+    {name:'临时用电线缆拖地敷设未做防护', category:'现场用电类', owner:'王芳', deadline:'2026-09-28', status:'已整改', level:'一般隐患'},
+    {name:'起重机限位装置失效，存在超限风险', category:'特种设备类', owner:'赵磊', deadline:'2026-10-08', status:'未整改', level:'重大隐患'},
+  ];
+}
+function hazardCount(){
+  try{ const v = localStorage.getItem('hazardcount_'+project); if(v != null) return Math.max(0, +v||0); }catch(e){}
+  return loadHazards().length;
+}
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ===== 渲染 ===== */
+function infoCard(){
+  const row=(k,v,ic)=>`<div class="frow"><span class="k">${k}：</span><span class="v">${v}${ic||''}</span></div>`;
+  return `<div class="sec-title">基本信息</div>
+  <div class="card first info">
+    ${row('预防服务工单', orderNo)}
+    ${row('企业名称', COMPANY)}
+    ${row('服务项目', project)}
+    ${row('计划服务日期', DATE)}
+    ${row('计划服务地点', PLACE, PIN)}
+    ${row('联系人', '张三')}
+    ${row('联系电话', '18000000000', TEL)}
+  </div>`;
+}
+function photoCard(){
+  const html = PHOTOS.map(r=>{
+    const right = r.need
+      ? (photoCount(r.name) >= r.max ? `<span class="pstat ok">已完成</span>` : `<span class="pstat no">未完成</span>`)
+      : `<span class="pcap">${r.max}张</span>`;
+    return `<div class="frow lrow" onclick="goPhoto('${encodeURIComponent(r.name)}',${r.max})">
+      <div class="ltxt">${r.name}</div>
+      <div class="right">${right}<span class="go">›</span></div>
+    </div>`;
+  }).join('');
+  return `<div class="sec">现场照片</div><div class="card">${html}</div>`;
+}
+function patrolCard(){
+  const rows = patrolLoad().map((r,i)=>`
+    <div class="frow lrow" onclick="patrolOpen(${i})">
+      <span class="minus" onclick="event.stopPropagation();patrolRemove(${i})"><i></i></span>
+      <div class="ltxt">${esc(r.name)}</div>
+      <div class="right"><span class="pstat ${r.done?'ok':'gray'}">${r.done?'已完成':'未完成'}</span><span class="go">›</span></div>
+    </div>`).join('');
+  return `<div class="sec">现场排查</div><div class="card">
+    <div class="phead"><div class="ptitle">现场排查表</div><span class="plus" onclick="patrolAdd()">＋</span></div>
+    ${rows}</div>`;
+}
+function hazardCard(){
+  const target = '隐患列表.html?no=' + encodeURIComponent(orderNo) + '&project=' + encodeURIComponent(project);
+  return `<div class="sec">隐患</div><div class="card">
+    <div class="frow lrow" onclick="location.href='${target}'">
+      <div class="ltxt">隐患总数</div>
+      <div class="right"><span class="rcount">${hazardCount()}</span><span class="go">›</span></div>
+    </div></div>`;
+}
+function render(){
+  document.getElementById('body').innerHTML =
+    infoCard() + photoCard() +
+    `<div id="patrolWrap">${patrolCard()}</div>` +
+    hazardCard();
+}
+function renderPatrol(){ document.getElementById('patrolWrap').innerHTML = patrolCard(); }
+
+/* ===== 交互 ===== */
+function goPhoto(name,max){ location.href = '照片采集.html?title=' + name + '&max=' + max; }
+function patrolAdd(){
+  const list = patrolLoad(), used = list.map(r=>r.name);
+  const next = PATROL_TYPES.find(t=>used.indexOf(t)<0);
+  if(!next){ toast('已无可添加的排查表'); return; }
+  list.push({name:next, done:true}); patrolSave(list); renderPatrol();
+}
+function patrolRemove(i){ const list = patrolLoad(); list.splice(i,1); patrolSave(list); renderPatrol(); }
+function patrolOpen(i){ const r = patrolLoad()[i]; if(!r) return; toast('打开排查表：'+r.name); }
+
+/* ===== 报告生成 ===== */
+function collect(){
+  const basic = {
+    预防服务工单: orderNo, 企业名称: COMPANY, 服务项目: project,
+    计划服务日期: DATE, 计划服务地点: PLACE, 联系人: '张三', 联系电话: '18000000000'
+  };
+  const photo = PHOTOS.map(p=>p.name+' '+photoCount(p.name)+'张').join('、');
+  const patrol = patrolLoad().map(r=>r.name+'：'+(r.done?'已完成':'未完成')).join('、');
+  return {basic, photo, patrol, list: loadHazards()};
+}
+function buildReportDOM(meta, data){
+  const basicRows = Object.entries(data.basic).map(([k,v])=>
+    `<div class="rpt-row"><div class="rpt-k">${esc(k)}</div><div class="rpt-v">${esc(v)}</div></div>`).join('');
+  const photoRow  = `<div class="rpt-row"><div class="rpt-k">现场照片</div><div class="rpt-v">${esc(data.photo)}</div></div>`;
+  const patrolRow = `<div class="rpt-row"><div class="rpt-k">现场排查</div><div class="rpt-v">${esc(data.patrol)}</div></div>`;
+  const riskBlocks = data.list.map((r,i)=>
+    `<div class="rpt-risk"><div class="rt">隐患 ${i+1}　[${esc(r.level)} · ${esc(r.status)}]</div>
+      <div class="rr">隐患描述：${esc(r.name)||'—'}<br>隐患类别：${esc(r.category)||'—'}<br>整改责任人：${esc(r.owner)||'—'}<br>整改期限：${esc(r.deadline)||'—'}</div></div>`).join('');
+  document.getElementById('reportDoc').innerHTML =
+    `<div class="rpt-h">${esc(meta.proj)} · 服务报告</div>`+
+    `<div class="rpt-sub">工单号：${esc(meta.no)}　|　生成时间：${esc(meta.time)}</div>`+
+    `<div class="rpt-rule"></div>`+
+    `<div class="rpt-sec">一、基本信息</div>${basicRows}${photoRow}`+
+    `<div class="rpt-sec">二、现场排查</div>${patrolRow}`+
+    `<div class="rpt-sec">三、隐患清单（共 ${data.list.length} 项）</div>${riskBlocks}`;
+}
+async function generateReport(){
+  const data = collect();
+  const now = new Date(), p = n=>String(n).padStart(2,'0');
+  const time = `${now.getFullYear()}-${p(now.getMonth()+1)}-${p(now.getDate())} ${p(now.getHours())}:${p(now.getMinutes())}`;
+  buildReportDOM({no:orderNo, proj:project, time}, data);
+  document.getElementById('previewSub').textContent = `工单号 ${orderNo} · ${project}`;
+  toast('正在生成 PDF…');
+  try{
+    const canvas = await html2canvas(document.getElementById('reportDoc'), {scale:2, backgroundColor:'#ffffff', useCORS:true, logging:false});
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({unit:'mm', format:'a4'});
+    const pw = doc.internal.pageSize.getWidth();
+    const ph = doc.internal.pageSize.getHeight();
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    const imgH = canvas.height * pw / canvas.width;
+    let heightLeft = imgH, pos = 0;
+    doc.addImage(imgData, 'JPEG', 0, pos, pw, imgH);
+    heightLeft -= ph;
+    while(heightLeft > 0){ pos -= ph; doc.addPage(); doc.addImage(imgData, 'JPEG', 0, pos, pw, imgH); heightLeft -= ph; }
+    const blob = doc.output('blob');
+    const frame = document.getElementById('pdfFrame');
+    if(frame.dataset.url) URL.revokeObjectURL(frame.dataset.url);
+    const url = URL.createObjectURL(blob);
+    frame.src = url; frame.dataset.url = url;
+    document.getElementById('preview').classList.add('show');
+  }catch(e){ console.error(e); toast('PDF 生成失败'); }
+}
+function closePreview(){ document.getElementById('preview').classList.remove('show'); }
+function doSubmit(){
+  try{
+    localStorage.setItem('hazardlist_'+project, JSON.stringify(loadHazards()));
+    localStorage.setItem('hazardcount_'+project, hazardCount());
+    localStorage.setItem('patrol_'+project, JSON.stringify(patrolLoad()));
+  }catch(e){}
+  const status = JSON.parse(localStorage.getItem('sg_report_status') || '{}');
+  status[orderNo] = '审核中';
+  localStorage.setItem('sg_report_status', JSON.stringify(status));
+  document.getElementById('preview').classList.remove('show');
+  toast('报告已提交');
+  setTimeout(()=>{ location.href = '事故预防服务.html?tab=3'; }, 1100);
+}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>报告预览</title>
+<style>
+  :root{
+    --blue:#2b5ce6; --text:#1f2329; --sub:#8a909c; --line:#eceff4; --red:#e02e2e;
+    --nav-h:44px; --status-h:28px; --bg:#ededed;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:#0e1320;color:var(--text);display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
+
+  /* ===== 小程序外框（统一手机边框） ===== */
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:30}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.22;z-index:30}
+
+  /* ===== 小程序外壳 ===== */
+  .app{flex:1;min-height:0;display:flex;flex-direction:column;width:100%}
+  /* 状态栏 */
+  .statusbar{flex:none;height:var(--status-h);background:#fff;display:flex;align-items:center;
+    justify-content:space-between;padding:0 14px;font-size:13px;font-weight:600;color:#000}
+  .statusbar .sys{display:flex;align-items:center;gap:5px}
+  .statusbar .sys svg{display:block}
+  /* 导航栏 */
+  .navbar{flex:none;height:var(--nav-h);background:#fff;display:flex;align-items:center;
+    position:relative;border-bottom:.5px solid #e6e6e6}
+  .nav-back{display:flex;align-items:center;height:100%;padding:0 12px 0 6px;color:#000;
+    font-size:22px;line-height:1;cursor:pointer}
+  .nav-title{flex:1;text-align:center;font-size:16px;font-weight:600;color:#000;
+    padding-right:90px}  /* 给右侧胶囊留位 */
+  /* 右侧胶囊（··· / ⊙） */
+  .capsule{position:absolute;right:8px;top:50%;transform:translateY(-50%);
+    width:87px;height:32px;border:.5px solid rgba(0,0,0,.12);border-radius:16px;
+    background:rgba(255,255,255,.6);display:flex;align-items:center;overflow:hidden}
+  .capsule span{flex:1;height:100%;display:flex;align-items:center;justify-content:center;
+    color:#1f2329;font-size:15px;line-height:1}
+  .capsule .cap-close{font-size:13px}
+  .capsule .cap-div{width:.5px;height:18px;background:rgba(0,0,0,.12);flex:none}
+
+  /* 内容区 */
+  .content{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 12px 16px;
+    background:var(--bg)}
+  .pagetag{font-size:12px;color:var(--sub);text-align:center;margin:2px 0 10px}
+  .page{background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.06);
+    padding:22px 18px 26px}
+
+  /* 文档抬头 */
+  .doc-head{text-align:center;padding-bottom:12px;border-bottom:2px solid var(--text)}
+  .doc-head .k{font-size:11px;color:var(--sub);letter-spacing:2px}
+  .doc-head .h{font-size:19px;font-weight:800;margin-top:5px;letter-spacing:1px}
+  .status{display:inline-block;margin-top:9px;font-size:12px;padding:3px 12px;border-radius:20px;
+    background:#eaf0ff;color:var(--blue)}
+  .status.review{background:#fff4e5;color:#e08a00}
+  .status.done{background:#e8f8ee;color:#1a9e54}
+  .status.dispute{background:#fdeaea;color:var(--red)}
+
+  .meta{margin-top:13px;display:grid;grid-template-columns:auto 1fr;gap:6px 10px;font-size:12px}
+  .meta .l{color:var(--sub)}
+  .meta .v{color:var(--text)}
+
+  .sec{margin-top:16px}
+  .sec .t{font-size:13.5px;font-weight:700;padding-left:8px;border-left:3px solid var(--blue);
+    margin-bottom:7px;line-height:1.3}
+  .sec .c{font-size:12.5px;line-height:1.7;color:#3a3f4a}
+  .sec .c .ph{color:var(--sub)}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .ph-img{aspect-ratio:4/3;background:#eef0f4;border:1px solid #e3e7ee;border-radius:6px;
+    display:flex;align-items:center;justify-content:center;color:#b9c0cc;font-size:10px}
+  .ph-img svg{width:20px;height:20px;opacity:.55}
+  .cap{font-size:11px;color:var(--sub);margin-top:5px}
+
+  .file{display:flex;align-items:center;gap:9px;background:#f6f8fc;border:1px solid #e3e8f2;
+    border-radius:8px;padding:9px 11px}
+  .file .ic{width:28px;height:34px;border-radius:4px;background:var(--red);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex:none}
+  .file .nm{font-size:12.5px}
+  .file .sz{font-size:10.5px;color:var(--sub);margin-top:2px}
+
+  .tag{display:inline-block;background:#eef2fb;color:#4169e1;font-size:11.5px;
+    padding:3px 9px;border-radius:6px;margin:3px 5px 3px 0}
+  .sign-row{display:flex;justify-content:space-between;margin-top:20px;font-size:12px;color:var(--sub)}
+  .empty{padding:60px 20px;text-align:center;color:var(--sub);font-size:14px;line-height:1.8}
+
+  /* 底部操作栏（小程序风格） */
+  .tabbar{flex:none;display:flex;gap:10px;padding:8px 14px calc(8px + env(safe-area-inset-bottom));
+    background:#fff;border-top:.5px solid #e6e6e6}
+  .tabbar button{flex:1;height:42px;border-radius:22px;font-size:15px;font-weight:600;
+    border:1px solid #d7dbe4;background:#fff;color:#3a3f4a;cursor:pointer}
+  .tabbar button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+
+  .toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.78);
+    color:#fff;font-size:13.5px;padding:10px 18px;border-radius:8px;z-index:50;opacity:0;
+    pointer-events:none;transition:opacity .2s}
+  .toast.show{opacity:1}
+
+  @media print{
+    body{background:#fff;display:block;padding:0}
+    .phone{border:none;border-radius:0;box-shadow:none;overflow:visible;height:auto;width:100%}
+    .notch,.home-ind{display:none}
+    .app{height:auto}
+    .statusbar,.navbar,.tabbar,.pagetag{display:none}
+    .content{overflow:visible;background:#fff;padding:0}
+    .page{box-shadow:none;border-radius:0}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="app">
+  <div class="statusbar">
+    <span class="time">9:41</span>
+    <span class="sys">
+      <svg width="17" height="11" viewBox="0 0 17 11" fill="#000"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4" y="5" width="3" height="6" rx="1"/><rect x="8" y="3" width="3" height="8" rx="1"/><rect x="12" y="0" width="3" height="11" rx="1"/></svg>
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="none" stroke="#000" stroke-width="1.2"><path d="M7.5 2.5c2.2 0 4.2.9 5.6 2.3M7.5 6c1.1 0 2.1.5 2.8 1.2M1.9 4.8C3.3 3.4 5.3 2.5 7.5 2.5"/><circle cx="11" cy="8" r="1" fill="#000" stroke="none"/></svg>
+      <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2.5" stroke="#000" stroke-width="1"/><rect x="3" y="3" width="15" height="6" rx="1" fill="#000"/><rect x="21.5" y="4" width="1.6" height="4" rx="1" fill="#000"/></svg>
+    </span>
+  </div>
+
+  <div class="navbar">
+    <div class="nav-back" onclick="history.back()">‹</div>
+    <div class="nav-title">报告预览</div>
+    <div class="capsule">
+      <span class="cap-more" onclick="toast('更多')">···</span>
+      <span class="cap-div"></span>
+      <span class="cap-close" onclick="history.back()">⊙</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="pagetag">PDF 报告预览</div>
+    <div class="page" id="page"></div>
+  </div>
+
+  <div class="tabbar">
+    <button onclick="toast('已转发给微信好友')">转发</button>
+    <button class="primary" onclick="window.print()">保存 PDF</button>
+  </div>
+  </div>
+  <div class="home-ind"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const _q = new URLSearchParams(location.search);
+const no = _q.get('no') || '';
+const project = _q.get('project') || '';
+const company = _q.get('company') || '—';
+const date = _q.get('date') || '—';
+const place = _q.get('place') || '—';
+
+/* 报告状态（与服务页 localStorage 一致） */
+const status = JSON.parse(localStorage.getItem('sg_report_status') || '{}');
+const st = status[no] || '待提交';
+const STMAP = {'审核中':['审核中','review'],'已审核':['已审核','done'],'有异议':['有异议','dispute']};
+const sk = STMAP[st] ? STMAP[st][1] : '';
+
+const IMG = '<svg viewBox="0 0 24 24" fill="none" stroke="#b9c0cc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.8"/><path d="M21 16l-5-5-7 7"/></svg>';
+
+function imgGrid(n, show){
+  let cells = '';
+  for(let i=0;i<show;i++) cells += `<div class="ph-img">${IMG}</div>`;
+  return `<div class="grid">${cells}</div><div class="cap">共 ${n} 张，预览展示 ${show} 张</div>`;
+}
+
+/* 各服务项目报告模板（当前仅 安全生产宣传教育培训 有完整模板） */
+const TEMPLATES = {
+  '安全生产宣传教育培训': [
+    {t:'一、培训形式', html:'<span class="tag">线下培训</span><span class="tag">线上培训</span>（示例：本次以线下集中培训为主，辅以线上回看）'},
+    {t:'二、培训通知', html: imgGrid(1,1) + '<div class="cap">来源：拍照 / 引用现场检查照片 / 手机相册</div>'},
+    {t:'三、培训照片', html: imgGrid(20,6)},
+    {t:'四、签到表', html: imgGrid(10,3) + '<div class="cap">来源：拍照 / 引用现场检查照片 / 手机相册（共 10 张）</div>'},
+    {t:'五、培训课件', html:'<div class="file"><div class="ic">PDF</div><div><div class="nm">安全生产宣传教育培训课件1.pdf</div><div class="sz">2.4 MB · 已上传</div></div></div>'},
+    {t:'六、培训主题', html:'<div class="c">《新安全生产法》解读与岗位安全操作规范宣贯（示例）</div>'},
+    {t:'七、培训对象', html:'<span class="tag">全体人员</span><span class="tag">作业人员</span><span class="tag">特种作业人员</span>'},
+    {t:'八、培训大纲', html:'<div class="c">1. 安全生产法律法规与主体责任；2. 事故案例警示与风险辨识；3. 岗位安全操作规程与应急处置；4. 消防与职业健康防护；5. 培训考核与签到管理。（示例，200 字以内）</div>'},
+    {t:'九、培训纪要', html: imgGrid(9,4) + '<div class="cap">来源：手机相册（培训课件部分内容，共 9 张）</div>'},
+    {t:'十、参与人数', html:'<div class="c">32 人</div>'},
+    {t:'十一、是否有考试', html:'<div class="c">是</div><div class="sec" style="margin-top:10px"><div class="t" style="font-size:12.5px">成绩汇总单</div>'+imgGrid(10,3)+'<div class="cap">来源：拍照 / 引用现场检查照片（共 10 张）</div></div>'},
+    {t:'十二、培训效果评估', html:'<div class="c"><span class="tag">满意度调查</span>（示例：学员满意度 96%，实操考核合格率 100%）</div>'},
+    {t:'十三、培训效果反馈表', html: imgGrid(10,4) + '<div class="cap">来源：拍照 / 引用现场检查照片（共 10 张）</div>'}
+  ]
+};
+
+function render(){
+  const tpl = TEMPLATES[project];
+  if(!tpl){
+    document.getElementById('page').innerHTML =
+      '<div class="empty">「'+ (project||'该服务项目') +'」<br>暂无报告预览模板</div>';
+    return;
+  }
+  const meta =
+    '<div class="meta">'+
+      '<div class="l">工单号</div><div class="v">'+no+'</div>'+
+      '<div class="l">企业名称</div><div class="v">'+company+'</div>'+
+      '<div class="l">服务项目</div><div class="v">'+project+'</div>'+
+      '<div class="l">服务周期</div><div class="v">'+date+'</div>'+
+      '<div class="l">服务地点</div><div class="v">'+place+'</div>'+
+    '</div>';
+
+  let secs = '';
+  tpl.forEach(s=>{ secs += '<div class="sec"><div class="t">'+s.t+'</div><div class="c">'+s.html+'</div></div>'; });
+
+  const sign =
+    '<div class="sign-row"><span>编制：服务专员</span><span>审核：技术负责人</span><span>日期：'+date.split('-')[0]+'</span></div>';
+
+  document.getElementById('page').innerHTML =
+    '<div class="doc-head">'+
+      '<div class="k">事故预防服务 · 服务报告</div>'+
+      '<div class="h">'+project+'服务报告</div>'+
+      '<div class="status '+sk+'">'+st+'</div>'+
+    '</div>'+
+    meta + secs + sign;
+}
+render();
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
+</script>
+</body>
+</html>

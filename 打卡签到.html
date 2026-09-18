@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>打卡签到 · 获取当前位置</title>
+<style>
+  :root{--blue:#2b5ce6;--blue-d:#1f49c4;--text:#1f2329;--sub:#9aa0ad;--val:#3a4050;--bg:#f4f6fb;--line:#eef0f5;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:30}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.22;z-index:30}
+
+  /* 头部 */
+  .header{flex:none;position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 100%);color:#fff;z-index:10}
+  .header::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent) 90% 40%/200px 130px no-repeat,
+               radial-gradient(closest-side,rgba(255,255,255,.10),transparent) 6% 90%/170px 110px no-repeat}
+  .statusbar{position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .navbar{position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:2px 16px 8px;height:46px}
+  .back{width:26px;height:26px;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
+  .navtitle{font-size:17px;font-weight:700;letter-spacing:.5px}
+  .capsule{margin-left:auto;display:flex;align-items:center;height:32px;padding:0 13px;border-radius:16px;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .cap-dots{font-size:14px;letter-spacing:2px;line-height:1;padding-bottom:5px;cursor:pointer}
+  .cap-line{width:1px;height:15px;background:rgba(255,255,255,.4);margin:0 9px}
+  .cap-circ{width:17px;height:17px;border-radius:50%;border:1.6px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .cap-circ i{width:6px;height:6px;border-radius:50%;background:#fff;display:block}
+  .ctx{position:relative;z-index:5;padding:0 16px 12px;font-size:12px;color:rgba(255,255,255,.9)}
+  .ctx b{font-weight:600}
+
+  /* 地图 */
+  .map{flex:none;position:relative;height:300px;overflow:hidden;background-color:#eef2f8;
+    background-image:
+      radial-gradient(140px 100px at 78% 80%, #d7eede, transparent),
+      linear-gradient(118deg, transparent 44%, #ffffff 44%, #ffffff 47%, transparent 47%),
+      linear-gradient(34deg, transparent 60%, #ffffff 60%, #ffffff 62%, transparent 62%),
+      linear-gradient(rgba(120,140,180,.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120,140,180,.12) 1px, transparent 1px);
+    background-size:auto,auto,auto,40px 40px,40px 40px}
+  .pin-wrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-100%);z-index:4}
+  .pulse{position:absolute;left:50%;top:0;transform:translate(-50%,-50%);width:70px;height:70px;border-radius:50%;background:rgba(43,92,230,.18);animation:pulse 1.7s infinite}
+  @keyframes pulse{0%{transform:translate(-50%,-50%) scale(.4);opacity:.8}100%{transform:translate(-50%,-50%) scale(1.5);opacity:0}}
+  .pin{position:relative;filter:drop-shadow(0 6px 6px rgba(30,50,110,.25))}
+  .map-tip{position:absolute;left:50%;top:calc(50% - 92px);transform:translateX(-50%);background:rgba(20,28,46,.82);color:#fff;font-size:12px;padding:6px 12px;border-radius:16px;white-space:nowrap;z-index:4;transition:.3s}
+  .reloc{position:absolute;right:14px;bottom:14px;z-index:5;display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:18px;background:#fff;color:var(--blue);font-size:13px;font-weight:600;box-shadow:0 4px 14px rgba(30,50,110,.15);cursor:pointer;border:none}
+  .reloc svg{display:block}
+  .loc-status{position:absolute;left:14px;top:14px;z-index:5;display:flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:16px;background:rgba(255,255,255,.92);font-size:12.5px;color:#3a4050;box-shadow:0 3px 10px rgba(30,50,110,.12)}
+  .spin{width:14px;height:14px;border:2px solid #cfd6e6;border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* 信息卡 */
+  .body{flex:1;overflow-y:auto}
+  .body::-webkit-scrollbar{display:none}
+  .card{background:#fff;border-radius:14px;margin:14px 16px;padding:4px 16px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .row{display:flex;align-items:center;padding:13px 0;font-size:13.5px;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:none}
+  .lbl{color:var(--sub);flex:none;width:74px}
+  .val{color:var(--val);display:flex;align-items:center;gap:5px;min-width:0;word-break:break-all;flex:1}
+  .val .pin-ico{flex:none}
+  .ok{color:#2f9e6b}
+  .range{display:inline-flex;align-items:center;gap:4px;color:#2f9e6b;background:#e9f6ef;padding:2px 9px;border-radius:10px;font-size:12px;margin-left:6px}
+
+  .footer{flex:none;padding:10px 16px 24px;background:var(--bg)}
+  .btn-main{width:100%;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28);transition:.15s}
+  .btn-main:active{background:var(--blue-d);transform:translateY(1px)}
+  .btn-main:disabled{background:#c2cde6;box-shadow:none;color:#fff;cursor:not-allowed}
+
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:50;display:none;max-width:74%;text-align:center;line-height:1.6}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 5.8 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/></svg>
+      </span>
+    </div>
+    <div class="navbar">
+      <div class="back" onclick="history.back()">‹</div>
+      <div class="navtitle">打卡签到</div>
+      <div class="capsule"><span class="cap-dots" onclick="toast('更多')">•••</span><span class="cap-line"></span><span class="cap-circ" onclick="toast('设置')"><i></i></span></div>
+    </div>
+    <div class="ctx">工单号 <b id="ctxNo">YF2131900</b> · <span id="ctxProj">安全风险辨识、评估、评价</span></div>
+  </div>
+
+  <!-- 地图 -->
+  <div class="map">
+    <div class="loc-status" id="locStatus"><span class="spin"></span><span id="locText">正在获取当前位置…</span></div>
+    <div class="map-tip" id="mapTip">正在定位…</div>
+    <div class="pin-wrap">
+      <div class="pulse"></div>
+      <svg class="pin" viewBox="0 0 24 32" width="34" height="46"><path d="M12 0a12 12 0 0 0-12 12c0 8.4 12 18 12 18s12-9.6 12-18A12 12 0 0 0 12 0Z" fill="#2b5ce6"/><circle cx="12" cy="12" r="4.4" fill="#fff"/></svg>
+    </div>
+    <button class="reloc" onclick="getLocation(true)">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="#2b5ce6" stroke-width="1.6"><path d="M13.7 8a5.7 5.7 0 1 1-1.67-4.03M13.7 1.3V5h-3.7"/><path d="M13.7 8 9 3.3" opacity="0"/></svg>
+      重新定位
+    </button>
+  </div>
+
+  <!-- 位置信息 -->
+  <div class="body">
+    <div class="card" id="infoCard">
+      <div class="row"><span class="lbl">当前位置</span><span class="val"><span class="pin-ico" id="pinIco"></span><span id="vAddr">—</span></span></div>
+      <div class="row"><span class="lbl">详细地址</span><span class="val" id="vDetail">—</span></div>
+      <div class="row"><span class="lbl">GPS 坐标</span><span class="val" id="vCoord">—</span></div>
+      <div class="row"><span class="lbl">定位时间</span><span class="val" id="vTime">—</span></div>
+      <div class="row"><span class="lbl">距计划地点</span><span class="val" id="vDist">—</span></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="btn-main" id="signBtn" disabled onclick="confirmSign()">确认签到</button>
+  </div>
+
+  <div class="home-ind"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const PIN = '<svg class="pin-ico" viewBox="0 0 12 15" width="11" height="14"><path d="M6 0a6 6 0 0 0-6 6c0 4.2 6 9 6 9s6-4.8 6-9A6 6 0 0 0 6 0Zm0 8.2A2.2 2.2 0 1 1 6 3.8a2.2 2.2 0 0 1 0 4.4Z" fill="#2b5ce6"/></svg>';
+const q = new URLSearchParams(location.search);
+document.getElementById('ctxNo').textContent  = q.get('no') || 'YF2131900';
+document.getElementById('ctxProj').textContent= q.get('project') || '安全风险辨识、评估、评价';
+
+let located = false;
+
+function getLocation(manual){
+  located = false;
+  document.getElementById('signBtn').disabled = true;
+  document.getElementById('locStatus').innerHTML = '<span class="spin"></span><span id="locText">正在获取当前位置…</span>';
+  document.getElementById('mapTip').textContent = '正在定位…';
+  document.getElementById('vAddr').textContent = '—';
+  document.getElementById('vDetail').textContent = '—';
+  document.getElementById('vCoord').textContent = '—';
+  document.getElementById('vTime').textContent = '—';
+  document.getElementById('vDist').textContent = '—';
+  if(manual) toast('重新获取定位…');
+
+  setTimeout(()=>{
+    located = true;
+    const lat = (26.0713 + (Math.random()-.5)*0.0006).toFixed(4);
+    const lng = (119.4512 + (Math.random()-.5)*0.0006).toFixed(4);
+    const now = new Date();
+    const pad = n=>String(n).padStart(2,'0');
+    const t = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    document.getElementById('locStatus').innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:#2f9e6b"></span><span>已获取当前位置</span>';
+    document.getElementById('mapTip').textContent = '当前位置已定位';
+    document.getElementById('pinIco').innerHTML = PIN;
+    document.getElementById('vAddr').textContent = '福州马尾区海峡广场A座';
+    document.getElementById('vDetail').textContent = '福建省福州市马尾区海峡广场A座12层';
+    document.getElementById('vCoord').textContent = `${lat}° N, ${lng}° E`;
+    document.getElementById('vTime').textContent = t;
+    document.getElementById('vDist').innerHTML = '120m<span class="range">范围内</span>';
+    document.getElementById('signBtn').disabled = false;
+  }, manual ? 900 : 1300);
+}
+
+function confirmSign(){
+  if(!located) return;
+  location.href = '人脸活体检测.html' + location.search;
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
+
+getLocation(false);
+</script>
+</body>
+</html>

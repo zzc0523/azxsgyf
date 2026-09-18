@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>服务登记·安全生产宣传教育培训</title>
+<style>
+  :root{--blue:#2b5ce6;--blue-d:#1f49c4;--text:#1f2329;--sub:#9aa0ad;--val:#3a4050;--bg:#f4f6fb;--line:#eef0f5;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:20}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.22;z-index:30}
+
+  .header{flex:none;position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 100%);color:#fff;z-index:10}
+  .header::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent) 90% 40%/200px 130px no-repeat,
+               radial-gradient(closest-side,rgba(255,255,255,.10),transparent) 6% 90%/170px 110px no-repeat}
+  .statusbar{position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .navbar{position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:2px 16px 4px;height:46px}
+  .back{width:26px;height:26px;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
+  .navtitle{font-size:17px;font-weight:700;letter-spacing:.5px}
+  .sec-head{position:relative;z-index:5;color:#fff;font-size:15px;font-weight:700;padding:0 16px 14px}
+
+  .body{flex:1;overflow-y:auto}
+  .body::-webkit-scrollbar{display:none}
+  .card{background:#fff;border-radius:14px;margin:0 16px;padding:4px 16px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .card.first{margin-top:0}
+  .sec-title{font-size:13px;font-weight:600;color:#8b91a0;padding:16px 16px 8px}
+  .card + .card{margin-top:0}
+  .sec{font-size:15px;font-weight:700;color:var(--text);padding:18px 16px 8px;display:flex;align-items:center}
+  .sec::before{content:"";width:3px;height:15px;background:var(--blue);border-radius:2px;margin-right:8px}
+
+  .info .frow{display:flex;padding:9px 0;border:none;font-size:13.5px;line-height:1.5}
+  .info .k{color:#8b91a0;flex:none}
+  .info .v{color:#1f2329;font-weight:600;flex:1;min-width:0;word-break:break-word}
+
+  .frow{border-bottom:1px solid var(--line);padding:12px 0;font-size:13.5px}
+  .frow:last-child{border-bottom:none}
+  .flabel{color:var(--sub);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .flabel .req{color:#e5484d}
+  .cnt,.hint{color:var(--sub);font-size:12px;font-weight:400}
+  .hint{margin-left:2px}
+  .tagdoc{background:#e8effd;color:var(--blue);font-size:11px;padding:1px 7px;border-radius:8px}
+  .inp{width:100%;border:none;outline:none;font-size:14px;color:var(--val);background:transparent}
+  .inp::placeholder{color:#c2c8d4}
+  .ta{width:100%;min-height:64px;border:1px solid #e6e9f0;border-radius:8px;padding:9px;font-size:13.5px;outline:none;resize:none;font-family:inherit;box-sizing:border-box;color:var(--val)}
+  .row2{display:flex;gap:8px;align-items:center}
+  .row2 .inp{flex:1}
+  .mini{height:34px;padding:0 14px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:8px;font-size:13px;white-space:nowrap;cursor:pointer}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid #dde2ec;color:#5b6472;background:#fff;padding:7px 13px;border-radius:18px;font-size:13px;cursor:pointer;transition:.12s}
+  .chip.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:500}
+  .chip.other.on{background:#eef2fb;color:var(--blue);border-color:#cdd8f5}
+
+  .right{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+  .click{cursor:pointer}
+  .go{color:#bcc3d0;font-size:16px}
+  .done{color:#2f9e6b;background:#e9f6ef;font-size:12px;padding:3px 10px;border-radius:10px}
+  /* 点击行：名称在左、状态在右，单行垂直居中 */
+  .lrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;cursor:pointer;border-radius:8px;transition:background .12s}
+  .lrow:active{background:#f7f9fd}
+  .lrow .ltxt{color:var(--text);font-size:13.5px;font-weight:500;line-height:1.4;flex:1;min-width:0;word-break:break-word}
+  .lrow .right{flex:none;justify-content:flex-end}
+  .lrow .cnt,.lrow .file{white-space:nowrap}
+  .file{color:var(--sub);font-size:12.5px}
+  .file.ok{color:var(--blue)}
+
+  .aibtn{margin-top:9px;width:100%;height:36px;border:none;border-radius:8px;background:linear-gradient(90deg,#6f4ff0,#9b6cf0);color:#fff;font-size:13px;font-weight:500;cursor:pointer;box-shadow:0 4px 12px rgba(120,90,230,.25)}
+  .aibtn:active{opacity:.85}
+
+  .calc{background:#f7f9fd;border:1px solid #eceff6;border-radius:10px;padding:12px}
+  .calc .seg{margin-bottom:10px}
+  .calc .line{font-size:13px;color:#5b6472;margin:6px 0}
+  .calc .line b{color:var(--blue)}
+  .calc .res{margin-top:10px;font-size:13.5px;color:#3a4050}
+  .calc .res b{font-size:15px}
+  .lv{padding:2px 10px;border-radius:10px;color:#fff;font-size:12px;margin-left:4px}
+  .lv.blue{background:#2b8ae6}.lv.yellow{background:#e6a800}.lv.orange{background:#ef7a2b}.lv.red{background:#e5484d}
+  .calc .ci{display:flex;gap:8px;align-items:center;margin:6px 0}
+  .calc .ci span{width:18px;color:#8a9099;font-size:13px}
+  .calc .ci input{width:56px;height:32px;border:1px solid #dde2ec;border-radius:7px;text-align:center;font-size:14px;outline:none}
+
+  .footer{flex:none;padding:10px 16px 24px;background:var(--bg);display:flex;gap:10px}
+  .btn-ghost{flex:1;height:46px;border:1px solid #dfe3ec;background:#fff;border-radius:10px;color:#6b7280;font-size:15px;cursor:pointer}
+  .btn-main{flex:1.4;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
+
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:40;display:none;max-width:74%;text-align:center;line-height:1.6}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/></svg>
+      </span>
+    </div>
+    <div class="navbar"><div class="back" onclick="history.back()">‹</div><div class="navtitle">服务登记</div></div>
+  </div>
+
+  <div class="body" id="body"></div>
+
+  <div class="footer">
+    <button class="btn-ghost" onclick="toast('已存入草稿')">存草稿</button>
+    <button class="btn-main" onclick="toast('服务登记已提交')">提交服务登记</button>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="service-form.js"></script>
+<script>
+  /* 安全生产宣传教育培训 专用服务登记页 */
+  init('安全生产宣传教育培训');
+</script>
+<script>
+addEventListener('load', function(){
+  var b = document.getElementById('body');
+  var s = [].slice.call(document.querySelectorAll('.sec')).filter(function(e){return e.textContent.indexOf('培训资料')>=0;})[0];
+  if (s) b.scrollTop = s.offsetTop - b.offsetTop - 6;
+});
+</script>
+</body>
+</html>

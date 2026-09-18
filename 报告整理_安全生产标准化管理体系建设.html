@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>报告整理 · 安全生产标准化管理体系建设</title>
+<style>
+  :root{--blue:#2b5ce6;--blue-d:#1f49c4;--text:#1f2329;--sub:#9aa0ad;--val:#3a4050;--bg:#f4f6fb;--line:#eef0f5;--red:#e5484d;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:20}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.22;z-index:30}
+
+  .header{flex:none;position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 100%);color:#fff;z-index:10}
+  .header::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent) 90% 40%/200px 130px no-repeat,
+               radial-gradient(closest-side,rgba(255,255,255,.10),transparent) 6% 90%/170px 110px no-repeat}
+  .statusbar{position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .navbar{position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:2px 16px 4px;height:46px}
+  .back{width:26px;height:26px;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
+  .navtitle{font-size:17px;font-weight:700;letter-spacing:.5px}
+
+  .body{flex:1;overflow-y:auto}
+  .body::-webkit-scrollbar{display:none}
+  .card{background:#fff;border-radius:14px;margin:0 16px;padding:14px 16px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .card.first{margin-top:0}
+  .sec-title{font-size:13px;font-weight:600;color:#8b91a0;padding:16px 16px 8px}
+  .sec{font-size:15px;font-weight:700;color:var(--text);padding:18px 16px 8px;display:flex;align-items:center}
+  .sec::before{content:"";width:3px;height:15px;background:var(--blue);border-radius:2px;margin-right:8px}
+
+  .info .frow{display:flex;padding:9px 0;border:none;font-size:13.5px;line-height:1.5}
+  .info .k{color:#8b91a0;flex:none}
+  .info .v{color:#1f2329;font-weight:600;flex:1;min-width:0;word-break:break-word}
+
+  .flabel{color:var(--sub);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .tagdoc{background:#e8effd;color:var(--blue);font-size:11px;padding:1px 7px;border-radius:8px}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .seg{display:inline-flex;background:#f1f3f8;border-radius:20px;padding:3px;margin-bottom:12px}
+  .seg .chip{border:none;background:transparent;color:#5b6472;padding:7px 16px;border-radius:18px;font-size:13px;cursor:pointer}
+  .seg .chip.on{background:#fff;color:var(--blue);font-weight:600;box-shadow:0 2px 6px rgba(30,50,110,.10)}
+  .chip{font-size:13px}
+
+  .pane{display:none}
+  .pane.show{display:block}
+  .hide{display:none!important}
+
+  /* 上传框 */
+  .uprow{display:flex;align-items:center;gap:12px;border:1px dashed #c9d2e6;border-radius:10px;padding:14px;cursor:pointer;background:#fafbfe;transition:.12s}
+  .uprow:active{background:#f1f5fd}
+  .uico{flex:none;width:42px;height:42px;border-radius:8px;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .uico.doc{background:#7a5bf0}
+  .utxt{flex:1;min-width:0}
+  .uname{font-size:13.5px;color:var(--val);line-height:1.4;word-break:break-word}
+  .uhint{font-size:12px;color:var(--sub);margin-top:3px}
+  .ustat{font-size:13px;font-weight:600}
+  .ustat.ok{color:#2f9e6b}
+  .ustat.no{color:var(--red)}
+
+  .ta{width:100%;min-height:120px;border:1px solid #e6e9f0;border-radius:8px;padding:10px;font-size:13.5px;outline:none;resize:vertical;font-family:inherit;box-sizing:border-box;color:var(--val);line-height:1.7}
+  .aibtn{margin-top:10px;width:100%;height:38px;border:none;border-radius:8px;background:linear-gradient(90deg,#6f4ff0,#9b6cf0);color:#fff;font-size:13px;font-weight:500;cursor:pointer}
+  .aibtn:active{opacity:.85}
+  .smbtn{margin-top:8px;width:100%;height:38px;border:1px solid var(--blue);border-radius:8px;background:#fff;color:var(--blue);font-size:13px;font-weight:500;cursor:pointer}
+
+  .rstat{margin-top:10px;font-size:12.5px;color:var(--sub);display:flex;align-items:center;gap:6px}
+  .rstat b{color:#2f9e6b;font-weight:600}
+
+  .footer{flex:none;padding:10px 16px 24px;background:var(--bg);display:flex;gap:10px}
+  .btn-main{flex:1;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
+  .btn-main:active{background:var(--blue-d)}
+
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:80;display:none;max-width:74%;text-align:center;line-height:1.6}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/></svg>
+      </span>
+    </div>
+    <div class="navbar"><div class="back" onclick="history.back()">‹</div><div class="navtitle">报告整理</div></div>
+  </div>
+
+  <div class="body" id="body"></div>
+
+  <div class="footer"><button class="btn-main" onclick="submitReport()">提交报告</button></div>
+  <div class="home-ind"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const PROJECT = '安全生产标准化管理体系建设';
+const q = new URLSearchParams(location.search);
+const orderNo  = q.get('no') || 'YF2131900';
+const project  = q.get('project') || PROJECT;
+const COMPANY  = '福州无比欢信息科技有限公司';
+const PLACE    = '福州马尾区海峡广场A座';
+const DATE     = '2025.01.01-2025.01.05';
+
+const PIN = '<svg viewBox="0 0 12 15" width="11" height="14" style="vertical-align:-2px;margin-left:4px"><path d="M6 0a6 6 0 0 0-6 6c0 4.2 6 9 6 9s6-4.8 6-9A6 6 0 0 0 6 0Zm0 8.2A2.2 2.2 0 1 1 6 3.8a2.2 2.2 0 0 1 0 4.4Z" fill="#2b5ce6"/></svg>';
+
+/* 三类报告配置：评审报告 / 改进建议（PDF 上传 或 大模型生成）；其他报告（文档上传） */
+const BLOCKS = {
+  review: {sec:'评审报告', tag:'PDF', doc:false, accept:'application/pdf', sub:'PDF 上传 或 大模型生成后人工编辑上传'},
+  advice: {sec:'改进建议', tag:'PDF', doc:false, accept:'application/pdf', sub:'PDF 上传 或 大模型生成后人工编辑上传'},
+  other:  {sec:'其他报告', tag:'DOC', doc:true,  accept:'.pdf,.doc,.docx', sub:'文档上传（PDF / Word）'},
+};
+
+/* ===== 前项内容（现场评分）汇总，供大模型生成引用 ===== */
+function prevContent(){
+  let tables = [];
+  try{ const s = localStorage.getItem('score_'+project); if(s) tables = JSON.parse(s); }catch(e){}
+  if(!Array.isArray(tables) || !tables.length) tables = [{name:'安全管理类评分表'},{name:'现场用电类评分表'},{name:'消防安全类评分表'}];
+  const names = tables.map(t=>(t&&t.name)||t).join('、');
+  const done  = tables.filter(t=>t && t.done).length;
+  return {names, done, total: tables.length};
+}
+
+/* ===== 本地存储的状态 ===== */
+function stateKey(){ return 'report_std_' + orderNo; }
+function loadState(){
+  try{ return JSON.parse(localStorage.getItem(stateKey())) || {}; }catch(e){}
+  return {};
+}
+function saveState(s){ try{ localStorage.setItem(stateKey(), JSON.stringify(s)); }catch(e){} }
+let STATE = loadState();
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ===== 渲染 ===== */
+function infoCard(){
+  const row=(k,v,ic)=>`<div class="frow"><span class="k">${k}：</span><span class="v">${v}${ic||''}</span></div>`;
+  return `<div class="sec-title">基本信息</div>
+  <div class="card first info">
+    ${row('预防服务工单', orderNo)}
+    ${row('企业名称', COMPANY)}
+    ${row('服务项目', project)}
+    ${row('计划服务日期', DATE)}
+    ${row('计划服务地点', PLACE, PIN)}
+    ${row('联系人', '张三')}
+    ${row('联系电话', '18000000000')}
+  </div>`;
+}
+
+function statusLine(key){
+  const st = STATE[key];
+  if(!st || !st.type) return `<div class="rstat">当前状态：<span class="ustat no">未上传</span></div>`;
+  if(st.type === 'pdf') return `<div class="rstat">已上传 PDF：<b>${esc(st.file || '评审报告.pdf')}</b></div>`;
+  if(st.type === 'ai')  return `<div class="rstat">已由大模型生成并编辑：<b>${esc(st.file || '报告.docx')}</b></div>`;
+  if(st.type === 'doc') return `<div class="rstat">已上传文档：<b>${esc(st.file || '其他报告')}</b></div>`;
+  return `<div class="rstat">当前状态：<span class="ustat no">未上传</span></div>`;
+}
+
+function blockHTML(key){
+  const b = BLOCKS[key];
+  const mode = (STATE[key] && STATE[key].type === 'ai') ? 'ai' : 'pdf';
+  const isOther = key === 'other';
+  const seg = isOther ? '' : `
+    <div class="seg">
+      <span class="chip ${mode==='pdf'?'on':''}" onclick="switchMode('${key}','pdf',this)">PDF 上传</span>
+      <span class="chip ${mode==='ai'?'on':''}" onclick="switchMode('${key}','ai',this)">大模型生成</span>
+    </div>`;
+  const pdfPane = `
+    <div class="pane ${mode==='pdf'?'show':''}" data-pane="${key}_pdf">
+      <div class="uprow" onclick="document.getElementById('file_${key}').click()">
+        <div class="uico">${b.tag}</div>
+        <div class="utxt"><div class="uname" id="name_${key}">${b.doc?'点击上传文档（PDF / Word）':'点击上传 '+b.sec+' PDF（≤20MB）'}</div><div class="uhint">${b.doc?'支持 PDF / Word 格式':'支持 PDF 格式'}</div></div>
+        <input type="file" id="file_${key}" accept="${b.accept}" hidden onchange="onUpload('${key}',this)">
+      </div>
+    </div>`;
+  const aiPane = isOther ? '' : `
+    <div class="pane ${mode==='ai'?'show':''}" data-pane="${key}_ai">
+      <textarea class="ta" id="ta_${key}" placeholder="点击「大模型生成」根据前项内容生成，可人工编辑后保存">${esc((STATE[key]&&STATE[key].text)||'')}</textarea>
+      <button class="aibtn" onclick="aiGen('${key}')">✦ 大模型生成（C5）</button>
+      <button class="smbtn" onclick="saveText('${key}')">保存编辑结果</button>
+    </div>`;
+  return `<div class="sec">${b.sec} <span class="tagdoc">${b.doc?'文档':'报告'}</span></div>
+    <div class="card">
+      <div class="flabel">${b.sub}</div>
+      ${seg}
+      ${pdfPane}
+      ${aiPane}
+      ${statusLine(key)}
+    </div>`;
+}
+
+function render(){
+  document.getElementById('body').innerHTML =
+    infoCard() +
+    blockHTML('review') +
+    blockHTML('advice') +
+    blockHTML('other');
+}
+
+/* ===== 交互 ===== */
+function switchMode(key, mode, el){
+  el.closest('.seg').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelector(`[data-pane="${key}_pdf"]`).classList.toggle('show', mode==='pdf');
+  const ai = document.querySelector(`[data-pane="${key}_ai"]`);
+  if(ai) ai.classList.toggle('show', mode==='ai');
+}
+
+function onUpload(key, inp){
+  const f = inp.files && inp.files[0]; if(!f) return;
+  STATE[key] = {type: (key==='other'?'doc':(STATE[key]&&STATE[key].type==='ai'?'ai':'pdf')), file: f.name};
+  if(STATE[key].type !== 'ai') STATE[key].file = f.name;
+  saveState(STATE);
+  const label = document.getElementById('name_'+key);
+  if(label) label.textContent = f.name;
+  render();
+  toast((key==='other'?'文档':'PDF')+' 已上传');
+}
+
+function aiGen(key){
+  const c = prevContent();
+  const text = key === 'review'
+    ? `安全生产标准化管理体系建设 · 评审报告
+一、服务概况
+受 ${COMPANY} 委托，于 ${DATE} 在 ${PLACE} 开展安全生产标准化现场评审服务。本次引用评分表：${c.names}（共 ${c.total} 项，已完成 ${c.done} 项）。
+二、评审依据
+《企业安全生产标准化基本规范》（GB/T 33000）及企业所属行业安全生产标准化评定标准。
+三、评审内容
+1. 目标职责：安全生产目标、机构设置与人员配备。
+2. 制度化管理：法规标准识别、规章制度、操作规程。
+3. 教育培训：培训计划与人员持证上岗情况。
+4. 现场管理：设备设施、作业安全、隐患排查治理。
+5. 持续改进：绩效评定与自评报告。
+四、评审结论
+企业安全生产标准化管理体系基本建立并有效运行，建议在制度落地与现场执行方面持续改进，形成闭环管理。`
+    : `安全生产标准化管理体系建设 · 改进建议
+一、主要问题
+1. 部分安全管理制度未完全落实到基层岗位，执行记录不完整。
+2. 现场隐患排查治理闭环管理有待加强，个别整改未留痕。
+3. 从业人员安全教育培训覆盖面不足，特种作业人员持证管理需常态化。
+二、改进建议
+1. 完善制度宣贯与考核机制，确保各项制度落实到班组与个人。
+2. 建立隐患排查治理台账，实现"排查—整改—验收"闭环。
+3. 制定年度培训计划并严格实施，确保特种作业人员 100% 持证上岗。
+4. 定期开展自评与绩效评定，推动安全生产标准化持续达标。`;
+  document.getElementById('ta_'+key).value = text;
+  STATE[key] = {type:'ai', text, file: (key+'_报告.doc')};
+  saveState(STATE);
+  render();
+  toast('大模型已生成，可人工编辑');
+}
+
+function saveText(key){
+  const v = document.getElementById('ta_'+key).value.trim();
+  if(!v){ toast('内容为空，无法保存'); return; }
+  STATE[key] = {type:'ai', text:v, file:(key+'_报告.doc')};
+  saveState(STATE);
+  render();
+  toast('编辑结果已保存');
+}
+
+function submitReport(){
+  const none = ['review','advice','other'].filter(k=>!(STATE[k] && STATE[k].type));
+  if(none.length){ toast('请先完成：' + none.map(k=>BLOCKS[k].sec).join('、')); return; }
+  try{
+    const status = JSON.parse(localStorage.getItem('sg_report_status') || '{}');
+    status[orderNo] = '审核中';
+    localStorage.setItem('sg_report_status', JSON.stringify(status));
+  }catch(e){}
+  toast('报告已提交');
+  setTimeout(()=>{ location.href = '服务报告审核.html?no=' + encodeURIComponent(orderNo) + '&project=' + encodeURIComponent(project); }, 1100);
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
+
+render();
+</script>
+</body>
+</html>

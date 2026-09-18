@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>事故预防服务 · 福建省综合风险减量服务平台</title>
+<style>
+  :root{--blue:#2b5ce6;--blue-d:#1f49c4;--text:#1f2329;--sub:#9aa0ad;--val:#3a4050;--line:#eef0f5;--bg:#f4f6fb;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  /* 手机外壳 */
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:20}
+  /* 蓝色头部 */
+  .header{flex:none;position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 100%);padding-bottom:6px;z-index:10}
+  .header::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent) 90% 40%/200px 130px no-repeat,
+               radial-gradient(closest-side,rgba(255,255,255,.10),transparent) 6% 90%/170px 110px no-repeat}
+  .statusbar{position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;color:#fff;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  /* 导航栏 */
+  .navbar{position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:2px 16px 6px;height:44px}
+  .back{width:26px;height:26px;color:#fff;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
+  .navtitle{color:#fff;font-size:17px;font-weight:700;letter-spacing:.5px}
+  .navbar .capsule{margin-left:auto}
+  /* 胶囊按钮 */
+  .capsule{display:flex;align-items:center;height:32px;padding:0 13px;border-radius:16px;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .cap-dots{color:#fff;font-size:14px;letter-spacing:2px;line-height:1;padding-bottom:5px;cursor:pointer}
+  .cap-line{width:1px;height:15px;background:rgba(255,255,255,.4);margin:0 9px}
+  .cap-circ{width:17px;height:17px;border-radius:50%;border:1.6px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .cap-circ i{width:6px;height:6px;border-radius:50%;background:#fff;display:block}
+  /* 状态 Tab */
+  .tabs{position:relative;z-index:5;display:flex;align-items:center;padding:0 6px}
+  .tab{flex:1;text-align:center;color:rgba(255,255,255,.72);font-size:13px;padding:10px 0 12px;cursor:pointer;position:relative;white-space:nowrap;transition:.15s}
+  .tab.active{color:#fff;font-weight:700}
+  .tab.active::after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:5px;width:22px;height:3px;border-radius:2px;background:#fff}
+  /* 列表 */
+  .list{flex:1;overflow-y:auto;padding:12px 12px 26px}
+  .list::-webkit-scrollbar{display:none}
+  .card{position:relative;background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .card.muted{background:#f6f7f9}
+  .card-title{font-size:15px;font-weight:700;color:var(--text);padding-bottom:11px;padding-right:56px}
+  /* 卡片右上角状态角标 */
+  .badge{position:absolute;top:0;right:0;font-size:12px;line-height:1.5;padding:3px 11px 4px 13px;border-radius:0 14px 0 12px}
+  .badge.overdue{background:#fdeaea;color:#e5484d}
+  .badge.done{background:#e9f6ef;color:#2f9e6b}
+  .badge.review{background:#eaf0fe;color:#2b5ce6}
+  .divider{height:1px;background:var(--line);margin:0 -14px 11px}
+  .row{display:flex;font-size:13px;line-height:1.95}
+  .lbl{color:var(--sub);flex:none}
+  .val{color:var(--val);display:flex;align-items:center;gap:4px;min-width:0}
+  .val .pin{flex:none}
+  .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
+  .btn{height:34px;padding:0 18px;border-radius:8px;font-size:13.5px;cursor:pointer;border:none;transition:.15s}
+  .btn.ghost{background:#fff;border:1px solid #dfe3ec;color:#6b7280}
+  .btn.ghost:active{background:#f4f6fb}
+  .btn.primary{background:var(--blue);color:#fff;font-weight:600;box-shadow:0 4px 10px rgba(43,92,230,.25)}
+  .btn.primary:active{background:var(--blue-d)}
+  /* 单一主按钮（现场签到 / 服务登记 / 查看报告）尺寸略大 */
+  .actions .btn:only-child{height:38px;padding:0 22px;font-size:14px;border-radius:9px}
+  .empty{text-align:center;color:var(--sub);font-size:13px;padding:60px 0}
+  /* 确认弹窗 */
+  .modal{position:absolute;inset:0;z-index:50;display:none}
+  .modal.show{display:block}
+  .mask{position:absolute;inset:0;background:rgba(20,28,46,.35)}
+  .dialog{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:322px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 18px 50px rgba(20,30,60,.28)}
+  .dlg-head{position:relative;padding:18px 18px 10px;background:linear-gradient(135deg,#dfe9ff 0%,#f1f5ff 62%,#fff 100%)}
+  .dlg-title{font-size:17px;font-weight:700;color:var(--text)}
+  .dlg-close{position:absolute;top:13px;right:16px;font-size:22px;line-height:1;color:#9aa3b2;cursor:pointer}
+  .dlg-body{padding:6px 18px 8px}
+  .dlg-text{font-size:13.5px;color:#5b6472;line-height:1.7}
+  .dlg-input{display:none;width:100%;min-height:64px;margin-top:12px;border:none;border-radius:8px;padding:11px 12px;font-size:13.5px;outline:none;resize:none;font-family:inherit;background:#f4f6fb;color:var(--val)}
+  .dlg-input.show{display:block}
+  .dlg-foot{display:flex;gap:12px;padding:14px 18px 18px}
+  .dlg-btn{flex:1;height:44px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:.15s}
+  .dlg-btn.ghost{background:#fff;border:1px solid #e2e6ef;color:#8b91a0;font-weight:500}
+  .dlg-btn.ghost:active{background:#f4f6fb}
+  .dlg-btn.primary{background:var(--blue);color:#fff;box-shadow:0 6px 14px rgba(43,92,230,.28)}
+  .dlg-btn.primary:active{background:var(--blue-d)}
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:40;display:none;max-width:70%;text-align:center}
+  .toast.show{display:block}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.25;z-index:30}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <!-- 头部 -->
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff">
+          <rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/>
+          <rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/>
+          <rect x="9.3" y="3" width="3.1" height="8" rx="1"/>
+          <rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/>
+        </svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff">
+          <path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/>
+          <path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 5.8 0 0 1 4-1.65Z" opacity=".92"/>
+          <path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/>
+        </svg>
+        <svg viewBox="0 0 25 12" width="25" height="12">
+          <rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/>
+          <rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/>
+          <path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/>
+        </svg>
+      </span>
+    </div>
+
+    <div class="navbar">
+      <div class="back" onclick="location.href='首页.html'">‹</div>
+      <div class="navtitle">事故预防服务</div>
+      <div class="capsule">
+        <span class="cap-dots" onclick="toast('更多')">•••</span>
+        <span class="cap-line"></span>
+        <span class="cap-circ" onclick="toast('设置')"><i></i></span>
+      </div>
+    </div>
+
+    <div class="tabs" id="tabs"></div>
+  </div>
+
+  <!-- 工单列表 -->
+  <div class="list" id="list"></div>
+
+  <!-- 二次确认弹窗（确认 / 拒绝） -->
+  <div class="modal" id="modal">
+    <div class="mask" onclick="closeModal()"></div>
+    <div class="dialog">
+      <div class="dlg-head">
+        <span class="dlg-title" id="dlgTitle">服务确认</span>
+        <span class="dlg-close" onclick="closeModal()">×</span>
+      </div>
+      <div class="dlg-body">
+        <div class="dlg-text" id="dlgText"></div>
+        <textarea class="dlg-input" id="dlgInput" placeholder="请输入拒绝原因"></textarea>
+      </div>
+      <div class="dlg-foot">
+        <button class="dlg-btn ghost" onclick="closeModal()">取消</button>
+        <button class="dlg-btn primary" onclick="confirmModal()">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-ind"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* 六大服务项目 */
+const PROJECTS = [
+  '安全风险辨识、评估、评价',
+  '生产安全重大事故隐患排查',
+  '安全生产宣传教育培训',
+  '安全生产应急预案编制',
+  '安全生产应急救援演练',
+  '安全生产标准化管理体系建设'
+];
+
+/* 四个状态 Tab：按钮随状态变化 */
+const TABS = [
+  { name:'待确认', actions:[{t:'拒绝',cls:'ghost'},{t:'确认',cls:'primary'}] },
+  { name:'待执行', actions:[{t:'现场签到',cls:'primary'}], overdue:[1,4] },
+  { name:'进行中', actions:[{t:'服务登记',cls:'primary'}] },
+  { name:'待整理', actions:[{t:'报告整理',cls:'primary'}] },
+  { name:'已完成', actions:[{t:'查看报告',cls:'ghost'}], done:true }
+];
+
+const COMPANIES = ['福州无比欢信息科技有限公司','福州安晟达实业有限公司','福建华威建设集团有限公司'];
+const PLACES = ['福州马尾区海峡广场A座','福州仓山区万达广场B座','福州鼓楼区东街口恒力城12层'];
+const PIN = '<svg class="pin" viewBox="0 0 12 15" width="11" height="14"><path d="M6 0a6 6 0 0 0-6 6c0 4.2 6 9 6 9s6-4.8 6-9A6 6 0 0 0 6 0Zm0 8.2A2.2 2.2 0 1 1 6 3.8a2.2 2.2 0 0 1 0 4.4Z" fill="#2b5ce6"/></svg>';
+
+/* 待整理示例数据：一条已提交、处于“审核中”的安全生产宣传教育培训工单 */
+const SAMPLE_REVIEW = {
+  no: 'YF2132099',
+  company: '福建东南建设工程有限公司',
+  project: '安全生产宣传教育培训',
+  date: '2025.01.06-2025.01.10',
+  place: '福州台江区金融街万达广场C座',
+  status: '审核中'
+};
+
+/* 工单状态流转持久化：确认→待执行（移入待执行）、拒绝→退回机构端（从待确认移除） */
+function getMoved(){ try{ return JSON.parse(localStorage.getItem('sg_moved_orders') || '[]'); }catch(e){ return []; } }
+function setMoved(v){ try{ localStorage.setItem('sg_moved_orders', JSON.stringify(v)); }catch(e){} }
+function getRejected(){ try{ return JSON.parse(localStorage.getItem('sg_rejected_orders') || '[]'); }catch(e){ return []; } }
+function setRejected(v){ try{ localStorage.setItem('sg_rejected_orders', JSON.stringify(v)); }catch(e){} }
+
+/* 每个 Tab 下：六大服务项目各一条工单 */
+function buildOrders(tabIndex){
+  const tab = TABS[tabIndex];
+  let orders = PROJECTS.map((proj,i)=>({
+    no: 'YF21321' + String(tabIndex*6 + i + 1).padStart(2,'0'),
+    company: COMPANIES[i % COMPANIES.length],
+    project: proj,
+    date: '2025.01.01-2025.01.05',
+    place: PLACES[i % PLACES.length],
+    overdue: !!(tab.overdue && tab.overdue.includes(i)),
+    done: !!tab.done
+  }));
+  if(tabIndex === 3){ orders.unshift({ ...SAMPLE_REVIEW }); }
+  const moved = getMoved(), rejected = getRejected();
+  if(tabIndex === 0){
+    // 待确认：已确认、已拒绝的都不再展示
+    orders = orders.filter(o => rejected.indexOf(o.no) < 0 && !moved.some(m=>m.no === o.no));
+  } else if(tabIndex === 1){
+    // 待执行：展示由「待确认」确认后流转来的工单
+    orders = moved.concat(orders);
+  }
+  return orders;
+}
+
+const _q = new URLSearchParams(location.search);
+let current = _q.has('tab') ? (+_q.get('tab') || 0) : 0;
+
+function renderTabs(){
+  const box = document.getElementById('tabs');
+  box.innerHTML = TABS.map((t,i)=>
+    `<div class="tab ${i===current?'active':''}" onclick="switchTab(${i})">${t.name}(${buildOrders(i).length})</div>`
+  ).join('');
+}
+
+function renderList(){
+  const list = document.getElementById('list');
+  const orders = buildOrders(current);
+  if(!orders.length){ list.innerHTML = '<div class="empty">暂无服务工单</div>'; return; }
+  const status = JSON.parse(localStorage.getItem('sg_report_status') || '{}');
+  list.innerHTML = orders.map(o=>{
+    const st = o.status || status[o.no];
+    let badge = '', actions = TABS[current].actions;
+    if(st === '审核中'){ badge = '<span class="badge review">审核中</span>'; actions = [{t:'查看报告', cls:'ghost'}]; }
+    else if(o.overdue){ badge = '<span class="badge overdue">逾期</span>'; }
+    else if(o.done){ badge = '<span class="badge done">已完成</span>'; }
+    return `
+    <div class="card ${o.overdue?'muted':''}">
+      ${badge}
+      <div class="card-title">预防服务工单：${o.no}</div>
+      <div class="divider"></div>
+      <div class="row"><span class="lbl">企业名称：</span><span class="val">${o.company}</span></div>
+      <div class="row"><span class="lbl">服务项目：</span><span class="val">${o.project}</span></div>
+      <div class="row"><span class="lbl">计划服务日期：</span><span class="val">${o.date}</span></div>
+      <div class="row"><span class="lbl">计划服务地点：</span><span class="val">${o.place}${PIN}</span></div>
+      <div class="actions">
+        ${actions.map(a=>`<button class="btn ${a.cls}" onclick="act('${a.t}','${o.no}','${o.project}',${o.overdue?1:0},'${o.company}','${o.date}','${o.place}')">${a.t}</button>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function switchTab(i){
+  current = i;
+  renderTabs();
+  renderList();
+  document.getElementById('list').scrollTop = 0;
+}
+
+function act(action, no, project, overdue, company, date, place){
+  if(action==='确认'){ openConfirm({no, project, overdue:!!overdue, company, date, place}); return; }
+  if(action==='拒绝'){ openReject({no, project, overdue:!!overdue, company, date, place}); return; }
+  if(action==='现场签到'){
+    location.href = '待执行详情.html?no=' + encodeURIComponent(no)
+                  + '&project=' + encodeURIComponent(project)
+                  + '&overdue=' + (overdue ? 1 : 0);
+    return;
+  }
+  if(action==='服务登记'){
+    // 六大服务项目均有独立登记页，逐一映射，避免回退到通用页
+    const DEDICATED = {
+      '安全风险辨识、评估、评价': '服务登记_安全风险辨识评估评价.html',
+      '生产安全重大事故隐患排查': '服务登记_生产安全重大事故隐患排查.html',
+      '安全生产宣传教育培训': '服务登记_安全生产宣传教育培训.html',
+      '安全生产应急预案编制': '服务登记_安全生产应急预案编制.html',
+      '安全生产应急救援演练': '服务登记_安全生产应急救援演练.html',
+      '安全生产标准化管理体系建设': '服务登记_安全生产标准化管理体系建设.html'
+    };
+    const page = DEDICATED[project] || '服务登记.html';
+    location.href = page + '?no=' + encodeURIComponent(no)
+                  + '&project=' + encodeURIComponent(project)
+                  + '&overdue=' + (overdue ? 1 : 0);
+    return;
+  }
+  if(action==='查看报告'){
+    const PREVIEW = { '安全生产宣传教育培训':'报告PDF预览.html' };
+    if(PREVIEW[project]){
+      location.href = PREVIEW[project]
+                    + '?no=' + encodeURIComponent(no)
+                    + '&project=' + encodeURIComponent(project)
+                    + '&company=' + encodeURIComponent(company)
+                    + '&date=' + encodeURIComponent(date)
+                    + '&place=' + encodeURIComponent(place);
+    } else {
+      toast(`${no} 暂无报告预览`);
+    }
+    return;
+  }
+  if(action==='报告整理'){
+    // 有独立报告页的项目走专用页，其余暂未配置
+    const REPORT = { '安全生产宣传教育培训':'报告整理_安全生产宣传教育培训.html', '安全生产应急救援演练':'报告整理_安全生产应急救援演练.html', '安全生产应急预案编制':'报告整理_安全生产应急预案编制.html', '安全风险辨识、评估、评价':'报告整理_安全风险辨识评估评价.html', '生产安全重大事故隐患排查':'报告整理_生产安全重大事故隐患排查.html', '安全生产标准化管理体系建设':'报告整理_安全生产标准化管理体系建设.html' };
+    if(REPORT[project]){
+      location.href = REPORT[project] + '?no=' + encodeURIComponent(no)
+                      + '&project=' + encodeURIComponent(project);
+    } else {
+      toast(`${no} 暂无报告整理页`);
+    }
+    return;
+  }
+  toast(`${action}：${no}`);
+}
+
+/* ===== 二次确认弹窗 ===== */
+let modalCtx = null;
+function openConfirm(order){
+  modalCtx = {type:'confirm', order};
+  document.getElementById('dlgTitle').textContent = '服务确认';
+  document.getElementById('dlgText').textContent = '是否已确认该服务工单，确定后请准时前往现场进行事故预防服务？';
+  const inp = document.getElementById('dlgInput');
+  inp.classList.remove('show'); inp.value = '';
+  document.getElementById('modal').classList.add('show');
+}
+function openReject(order){
+  modalCtx = {type:'reject', order};
+  document.getElementById('dlgTitle').textContent = '拒绝工单';
+  document.getElementById('dlgText').textContent = '请确实是否拒绝该服务工单？';
+  const inp = document.getElementById('dlgInput');
+  inp.classList.add('show'); inp.value = ''; inp.placeholder = '请输入拒绝原因';
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('show'); modalCtx = null; }
+function confirmModal(){
+  if(!modalCtx) return;
+  const {type, order} = modalCtx;
+  if(type === 'confirm'){
+    const moved = getMoved();
+    if(!moved.some(m=>m.no === order.no)) moved.push({ ...order, overdue:false, done:false, status:'' });
+    setMoved(moved);
+    closeModal(); renderTabs(); renderList();
+    toast(`${order.no} 已确认，进入待执行`);
+  } else {
+    const reason = document.getElementById('dlgInput').value.trim();
+    const rejected = getRejected();
+    if(rejected.indexOf(order.no) < 0) rejected.push(order.no);
+    setRejected(rejected);
+    closeModal(); renderTabs(); renderList();
+    toast(reason ? '已拒绝并退回机构端重新分配' : '已拒绝，工单退回机构端重新分配');
+  }
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
+
+renderTabs();
+renderList();
+</script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>首页 · 福建省综合风险减量服务平台</title>
+<style>
+  :root{--blue:#2b5ce6;--text:#1f2329;--sub:#8b91a0;--line:#eef0f5;--bg:#f4f6fb;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55)}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:9}
+  /* 顶部蓝色渐变头 */
+  .header{position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 55%,#7ba2f6 100%);padding:44px 18px 70px;border-radius:0 0 26px 26px}
+  .header::after{content:"";position:absolute;inset:0;background:
+      radial-gradient(closest-side,rgba(255,255,255,.18),transparent) 88% 30%/200px 120px no-repeat,
+      radial-gradient(closest-side,rgba(255,255,255,.12),transparent) 8% 80%/180px 120px no-repeat;border-radius:0 0 26px 26px}
+  .statusbar{position:absolute;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;color:#fff;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .head-top{position:relative;z-index:5;display:flex;align-items:center;justify-content:space-between}
+  .head-title{color:#fff;font-size:16px;font-weight:700;letter-spacing:.5px}
+  .head-icons{display:flex;align-items:center}
+  /* 小程序胶囊按钮 */
+  .capsule{display:flex;align-items:center;height:32px;padding:0 13px;border-radius:16px;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .cap-dots{color:#fff;font-size:14px;letter-spacing:2px;line-height:1;padding-bottom:5px;cursor:pointer}
+  .cap-line{width:1px;height:15px;background:rgba(255,255,255,.4);margin:0 9px}
+  .cap-circ{width:17px;height:17px;border-radius:50%;border:1.6px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .cap-circ i{width:6px;height:6px;border-radius:50%;background:#fff;display:block}
+  /* 用户卡 */
+  .user{position:relative;z-index:5;display:flex;align-items:center;gap:12px;margin-top:20px}
+  .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#dfe8ff,#b9ccff);border:2px solid rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden}
+  .uname{color:#fff;font-size:19px;font-weight:700}
+  .uorg{color:rgba(255,255,255,.85);font-size:12.5px;margin-top:3px}
+  .chev{margin-left:auto;color:rgba(255,255,255,.8);font-size:22px}
+  /* 内容区 */
+  .body{margin-top:-52px;padding:0 14px 90px;position:relative;z-index:6;height:calc(844px - 44px);overflow-y:auto}
+  .body::-webkit-scrollbar{display:none}
+  /* 功能卡片 */
+  .cards{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:12px}
+  .card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 6px 18px rgba(30,50,110,.08);position:relative;overflow:hidden;cursor:pointer;transition:.15s}
+  .card:active{transform:scale(.985)}
+  .card .ct{font-size:16px;font-weight:700;position:relative;z-index:2}
+  .card .cd{font-size:11.5px;color:var(--sub);margin-top:4px;position:relative;z-index:2}
+  /* 大卡：事故预防服务 */
+  .card.big{grid-row:span 2;background:linear-gradient(165deg,#eaf1ff,#dbe7ff)}
+  .card.big .ct{color:#20356e}
+  .card.big .cd{color:#6b80b5}
+  .art{position:absolute;right:-6px;bottom:-4px;font-size:64px;opacity:.95;z-index:1;filter:drop-shadow(0 8px 12px rgba(40,80,180,.25))}
+  /* 小卡配色 */
+  .card.orange{background:linear-gradient(150deg,#fff4e8,#ffe7cc)}
+  .card.orange .ct{color:#9a5a12}
+  .card.red{background:linear-gradient(150deg,#ffeded,#ffdad9)}
+  .card.red .ct{color:#b23333}
+  /* 系统通知 */
+  .notice-title{font-size:16px;font-weight:700;margin:20px 4px 10px}
+  .notices{background:#fff;border-radius:16px;box-shadow:0 6px 18px rgba(30,50,110,.07);overflow:hidden}
+  .nt{display:flex;gap:12px;padding:14px 14px;border-bottom:1px solid var(--line)}
+  .nt:last-child{border:none}
+  .nt .ico{width:22px;flex-shrink:0;font-size:18px;text-align:center;line-height:1.2}
+  .nt .ico.warn{color:#e5484d}
+  .nt .ico.info{color:#8b91a0}
+  .nt .main{flex:1;min-width:0}
+  .nt .nrow{display:flex;align-items:center;justify-content:space-between}
+  .nt .ntitle{font-size:14.5px;font-weight:600;display:flex;align-items:center;gap:5px}
+  .dot-red{width:6px;height:6px;border-radius:50%;background:#e5484d}
+  .nt .time{font-size:11px;color:#b3b8c4}
+  .nt .ndesc{font-size:12px;color:#9aa0ad;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* 悬浮铃铛 */
+  .fab{position:absolute;right:16px;bottom:96px;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.95);
+    box-shadow:0 8px 20px rgba(30,50,110,.18);display:flex;align-items:center;justify-content:center;font-size:20px;z-index:15;cursor:pointer}
+  .fab .fd{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:#e5484d;border:2px solid #fff}
+  /* 底部 Tab */
+  .tabbar{position:absolute;bottom:0;left:0;right:0;height:64px;background:#fff;border-top:1px solid var(--line);display:flex;z-index:20;padding-bottom:6px}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;color:#9aa0ad;cursor:pointer}
+  .tab.active{color:var(--blue);font-weight:600}
+  .tab .ic{font-size:21px;line-height:1}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.3;z-index:21}
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:40;display:none}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <!-- 头部 -->
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff">
+          <rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/>
+          <rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/>
+          <rect x="9.3" y="3" width="3.1" height="8" rx="1"/>
+          <rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/>
+        </svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff">
+          <path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/>
+          <path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 5.8 0 0 1 4-1.65Z" opacity=".92"/>
+          <path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/>
+        </svg>
+        <svg viewBox="0 0 25 12" width="25" height="12">
+          <rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/>
+          <rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/>
+          <path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/>
+        </svg>
+      </span>
+    </div>
+    <div class="head-top">
+      <span class="head-title">福建省综合风险减量服务平台</span>
+      <span class="head-icons">
+        <div class="capsule">
+          <span class="cap-dots" onclick="toast('更多')">•••</span>
+          <span class="cap-line"></span>
+          <span class="cap-circ" onclick="toast('设置')"><i></i></span>
+        </div>
+      </span>
+    </div>
+    <div class="user" onclick="toast('查看企业信息')">
+      <div class="avatar">🧑</div>
+      <div>
+        <div class="uname">赵子龙</div>
+        <div class="uorg">福州无比欢安全技术服务公司</div>
+      </div>
+      <div class="chev">›</div>
+    </div>
+  </div>
+
+  <!-- 内容 -->
+  <div class="body">
+    <div class="cards">
+      <div class="card big" onclick="location.href='事故预防服务.html'">
+        <div class="ct">事故预防服务</div>
+        <div class="cd">事故预防服务工单</div>
+        <div class="art">📋</div>
+      </div>
+      <div class="card orange" onclick="toast('进入隐患排查')">
+        <div class="ct">隐患排查</div>
+        <div class="cd">安全隐患不容小觑</div>
+        <div class="art" style="font-size:40px">⚠️</div>
+      </div>
+      <div class="card red" onclick="toast('进入风险防控')">
+        <div class="ct">风险防控</div>
+        <div class="cd">提高风险防控意识</div>
+        <div class="art" style="font-size:40px">🛡️</div>
+      </div>
+    </div>
+
+    <div class="notice-title">系统通知</div>
+    <div class="notices" id="notices"></div>
+  </div>
+
+  <div class="fab" onclick="toast('消息中心')">🔔<div class="fd"></div></div>
+
+  <div class="tabbar">
+    <div class="tab active" onclick="toast('已在首页')"><div class="ic">🏠</div>首页</div>
+    <div class="tab" onclick="toast('进入我的')"><div class="ic">👤</div>我的</div>
+  </div>
+  <div class="home-ind"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const notices=[
+  {type:'warn',t:'预警信息',desc:'预警编号：YF29411 的事故预防工单截止时间还剩 10天...',time:'2024.03.28 17:41:53'},
+  {type:'info',t:'通知信息',desc:'您有一条新的事故预防工单待确认，请查看！',time:'2024.03.28 17:41:53'},
+  {type:'warn',t:'预警信息',desc:'预警编号：YF29411 的事故预防工单截止时间还剩 10天...',time:'2024.03.28 17:41:53'},
+  {type:'info',t:'通知信息',desc:'您有一条新的事故预防工单待确认，请查看！',time:'2024.03.28 17:41:53'},
+  {type:'info',t:'通知信息',desc:'您有一条新的事故预防工单待确认，请查看！',time:'2024.03.28 17:41:53'},
+];
+const box=document.getElementById('notices');
+notices.forEach(n=>{
+  const d=document.createElement('div');d.className='nt';
+  d.innerHTML=`<div class="ico ${n.type}">${n.type==='warn'?'⚠':'🔔'}</div>
+    <div class="main">
+      <div class="nrow"><span class="ntitle">${n.t}${n.type==='warn'?'<span class="dot-red"></span>':''}</span><span class="time">${n.time}</span></div>
+      <div class="ndesc">${n.desc}</div>
+    </div>`;
+  d.onclick=()=>toast('查看：'+n.t);
+  box.appendChild(d);
+});
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1500);}
+</script>
+</body>
+</html>

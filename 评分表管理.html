@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>评分表管理 · 保险机构端</title>
+<link rel="stylesheet" href="ins-common.css">
+<style>
+  .card{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(20,30,60,.04);}
+  .hide{display:none !important;}
+  /* 查询卡片 */
+  .search{padding:18px 20px;margin-bottom:14px;}
+  .fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+  .fi{display:flex;align-items:center;}
+  .fi label{width:96px;flex:0 0 96px;text-align:right;padding-right:10px;color:#4a5568;white-space:nowrap;}
+  .fi input,.fi select{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
+  .fi input:focus,.fi select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .acts{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap;}
+  .spacer{flex:1;}
+  .btn{height:32px;padding:0 18px;border-radius:4px;border:1px solid #dfe4ed;background:#fff;color:#3a4354;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
+  .btn:hover{border-color:#c7d0de;}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .btn.primary:hover{background:var(--brand-d);border-color:var(--brand-d);}
+  .btn.danger{color:#e5484d;border-color:#f3c4c6;}
+  .btn.danger:hover{background:#fdf3f3;}
+
+  /* 视图头（评分项设置） */
+  .vhead{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+  .vhead .vtitle{font-size:15px;font-weight:700;color:#1f2329;}
+  .vhead .vsub{color:#9aa3b2;font-size:12.5px;}
+  .vhead .vsub b{color:#5d6879;font-weight:600;}
+
+  /* 表格卡片工具条 */
+  .tbar{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);}
+  .tbar .spacer{flex:1;}
+  .btn.icon{width:32px;padding:0;justify-content:center;font-size:15px;}
+
+  /* 表格 */
+  .table-wrap{overflow:hidden;overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:1180px;}
+  thead th{background:#f7f9fc;color:#5d6879;font-weight:600;text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:13px;}
+  tbody td{padding:12px 14px;border-bottom:1px solid var(--line);color:#2b3242;vertical-align:top;line-height:1.7;}
+  tbody tr:hover{background:#f9fbff;}
+  td.seq{color:#8a93a5;text-align:center;white-space:nowrap;}
+  td.merge{color:#2b3242;font-weight:500;}
+  td.crit,td.way{white-space:normal;}
+  td.score{text-align:center;font-weight:600;color:#1f2329;white-space:nowrap;}
+  td.op{white-space:nowrap;}
+  td.op a{color:var(--brand);cursor:pointer;}
+  td.op a:hover{text-decoration:underline;}
+  td.op a+a{margin-left:10px;}
+  td.op a.del{color:#e5484d;}
+  /* 状态徽标 */
+  .st{display:inline-block;padding:2px 11px;border-radius:3px;font-size:12px;}
+  .st.on{color:#2fa96b;background:rgba(47,169,107,.12);}
+  .st.off{color:#8a93a5;background:#eef1f6;}
+  .empty{text-align:center;color:#9aa3b2;padding:38px 0 !important;white-space:normal;}
+
+  /* 分页 */
+  .pager{display:flex;align-items:center;gap:12px;padding:14px 18px;color:#5d6879;font-size:13px;flex-wrap:wrap;}
+  .pager .right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .pager .pgbtn{min-width:30px;height:30px;padding:0 8px;border:1px solid #e2e7f0;border-radius:4px;background:#fff;cursor:pointer;color:#3a4354;font-size:13px;}
+  .pager .pgbtn:hover:not(:disabled){border-color:#c7d0de;}
+  .pager .pgbtn.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .pager .pgbtn:disabled{opacity:.45;cursor:not-allowed;}
+  .pager .sizesel{height:30px;border:1px solid #e2e7f0;border-radius:4px;padding:0 8px;color:#3a4354;background:#fff;}
+  .pager .go input{width:44px;height:30px;border:1px solid #e2e7f0;border-radius:4px;padding:0 6px;text-align:center;}
+
+  /* ===== 弹窗 ===== */
+  .mask{position:fixed;inset:0;background:rgba(15,22,36,.45);display:none;align-items:center;justify-content:center;z-index:50;}
+  .mask.show{display:flex;}
+  .modal{width:min(760px,94vw);max-height:88vh;background:#fff;border-radius:6px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .mhead{height:52px;flex:0 0 52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);}
+  .mtitle{font-size:15px;font-weight:600;display:flex;align-items:center;gap:9px;}
+  .mtitle::before{content:"";width:3px;height:15px;background:var(--brand);border-radius:2px;}
+  .mclose{font-size:18px;color:#9aa3b2;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;}
+  .mclose:hover{background:#f0f2f7;}
+  .mbody{flex:1;overflow:auto;padding:22px 26px 30px;}
+  .form{display:flex;flex-direction:column;gap:18px;}
+  .fitem{display:flex;align-items:flex-start;}
+  .fitem.top{align-items:flex-start;}
+  .fitem label{flex:0 0 116px;width:116px;text-align:right;padding-right:12px;font-size:13px;color:#3a4354;line-height:32px;}
+  .fitem .req{color:#f04438;margin-right:3px;}
+  .fitem input,.fitem textarea,.fitem select{flex:1;min-width:0;border:1px solid #dfe4ed;border-radius:4px;padding:7px 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;font-family:inherit;}
+  .fitem input{height:32px;padding:0 10px;}
+  .fitem textarea{resize:vertical;line-height:1.6;}
+  .fitem input:focus,.fitem textarea:focus,.fitem select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .two{display:flex;gap:20px;}
+  .two .fitem{flex:1;}
+  .mfoot{flex:0 0 60px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 26px;border-top:1px solid var(--line);}
+
+  .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:rgba(20,28,46,.92);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:80;display:none;}
+  .toast.show{display:block;animation:pop .2s;}
+  @keyframes pop{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1}}
+
+  @media (max-width:1366px){ .search .fields{grid-template-columns:1fr 1fr;} }
+  @media (max-width:1024px){
+    .search .fields{grid-template-columns:1fr;}
+    .fi label{width:88px;flex:0 0 88px;}
+    .fitem{flex-direction:column;align-items:stretch;gap:6px;}
+    .fitem label{width:auto;text-align:left;padding-right:0;line-height:1.4;}
+    .two{flex-direction:column;}
+  }
+  @media (max-width:768px){
+    .topbar{padding:0 12px;}
+    .page{padding:12px 10px 20px;}
+    .card.search{padding:14px;}
+    .modal{max-height:92vh;}
+    .mbody{padding:16px;}
+    .pager .right{width:100%;margin-left:0;justify-content:flex-start;}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="side">
+    <div class="brand"><i class="logo"><i></i><b></b></i><span>保险机构端</span></div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+
+  <main class="main">
+    <header class="topbar" id="topbar"></header>
+
+    <div class="page">
+      <!-- ===== 外层：评分表列表 ===== -->
+      <div id="listView">
+        <div class="card search">
+          <div class="fields">
+            <div class="fi"><label>评分表名称：</label><input id="q_name" placeholder="请输入" onkeydown="if(event.key==='Enter')doListSearch()"></div>
+            <div class="fi"><label>评分表编号：</label><input id="q_code" placeholder="请输入" onkeydown="if(event.key==='Enter')doListSearch()"></div>
+            <div class="fi"></div>
+          </div>
+          <div class="acts">
+            <button class="btn primary" onclick="doListSearch()">查询</button>
+            <button class="btn" onclick="doListReset()">重置</button>
+            <span class="spacer"></span>
+            <button class="btn primary" onclick="openTAdd()">＋ 新增评分表</button>
+          </div>
+        </div>
+
+        <div class="card table-wrap">
+          <div class="tbar">
+            <span style="color:#5d6879;font-weight:600">评分表列表</span>
+            <span class="spacer"></span>
+            <button class="btn icon" title="列设置" onclick="toast('列设置（演示）')">⚙</button>
+          </div>
+          <table>
+            <colgroup>
+              <col style="width:56px"><col style="width:140px"><col style="width:280px"><col style="width:90px"><col style="width:150px"><col style="width:210px"><col style="width:160px"><col style="width:210px">
+            </colgroup>
+            <thead><tr>
+              <th>序号</th><th>评分表编号</th><th>评分表名称</th><th>状态</th><th>创建人</th><th>所属机构</th><th>创建时间</th><th>操作</th>
+            </tr></thead>
+            <tbody id="tBody"></tbody>
+          </table>
+        </div>
+        <div class="pager" id="listPager"></div>
+      </div>
+
+      <!-- ===== 内层：评分项设置 ===== -->
+      <div id="itemsView" class="hide">
+        <div class="vhead">
+          <button class="btn" onclick="backToList()">‹ 返回</button>
+          <span class="vtitle">评分项设置 · <b id="vName"></b></span>
+          <span class="vsub">编号 <b id="vCode"></b> · 所属机构 <b id="vOrg"></b> · 状态 <b id="vStatus"></b></span>
+          <span class="spacer"></span>
+          <button class="btn primary" onclick="openIAdd()">＋ 新增评分项</button>
+        </div>
+
+        <div class="card search">
+          <div class="fields">
+            <div class="fi"><label>一级要素：</label><input id="q_l1" placeholder="请输入" onkeydown="if(event.key==='Enter')doItemSearch()"></div>
+            <div class="fi"><label>二级要素：</label><input id="q_l2" placeholder="请输入" onkeydown="if(event.key==='Enter')doItemSearch()"></div>
+            <div class="fi"><label>考评标准：</label><input id="q_crit" placeholder="请输入关键字" onkeydown="if(event.key==='Enter')doItemSearch()"></div>
+          </div>
+          <div class="acts">
+            <button class="btn primary" onclick="doItemSearch()">查询</button>
+            <button class="btn" onclick="doItemReset()">重置</button>
+          </div>
+        </div>
+
+        <div class="card table-wrap">
+          <div class="tbar">
+            <span style="color:#5d6879;font-weight:600">评分项</span>
+            <span class="spacer"></span>
+            <button class="btn icon" title="列设置" onclick="toast('列设置（演示）')">⚙</button>
+          </div>
+          <table>
+            <colgroup>
+              <col style="width:56px"><col style="width:118px"><col style="width:126px"><col style="width:340px"><col style="width:90px"><col style="width:340px"><col style="width:110px">
+            </colgroup>
+            <thead><tr>
+              <th>序号</th><th>一级要素</th><th>二级要素</th><th>考评标准</th><th>标准分值</th><th>评分方式</th><th>操作</th>
+            </tr></thead>
+            <tbody id="iBody"></tbody>
+          </table>
+        </div>
+        <div class="pager" id="itemPager"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 新增/编辑评分表（外层） -->
+<div class="mask" id="tModal">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle" id="tTitle">新增评分表</div>
+      <div class="mclose" onclick="closeTModal()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="form">
+        <div class="two">
+          <div class="fitem"><label>评分表编号：</label><input id="t_code" placeholder="留空自动生成"></div>
+          <div class="fitem"><label><i class="req">*</i>评分表名称：</label><input id="t_name" placeholder="请输入"></div>
+        </div>
+        <div class="two">
+          <div class="fitem"><label>创建人：</label><input id="t_creator" placeholder="请输入"></div>
+          <div class="fitem"><label>所属机构：</label><input id="t_org" placeholder="请输入"></div>
+        </div>
+        <div class="fitem"><label>状态：</label><select id="t_status"><option>启用</option><option>停用</option></select></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeTModal()">取消</button>
+      <button class="btn primary" onclick="saveTable()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增/编辑评分项（内层） -->
+<div class="mask" id="iModal">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle" id="iTitle">新增评分项</div>
+      <div class="mclose" onclick="closeIModal()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="form">
+        <div class="two">
+          <div class="fitem"><label><i class="req">*</i>一级要素：</label><input id="s_l1" placeholder="如：1 目标职责"></div>
+          <div class="fitem"><label><i class="req">*</i>二级要素：</label><input id="s_l2" placeholder="如：1.1 目标"></div>
+        </div>
+        <div class="fitem top"><label><i class="req">*</i>考评标准：</label><textarea id="s_crit" rows="4" placeholder="请输入考评标准，如：1.1.1 建立安全生产和职业健康目标的管理制度……"></textarea></div>
+        <div class="two">
+          <div class="fitem"><label><i class="req">*</i>标准分值：</label><input id="s_score" type="number" min="0" step="0.5" placeholder="请输入"></div>
+          <div class="fitem"></div>
+        </div>
+        <div class="fitem top"><label><i class="req">*</i>评分方式：</label><textarea id="s_way" rows="4" placeholder="请输入评分方式，如：制度未正式发布生效的，不得分；……"></textarea></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeIModal()">取消</button>
+      <button class="btn primary" onclick="saveItem()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="ins-common.js"></script>
+<script>
+/* ===== 工具 ===== */
+let _seq=2000;
+function uid(p){ return (p||'')+(++_seq)+'_'+Date.now().toString(36); }
+function nowStr(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;}
+
+/* ===== 数据 ===== */
+function seedTables(){return [
+  {id:'T1',code:'PF-2026-001',name:'企业安全生产标准化评分表',status:'启用',creator:'中国人寿保险',org:'中国人寿保险',createdAt:'2026-09-01 09:20'},
+  {id:'T2',code:'PF-2026-002',name:'工矿商贸企业评分表',status:'启用',creator:'安全服务机构人员测试',org:'安全服务机构人员测试',createdAt:'2026-09-03 14:05'},
+  {id:'T3',code:'PF-2025-018',name:'危化品企业专项评分表',status:'停用',creator:'事故预防示范机构',org:'事故预防示范机构',createdAt:'2025-12-12 10:48'},
+];}
+function seedItems(){
+  const base=[
+    ['1 目标职责','1.1 目标','1.1.1 建立安全生产和职业健康目标的管理制度，明确目标与指标的制定、分解、实施、检查、考核等环节内容。',2,'制度未正式发布生效的，不得分；缺少制定、分解、实施、检查、考核等环节内容的，发现一项扣1分，发现两项不得分。'],
+    ['1 目标职责','1.1 目标','1.1.2 制定文件化的总体和年度安全生产与职业健康目标，并纳入企业总体生产经营目标。',2,'总体和年度安全生产和职业健康目标未正式发布生效的，不得分；目标中仅有事故等结果性指标，无反映安全生产工作的具体过程性指标的，扣1分；企业总体生产经营目标中未涉及安全生产与职业健康目标的，不得分。'],
+    ['1 目标职责','1.1 目标','1.1.3 根据所属基层单位和部门在安全生产中的职能，将目标分解为指标，签订各层级的安全生产和职业健康目标责任书，制定实施计划和考核办法，并定期进行考核。',4,'基层单位和部门未根据职能对年度安全生产和职业健康目标分解的，发现一处扣1分，发现两处不得分；未逐级分解至班组的，发现一处扣1分，发现两处不得分。'],
+    ['1 目标职责','1.2 机构设置','1.2.1 按规定设置安全生产和职业健康管理机构，配备专职管理人员。',3,'未设置机构的不得分；未配备专职管理人员的，扣2分。'],
+    ['2 制度化管理','2.1 法规标准','2.1.1 建立识别和获取适用的安全生产和职业健康法律法规、标准规范的制度。',2,'未建立制度的不得分；未及时更新法规标准清单的，扣1分。'],
+    ['2 制度化管理','2.2 规章制度','2.2.1 建立健全安全生产和职业健康规章制度，并发放到相关工作岗位。',3,'规章制度缺失的，每缺一项扣1分；未发放到相关工作岗位的，发现一处扣1分。'],
+    ['3 教育培训','3.1 培训计划','3.1.1 制定年度安全生产教育培训计划。',3,'无计划的不得分；计划未覆盖全员的扣1分。'],
+    ['3 教育培训','3.2 人员培训','3.2.1 主要负责人、安全管理人员、特种作业人员持证上岗。',4,'发现一人未持证上岗的扣2分，发现两人不得分。']
+  ];
+  return base.map((r,i)=>({id:uid('I'),tid:i<6?'T1':'T2',l1:r[0],l2:r[1],crit:r[2],score:r[3],way:r[4]}));
+}
+let TABLES,ITEMS;
+try{const s=localStorage.getItem('ins_score_tables');TABLES=s?JSON.parse(s):seedTables();}catch(e){TABLES=seedTables();}
+try{const s=localStorage.getItem('ins_score_items');ITEMS=s?JSON.parse(s):seedItems();}catch(e){ITEMS=seedItems();}
+function saveTables(){try{localStorage.setItem('ins_score_tables',JSON.stringify(TABLES));}catch(e){}}
+function saveItems(){try{localStorage.setItem('ins_score_items',JSON.stringify(ITEMS));}catch(e){}}
+
+/* ===== 视图状态 ===== */
+let view='list',curTid=null;
+let listState={page:1,size:10,q:{name:'',code:''}};
+let itemState={page:1,size:10,q:{l1:'',l2:'',crit:''}};
+
+function pagerHtml(total,pages,cur,size,pageFn,sizeFn){
+  let pg='';const wS=Math.max(1,cur-2),wE=Math.min(pages,cur+2);
+  for(let i=wS;i<=wE;i++)pg+=`<button class="pgbtn ${i===cur?'on':''}" onclick="${pageFn}(${i})">${i}</button>`;
+  return `<span>共 ${total} 条</span><span class="right">`+
+    `<span>每页</span><select class="sizesel" onchange="${sizeFn}(this.value)">${[10,20,50].map(n=>`<option ${n===size?'selected':''}>${n}</option>`).join('')}</select><span>条</span>`+
+    `<button class="pgbtn" onclick="${pageFn}(${Math.max(1,cur-1)})" ${cur===1?'disabled':''}>‹</button>`+pg+
+    `<button class="pgbtn" onclick="${pageFn}(${Math.min(pages,cur+1)})" ${cur===pages?'disabled':''}>›</button>`+
+    `<span class="go">前往<input type="number" min="1" max="${pages}" value="${cur}" onchange="${pageFn}(Math.min(${pages},Math.max(1,+this.value||1)))">页</span></span>`;
+}
+
+/* ===== 外层：评分表列表 ===== */
+function doListSearch(){listState.q={name:$('#q_name').value.trim(),code:$('#q_code').value.trim()};listState.page=1;renderList();}
+function doListReset(){$('#q_name').value='';$('#q_code').value='';listState.q={name:'',code:''};listState.page=1;renderList();}
+function setListSize(v){listState.size=+v;listState.page=1;renderList();}
+function gotoListPage(p){listState.page=p;renderList();}
+function renderList(){
+  const {name,code}=listState.q;
+  const rows=TABLES.filter(t=>(!name||t.name.includes(name))&&(!code||t.code.includes(code)));
+  const total=rows.length,size=listState.size,pages=Math.max(1,Math.ceil(total/size));
+  if(listState.page>pages)listState.page=pages;
+  const start=(listState.page-1)*size,cur=rows.slice(start,start+size);
+  $('#tBody').innerHTML=cur.length?cur.map((t,i)=>{
+    const st=t.status==='启用'?'<span class="st on">启用</span>':'<span class="st off">停用</span>';
+    return `<tr>
+      <td class="seq">${start+i+1}</td>
+      <td>${esc(t.code)}</td>
+      <td>${esc(t.name)}</td>
+      <td>${st}</td>
+      <td>${esc(t.creator)}</td>
+      <td>${esc(t.org)}</td>
+      <td>${esc(t.createdAt)}</td>
+      <td class="op"><a onclick="openTEdit('${t.id}')">编辑</a><a onclick="toggleStatus('${t.id}')">${t.status==='启用'?'停用':'启用'}</a><a onclick="openItems('${t.id}')">评分项设置</a></td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="8" class="empty">暂无评分表</td></tr>`;
+  $('#listPager').innerHTML=pagerHtml(total,pages,listState.page,size,'gotoListPage','setListSize');
+}
+
+/* 外层弹窗：新增/编辑评分表 */
+let editingTid=null;
+function genCode(){const y=new Date().getFullYear();const ns=TABLES.filter(t=>t.code.indexOf('PF-'+y+'-')===0).map(t=>+t.code.slice(7)).filter(n=>!isNaN(n));return 'PF-'+y+'-'+String((ns.length?Math.max(...ns):0)+1).padStart(3,'0');}
+function openTAdd(){editingTid=null;$('#tTitle').textContent='新增评分表';['t_code','t_name','t_creator','t_org'].forEach(id=>$('#'+id).value='');$('#t_status').value='启用';$('#tModal').classList.add('show');$('#t_name').focus();}
+function openTEdit(id){const t=TABLES.find(x=>x.id===id);if(!t)return;editingTid=id;$('#tTitle').textContent='编辑评分表';$('#t_code').value=t.code;$('#t_name').value=t.name;$('#t_creator').value=t.creator;$('#t_org').value=t.org;$('#t_status').value=t.status;$('#tModal').classList.add('show');}
+function closeTModal(){$('#tModal').classList.remove('show');}
+function val(id){return $('#'+id).value.trim();}
+function saveTable(){
+  if(!val('t_name')){toast('请填写评分表名称');$('#t_name').focus();return;}
+  if(editingTid){const t=TABLES.find(x=>x.id===editingTid);t.name=val('t_name');t.code=val('t_code')||t.code;t.creator=val('t_creator')||t.creator;t.org=val('t_org')||t.org;t.status=$('#t_status').value;toast('评分表已更新');}
+  else{const code=val('t_code')||genCode();TABLES.push({id:uid('T'),code,name:val('t_name'),status:$('#t_status').value,creator:val('t_creator')||'中国人寿保险',org:val('t_org')||'中国人寿保险',createdAt:nowStr()});toast('评分表新增成功');}
+  saveTables();closeTModal();renderList();
+}
+function toggleStatus(id){const t=TABLES.find(x=>x.id===id);if(!t)return;t.status=t.status==='启用'?'停用':'启用';saveTables();renderList();toast('已'+(t.status==='启用'?'启用':'停用'));}
+
+/* ===== 内层：评分项设置 ===== */
+function openItems(id){const t=TABLES.find(x=>x.id===id);if(!t)return;curTid=id;view='items';
+  $('#vName').textContent=t.name;$('#vCode').textContent=t.code;$('#vOrg').textContent=t.org;
+  $('#vStatus').innerHTML=t.status==='启用'?'<span class="st on">启用</span>':'<span class="st off">停用</span>';
+  $('#listView').classList.add('hide');$('#itemsView').classList.remove('hide');
+  itemState={page:1,size:10,q:{l1:'',l2:'',crit:''}};
+  $('#q_l1').value='';$('#q_l2').value='';$('#q_crit').value='';
+  renderItems();window.scrollTo(0,0);
+}
+function backToList(){view='list';curTid=null;$('#itemsView').classList.add('hide');$('#listView').classList.remove('hide');renderList();window.scrollTo(0,0);}
+function curItems(){return ITEMS.filter(x=>x.tid===curTid);}
+function doItemSearch(){itemState.q={l1:$('#q_l1').value.trim(),l2:$('#q_l2').value.trim(),crit:$('#q_crit').value.trim()};itemState.page=1;renderItems();}
+function doItemReset(){$('#q_l1').value='';$('#q_l2').value='';$('#q_crit').value='';itemState.q={l1:'',l2:'',crit:''};itemState.page=1;renderItems();}
+function setItemSize(v){itemState.size=+v;itemState.page=1;renderItems();}
+function gotoItemPage(p){itemState.page=p;renderItems();}
+function renderItems(){
+  const {l1,l2,crit}=itemState.q;
+  let rows=curItems().filter(r=>(!l1||r.l1.includes(l1))&&(!l2||r.l2.includes(l2))&&(!crit||r.crit.includes(crit)));
+  const total=rows.length,size=itemState.size,pages=Math.max(1,Math.ceil(total/size));
+  if(itemState.page>pages)itemState.page=pages;
+  const start=(itemState.page-1)*size,cur=rows.slice(start,start+size);
+
+  $('#iBody').innerHTML=cur.length?cur.map((r,i)=>{
+    return `<tr>
+      <td class="seq">${start+i+1}</td>
+      <td class="merge">${esc(r.l1)}</td>
+      <td class="merge">${esc(r.l2)}</td>
+      <td class="crit">${esc(r.crit)}</td>
+      <td class="score">${esc(r.score)}</td>
+      <td class="way">${esc(r.way)}</td>
+      <td class="op"><a onclick="openIEdit('${r.id}')">编辑</a><a class="del" onclick="delItem('${r.id}')">删除</a></td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="7" class="empty">该评分表暂无评分项，点击「新增评分项」添加</td></tr>`;
+  $('#itemPager').innerHTML=pagerHtml(total,pages,itemState.page,size,'gotoItemPage','setItemSize');
+}
+
+/* 内层弹窗：新增/编辑评分项 */
+let editingIid=null;
+function openIAdd(){if(!curTid){toast('请先选择评分表');return;}editingIid=null;$('#iTitle').textContent='新增评分项';['s_l1','s_l2','s_crit','s_score','s_way'].forEach(id=>$('#'+id).value='');$('#iModal').classList.add('show');$('#s_l1').focus();}
+function openIEdit(id){const r=ITEMS.find(x=>x.id===id);if(!r)return;editingIid=id;$('#iTitle').textContent='编辑评分项';$('#s_l1').value=r.l1;$('#s_l2').value=r.l2;$('#s_crit').value=r.crit;$('#s_score').value=r.score;$('#s_way').value=r.way;$('#iModal').classList.add('show');}
+function closeIModal(){$('#iModal').classList.remove('show');}
+function saveItem(){
+  const reqs=[['s_l1','一级要素'],['s_l2','二级要素'],['s_crit','考评标准'],['s_score','标准分值'],['s_way','评分方式']];
+  for(const [id,label] of reqs){ if(!val(id)){toast('请填写'+label);$('#'+id).focus();return;} }
+  const rec={tid:curTid,l1:val('s_l1'),l2:val('s_l2'),crit:val('s_crit'),score:val('s_score'),way:val('s_way')};
+  if(editingIid){const it=ITEMS.find(x=>x.id===editingIid);Object.assign(it,rec);toast('评分项已更新');}
+  else{ITEMS.push(Object.assign({id:uid('I')},rec));toast('评分项新增成功');}
+  saveItems();closeIModal();renderItems();
+}
+function delItem(id){const r=ITEMS.find(x=>x.id===id);if(!r)return;if(!confirm('确认删除该条评分项？\n'+r.crit.slice(0,30)+'…'))return;ITEMS=ITEMS.filter(x=>x.id!==id);saveItems();renderItems();toast('已删除');}
+
+/* 关闭事件 */
+$('#tModal').addEventListener('click',e=>{if(e.target===$('#tModal'))closeTModal();});
+$('#iModal').addEventListener('click',e=>{if(e.target===$('#iModal'))closeIModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeTModal();closeIModal();}});
+
+/* ===== 初始化 ===== */
+initIns({bread:['保险业务管理','评分表管理'], active:'评分表管理'});
+renderList();
+</script>
+</body>
+</html>

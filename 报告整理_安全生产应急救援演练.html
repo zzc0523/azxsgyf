@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>报告整理 · 安全生产应急救援演练</title>
+<style>
+  :root{--blue:#2b5ce6;--blue-d:#1f49c4;--text:#1f2329;--sub:#9aa0ad;--val:#3a4050;--bg:#f4f6fb;--line:#eef0f5;--red:#e5484d;--pur:#6b46e0;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:30}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.22;z-index:30}
+
+  .header{flex:none;position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 100%);color:#fff;z-index:10}
+  .header::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent) 90% 40%/200px 130px no-repeat,
+               radial-gradient(closest-side,rgba(255,255,255,.10),transparent) 6% 90%/170px 110px no-repeat}
+  .statusbar{position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .navbar{position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:2px 16px 8px;height:46px}
+  .back{width:26px;height:26px;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
+  .navtitle{font-size:17px;font-weight:700;letter-spacing:.5px}
+  .capsule{margin-left:auto;display:flex;align-items:center;height:32px;padding:0 13px;border-radius:16px;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .cap-dots{font-size:14px;letter-spacing:2px;line-height:1;padding-bottom:5px;cursor:pointer}
+  .cap-line{width:1px;height:15px;background:rgba(255,255,255,.4);margin:0 9px}
+  .cap-circ{width:17px;height:17px;border-radius:50%;border:1.6px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .cap-circ i{width:6px;height:6px;border-radius:50%;background:#fff;display:block}
+  .ctx{position:relative;z-index:5;padding:0 16px 12px;font-size:12px;color:rgba(255,255,255,.9)}
+  .ctx b{font-weight:600}
+
+  .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .body::-webkit-scrollbar{display:none}
+  .card{background:#fff;border-radius:14px;margin:14px 16px;padding:6px 16px 14px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .card-title{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:700;color:var(--text);padding:14px 0 6px}
+  .card-title i{width:3px;height:15px;border-radius:2px;background:var(--blue);display:block}
+  .field{padding:13px 0;border-top:1px solid var(--line)}
+  .field:first-of-type{border-top:none}
+  .flbl{display:flex;align-items:center;color:var(--sub);font-size:13.5px;margin-bottom:10px}
+  .flbl .req{color:var(--red);margin-right:3px}
+  .flbl .note{margin-left:auto;color:#b9bfcc;font-size:12px;font-weight:400}
+
+  /* 选项 chips */
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{padding:8px 15px;border:1px solid #d8dde8;border-radius:18px;font-size:13.5px;color:var(--val);background:#fff;cursor:pointer;user-select:none;transition:.12s}
+  .chip.on{background:rgba(43,92,230,.10);border-color:var(--blue);color:var(--blue);font-weight:600}
+  .other-wrap{margin-top:10px}
+
+  /* 输入 */
+  .inp{width:100%;height:40px;border:1px solid #e0e5ef;border-radius:9px;padding:0 12px;font-size:14px;color:var(--val);outline:none;background:#fff;font-family:inherit}
+  .inp:focus{border-color:var(--blue)}
+  .area{min-height:96px;height:auto;padding:10px 12px;line-height:1.6;resize:none}
+  .ctr{display:flex;justify-content:flex-end;margin-top:6px;color:#b9bfcc;font-size:12px}
+
+  /* 照片 */
+  .photos{display:flex;flex-wrap:wrap;gap:10px}
+  .thumb{position:relative;width:78px;height:78px;border-radius:10px;overflow:hidden;flex:none;
+    display:flex;align-items:flex-end;box-shadow:0 3px 9px rgba(30,50,110,.14)}
+  .thumb .tag{position:absolute;left:0;top:0;background:rgba(0,0,0,.32);color:#fff;font-size:10px;padding:2px 6px;border-bottom-right-radius:8px}
+  .thumb .x{position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:13px;line-height:17px;text-align:center;cursor:pointer}
+  .thumb .ic{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:26px;height:26px;opacity:.9}
+  .add{width:78px;height:78px;border-radius:10px;border:1px dashed #c7cedd;background:#fafbfe;color:#9aa0ad;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font-size:24px;flex:none}
+  .add span{font-size:11px;font-weight:400}
+
+  /* PDF 上传 */
+  .upload{display:flex;align-items:center;gap:10px}
+  .up-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:9px;font-size:13.5px;cursor:pointer;font-weight:600}
+  .up-btn svg{display:block}
+  .fname{color:#6b7280;font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* AI 生成按钮 */
+  .ai-row{margin-top:10px;display:flex}
+  .ai-btn{display:inline-flex;align-items:center;gap:5px;height:38px;padding:0 14px;border:none;
+    background:linear-gradient(135deg,#7b5bef,#5b3ef2);color:#fff;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer}
+  .ai-btn:active{opacity:.9}
+
+  .footer{flex:none;padding:10px 16px 24px;background:var(--bg)}
+  .btn-main{width:100%;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
+  .btn-main:active{background:var(--blue-d)}
+
+  /* 报告预览 */
+  .preview{position:absolute;inset:0;background:#f4f6fb;z-index:70;display:none;flex-direction:column}
+  .preview.show{display:flex}
+  .preview-head{flex:none;padding:30px 16px 14px;background:linear-gradient(180deg,#3f6ef2,#5b86f5);color:#fff}
+  .preview-title{font-size:17px;font-weight:700}
+  .preview-sub{font-size:12px;opacity:.92;margin-top:5px}
+  .preview-body{flex:1;overflow-y:auto;padding:14px 16px}
+  .preview-body::-webkit-scrollbar{display:none}
+  .pdf-frame{flex:1;width:100%;border:none;background:#525659}
+
+  /* 固定版式报告文档（A4 @96dpi = 794px 宽，离屏渲染） */
+  #reportHost{position:absolute;left:-10000px;top:0;width:794px;overflow:hidden}
+  .rpt{width:794px;background:#fff;padding:48px 54px;box-sizing:border-box;
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:#1f2329}
+  .rpt-h{text-align:center;font-size:26px;font-weight:700;letter-spacing:1px}
+  .rpt-sub{text-align:center;font-size:13px;color:#8b91a0;margin-top:10px}
+  .rpt-rule{height:0;border-top:1.5px solid #d8dde8;margin:18px 0 8px}
+  .rpt-row{padding:12px 0;border-bottom:1px dashed #e6e9f0}
+  .rpt-k{font-size:14px;font-weight:700;color:#2b5ce6;margin-bottom:6px}
+  .rpt-v{font-size:13.5px;line-height:1.7;color:#3a4050;white-space:pre-wrap;word-break:break-all}
+  .preview-foot{flex:none;display:flex;gap:12px;padding:10px 16px 24px;background:var(--bg)}
+  .preview-foot button{flex:1 1 0;min-width:0;height:46px;margin:0;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit}
+  .preview-foot .btn-main{width:auto;border:none;background:var(--blue);color:#fff;box-shadow:0 6px 16px rgba(43,92,230,.28)}
+  .preview-foot .btn-main:active{background:var(--blue-d)}
+  .preview-foot .btn-ghost{border:1px solid var(--blue);background:#fff;color:var(--blue)}
+  .preview-foot .btn-ghost:active{background:#eef2fc}
+
+  /* 底部弹层 */
+  .mask{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:60;display:none}
+  .mask.show{display:block}
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:61;background:#fff;border-radius:16px 16px 0 0;transform:translateY(100%);transition:.25s;padding:8px 0 22px}
+  .sheet.show{transform:translateY(0)}
+  .sheet-title{text-align:center;color:#9aa0ad;font-size:13px;padding:12px 0 8px}
+  .sheet-opt{display:block;width:100%;border:none;background:#fff;text-align:center;font-size:16px;color:var(--val);padding:15px 0;cursor:pointer;border-top:1px solid var(--line)}
+  .sheet-opt:active{background:#f4f6fb}
+  .sheet-cancel{display:block;width:calc(100% - 32px);margin:14px 16px 0;height:46px;border:none;border-radius:10px;background:#f1f3f8;color:var(--val);font-size:16px;font-weight:600;cursor:pointer}
+
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:80;display:none;max-width:74%;text-align:center;line-height:1.6}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/></svg>
+      </span>
+    </div>
+    <div class="navbar">
+      <div class="back" onclick="history.back()">‹</div>
+      <div class="navtitle">报告整理</div>
+      <div class="capsule"><span class="cap-dots" onclick="toast('更多')">•••</span><span class="cap-line"></span><span class="cap-circ" onclick="toast('设置')"><i></i></span></div>
+    </div>
+    <div class="ctx">工单号 <b id="ctxNo">YF2131900</b> · <span id="ctxProj">安全生产应急救援演练</span></div>
+  </div>
+
+  <div class="body" id="body"></div>
+
+  <div class="footer"><button class="btn-main" onclick="generateReport()">生成报告</button></div>
+
+  <!-- 照片来源弹层 -->
+  <div class="mask" id="mask" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-title" id="sheetTitle">选择照片来源</div>
+    <div id="sheetOpts"></div>
+    <button class="sheet-cancel" onclick="closeSheet()">取消</button>
+  </div>
+
+  <!-- 报告预览（PDF） -->
+  <div class="preview" id="preview">
+    <div class="preview-head">
+      <div class="preview-title">报告预览 · PDF</div>
+      <div class="preview-sub" id="previewSub"></div>
+    </div>
+    <iframe class="pdf-frame" id="pdfFrame"></iframe>
+    <div class="preview-foot">
+      <button class="btn-ghost" onclick="closePreview()">重新整理</button>
+      <button class="btn-main" onclick="doSubmit()">提交报告</button>
+    </div>
+  </div>
+
+  <!-- 固定版式报告文档（离屏，用于生成 PDF） -->
+  <div id="reportHost"><div id="reportDoc" class="rpt"></div></div>
+
+  <div class="home-ind"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<input type="file" id="pdfInput" accept="application/pdf" style="display:none">
+
+<script src="libs/html2canvas.min.js"></script>
+<script src="libs/jspdf.umd.min.js"></script>
+<script>
+const SECTIONS = [
+  { title:'报告整理', fields:[
+    {type:'multi', name:'演练目的', opts:['检验预案','完善准备','锻炼队伍','磨合机制','科普宣教'], req:true},
+    {type:'single', name:'演练类型', opts:['综合应急演练','专项应急演练'], def:'综合应急演练', req:true},
+    {type:'text', name:'演练地点', max:30, ph:'请填写演练地点（30字以内）', req:true},
+    {type:'single', name:'演练方式', opts:['桌面推演','实战演练'], def:'实战演练', req:true},
+    {type:'text', name:'演练名称', max:50, ph:'请填写演练名称（50字以内）', req:true},
+    {type:'text', name:'总指挥', max:50, ph:'请填写总指挥（50字以内）', req:true},
+    {type:'multi-other', name:'应急组织架构', opts:['指挥部','抢险救援组','警戒疏散组','医疗救护组','通讯联络组','后勤保障组'], req:true},
+    {type:'text', name:'演练流程', max:500, area:true, ph:'请填写演练流程（500字以内）', req:true},
+    {type:'text', name:'演练场景', max:500, area:true, ph:'请填写演练场景（500字以内）', req:true},
+    {type:'text', name:'演练物资', max:500, area:true, ph:'请填写演练物资（500字以内）', req:true},
+    {type:'pdf', name:'演练方案', note:'PDF 上传 / 大模型生成 Word', ai:'word', req:true},
+    {type:'photo', name:'签到表', max:9, sources:['拍照','引用现场检查照片','手机相册'], req:true},
+    {type:'photo', name:'演练物资', max:9, sources:['拍照','引用现场检查照片'], req:true},
+    {type:'photo', name:'现场演练照片', max:9, sources:['拍照','引用现场检查照片'], req:true},
+  ]},
+  { title:'演练评估', fields:[
+    {type:'number', name:'演练人数', ph:'请输入演练人数', req:true},
+    {type:'single', name:'方案编制', opts:['符合','基本符合','不符合'], def:'符合', req:true},
+    {type:'single', name:'人员分工', opts:['符合','基本符合','不符合'], def:'符合', req:true},
+    {type:'single', name:'组织协调', opts:['符合','基本符合','不符合'], def:'符合', req:true},
+    {type:'single', name:'事故报告', opts:['符合','基本符合','不符合'], def:'符合', req:true},
+    {type:'single', name:'人员配合', opts:['符合','基本符合','不符合'], def:'符合', req:true},
+    {type:'single', name:'应急处置', opts:['符合','基本符合','不符合'], def:'符合', req:true},
+    {type:'single', name:'医疗救护', opts:['符合','基本符合','不符合'], def:'符合', req:true},
+    {type:'single', name:'效果评价', opts:['达到既定目标','基本达到既定目标','未达到既定目标'], def:'达到既定目标', req:true},
+    {type:'text', name:'演练总结', max:500, area:true, ph:'请填写演练总结（500字以内），或点击「AI 生成」', ai:'summary', req:true},
+  ]},
+];
+
+const SRC_STYLE = {
+  '拍照':          {tag:'拍', bg:'linear-gradient(135deg,#5b86f5,#3f6ef2)'},
+  '引用现场检查照片':{tag:'引', bg:'linear-gradient(135deg,#f0a44a,#e0852a)'},
+  '手机相册':       {tag:'册', bg:'linear-gradient(135deg,#34c3a0,#1f9e7e)'},
+};
+
+const q = new URLSearchParams(location.search);
+document.getElementById('ctxNo').textContent   = q.get('no') || 'YF2131900';
+document.getElementById('ctxProj').textContent = q.get('project') || '安全生产应急救援演练';
+
+function render(){
+  const html = SECTIONS.map(sec=>{
+    const fields = sec.fields.map(f=>fieldHTML(f)).join('');
+    return `<div class="card"><div class="card-title"><i></i>${sec.title}</div>${fields}</div>`;
+  }).join('');
+  document.getElementById('body').innerHTML = html;
+}
+
+function fieldHTML(f){
+  let inner = '';
+  if(f.type==='single'){
+    inner = `<div class="chips" data-type="single">${f.opts.map(o=>`<span class="chip${f.def===o?' on':''}" data-v="${o}">${o}</span>`).join('')}</div>`;
+  } else if(f.type==='multi'){
+    inner = `<div class="chips" data-type="multi">${f.opts.map(o=>`<span class="chip" data-v="${o}">${o}</span>`).join('')}</div>`;
+  } else if(f.type==='multi-other'){
+    let chips = f.opts.map(o=>`<span class="chip" data-v="${o}">${o}</span>`).join('');
+    chips += `<span class="chip" data-v="其他" data-other>其他</span>`;
+    inner = `<div class="chips" data-type="multi">${chips}</div><div class="other-wrap" style="display:none"><input class="inp" maxlength="50" placeholder="请填写其他组织架构"></div>`;
+  } else if(f.type==='text' || f.type==='number'){
+    if(f.area){
+      const ta = `<textarea class="inp area" maxlength="${f.max}" placeholder="${f.ph||''}" oninput="updCount(this)"></textarea><div class="ctr"><span>${f.max?'0/'+f.max:'·'}</span></div>`;
+      inner = f.ai==='summary' ? ta + `<div class="ai-row"><button class="ai-btn" onclick="genSummary(this)">✦ 大模型生成总结</button></div>` : ta;
+    } else {
+      inner = `<input class="inp" type="${f.type==='number'?'number':'text'}" maxlength="${f.max||''}" placeholder="${f.ph||''}"><div class="ctr"></div>`;
+    }
+  } else if(f.type==='photo'){
+    inner = `<div class="photos" data-max="${f.max}" data-sources="${f.sources.join('|')}"><div class="add" onclick="openSheetFor(this)">+<span>添加</span></div></div>`;
+    if(f.note) inner += `<div class="ctr"><span style="margin-left:auto">${f.note}</span></div>`;
+  } else if(f.type==='pdf'){
+    const up = `<span class="up-btn" onclick="pickPDF(this)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2b5ce6" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>上传 PDF</span><span class="fname">未选择文件</span>`;
+    if(f.ai==='word'){
+      inner = `<div class="upload">${up}</div><div class="ai-row"><button class="ai-btn" onclick="genWord(this)">✦ 大模型生成 Word 文档</button></div>`;
+    } else {
+      inner = `<div class="upload">${up}</div>`;
+    }
+  }
+  const req = f.req?'<span class="req">*</span>':'';
+  const note = (f.type!=='photo' && f.note)?`<span class="note">${f.note}</span>`:'';
+  return `<div class="field"><div class="flbl">${req}${f.name}${note}</div>${inner}</div>`;
+}
+
+function updCount(el){
+  const max = el.maxLength || 0;
+  const ctr = el.parentElement.querySelector('.ctr span');
+  if(ctr && max) ctr.textContent = el.value.length + '/' + max;
+}
+
+document.getElementById('body').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip');
+  if(chip){
+    const box = chip.closest('.chips');
+    if(box.dataset.type==='single'){
+      box.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+      chip.classList.add('on');
+    } else {
+      chip.classList.toggle('on');
+      if('other' in chip.dataset){
+        const wrap = chip.closest('.field').querySelector('.other-wrap');
+        if(wrap){
+          wrap.style.display = chip.classList.contains('on') ? '' : 'none';
+          if(!chip.classList.contains('on')){ const i=wrap.querySelector('input'); if(i) i.value=''; }
+        }
+      }
+    }
+  }
+});
+
+let sheetBox = null, sheetMax = 0;
+function openSheetFor(el){
+  const box = el.closest('.photos');
+  const max = +box.dataset.max;
+  if(box.querySelectorAll('.thumb').length >= max){ toast('已达最大数量'); return; }
+  sheetBox = box; sheetMax = max;
+  const sources = box.dataset.sources.split('|');
+  document.getElementById('sheetTitle').textContent = `选择照片来源（最多 ${max} 张）`;
+  document.getElementById('sheetOpts').innerHTML = sources.map(s=>`<button class="sheet-opt" data-src="${s}">${s}</button>`).join('');
+  document.getElementById('mask').classList.add('show');
+  document.getElementById('sheet').classList.add('show');
+}
+function closeSheet(){
+  document.getElementById('mask').classList.remove('show');
+  document.getElementById('sheet').classList.remove('show');
+  sheetBox = null;
+}
+document.getElementById('sheetOpts').addEventListener('click', e=>{
+  const b = e.target.closest('.sheet-opt'); if(!b) return;
+  addPhoto(b.dataset.src);
+  closeSheet();
+});
+function addPhoto(src){
+  if(!sheetBox) return;
+  const thumbs = sheetBox.querySelectorAll('.thumb');
+  if(thumbs.length >= sheetMax){ toast('已达最大数量'); return; }
+  const st = SRC_STYLE[src] || {tag:'照', bg:'#9aa0ad'};
+  const d = document.createElement('div');
+  d.className = 'thumb';
+  d.style.background = st.bg;
+  d.innerHTML = `<span class="tag">${st.tag}</span><span class="x" onclick="removeThumb(this)">×</span>`;
+  sheetBox.insertBefore(d, sheetBox.querySelector('.add'));
+  if(sheetBox.querySelectorAll('.thumb').length >= sheetMax) sheetBox.querySelector('.add').style.display = 'none';
+}
+function removeThumb(el){
+  const box = el.closest('.photos');
+  el.parentNode.remove();
+  if(box.querySelectorAll('.thumb').length < +box.dataset.max) box.querySelector('.add').style.display = 'flex';
+}
+
+function pickPDF(btn){
+  const input = document.getElementById('pdfInput');
+  input._fname = btn.parentElement.querySelector('.fname');
+  input.onchange = ()=>{
+    if(input.files && input.files[0]) input._fname.textContent = input.files[0].name;
+  };
+  input.click();
+}
+
+/* 读取某字段当前值（按标签），用于大模型生成 */
+function getFieldVal(name){
+  let v = '—';
+  document.querySelectorAll('#body .field').forEach(f=>{
+    const lbl = f.querySelector('.flbl').textContent.replace('*','').trim();
+    if(lbl!==name) return;
+    if(f.querySelector('.chips')){
+      const ons = [...f.querySelectorAll('.chip.on')].map(c=>c.dataset.v);
+      const sel = ons.filter(x=>x!=='其他');
+      let val = sel.join('、');
+      if(ons.includes('其他')){ const iw=f.querySelector('.other-wrap input'); const t=iw?iw.value.trim():''; val=(val?val+'、':'')+'其他'+(t?('：'+t):''); }
+      v = val || '—';
+    } else if(f.querySelector('textarea')){ v = f.querySelector('textarea').value.trim() || '—'; }
+    else if(f.querySelector('.inp')){ v = f.querySelector('.inp').value.trim() || '—'; }
+  });
+  return v;
+}
+
+/* 演练方案：大模型根据前项内容生成 Word 文档（登记为附件） */
+function genWord(btn){
+  const g = n => getFieldVal(n);
+  const rows = [
+    ['演练目的', g('演练目的')], ['演练类型', g('演练类型')], ['演练地点', g('演练地点')],
+    ['演练方式', g('演练方式')], ['演练名称', g('演练名称')], ['总指挥', g('总指挥')],
+    ['应急组织架构', g('应急组织架构')], ['演练流程', g('演练流程')],
+    ['演练场景', g('演练场景')], ['演练物资', g('演练物资')]
+  ];
+  const body = rows.map(([k,v])=>`<p><b>${k}：</b>${v}</p>`).join('');
+  const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head><body><h2>演练方案</h2>${body}</body></html>`;
+  const blob = new Blob([html], {type:'application/msword'});
+  btn.closest('.field').querySelector('.fname').textContent = '演练方案_大模型生成.doc';
+  window._drillWord = blob;
+  toast('已生成演练方案 Word 文档');
+}
+
+/* 演练总结：大模型根据评估字段生成（500字） */
+function genSummary(btn){
+  const g = n => getFieldVal(n);
+  const name = g('演练名称'), num = g('演练人数');
+  const dims = ['方案编制','人员分工','组织协调','事故报告','人员配合','应急处置','医疗救护'];
+  const detail = dims.map(k=>`${k}${g(k)}`).join('，');
+  const eff = g('效果评价');
+  let tail;
+  if(eff==='达到既定目标') tail='演练达到预期目标，预案科学可行、组织协同高效，建议固化经验并形成标准化流程。';
+  else if(eff==='基本达到既定目标') tail='演练基本达到预期，但个别环节衔接不够顺畅，建议针对薄弱项加强培训与复盘。';
+  else tail='演练未达既定目标，暴露出预案与实战脱节问题，须立即整改并组织补训演练。';
+  const text = `本次「${name}」应急救援演练共 ${num} 人参与。经综合评估：${detail}；整体效果评价${eff}。${tail}`;
+  const ta = btn.closest('.field').querySelector('textarea');
+  ta.value = text; updCount(ta);
+  toast('已根据评估字段生成演练总结');
+}
+
+function validateReport(){
+  const miss = [];
+  document.querySelectorAll('#body .field').forEach(f=>{
+    const req = f.querySelector('.req'); if(!req) return;
+    const lbl = f.querySelector('.flbl').textContent.replace('*','').trim();
+    if(f.querySelector('.chips')){
+      if(!f.querySelector('.chip.on')) miss.push(lbl);
+    } else if(f.querySelector('.inp')){
+      if(!f.querySelector('.inp').value.trim()) miss.push(lbl);
+    } else if(f.querySelector('textarea')){
+      if(!f.querySelector('textarea').value.trim()) miss.push(lbl);
+    } else if(f.querySelector('.photos')){
+      if(!f.querySelector('.thumb')) miss.push(lbl);
+    } else if(f.querySelector('.upload')){
+      if(f.querySelector('.fname').textContent==='未选择文件') miss.push(lbl);
+    }
+  });
+  return miss;
+}
+
+function collectReport(){
+  const items = [];
+  document.querySelectorAll('#body .field').forEach(f=>{
+    const name = f.querySelector('.flbl').textContent.replace('*','').trim();
+    let val = '—';
+    if(f.querySelector('.chips')){
+      const ons = [...f.querySelectorAll('.chip.on')].map(c=>c.dataset.v);
+      const sel = ons.filter(x=>x!=='其他');
+      let v = sel.join('、');
+      if(ons.includes('其他')){ const iw=f.querySelector('.other-wrap input'); const t=iw?iw.value.trim():''; v=(v?v+'、':'')+'其他'+(t?('：'+t):''); }
+      val = v || '—';
+    } else if(f.querySelector('textarea')){
+      val = f.querySelector('textarea').value.trim() || '—';
+    } else if(f.querySelector('.inp')){
+      val = f.querySelector('.inp').value.trim() || '—';
+    } else if(f.querySelector('.photos')){
+      const thumbs = [...f.querySelectorAll('.thumb')];
+      val = thumbs.length ? thumbs.map(t=>({'拍':'拍照','引':'引用现场检查照片','册':'手机相册'}[t.querySelector('.tag')?.textContent] || '照片')).join('、') : '—';
+    } else if(f.querySelector('.upload')){
+      const fn = f.querySelector('.fname').textContent;
+      val = fn==='未选择文件' ? '—' : fn;
+    }
+    items.push({name, val});
+  });
+  return items;
+}
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function buildReportDOM(meta, items){
+  const rows = items.map(it=>`<div class="rpt-row"><div class="rpt-k">${esc(it.name)}</div><div class="rpt-v">${esc(it.val)}</div></div>`).join('');
+  document.getElementById('reportDoc').innerHTML =
+    `<div class="rpt-h">${esc(meta.proj)} · 服务报告</div>`+
+    `<div class="rpt-sub">工单号：${esc(meta.no)}　|　生成时间：${esc(meta.time)}</div>`+
+    `<div class="rpt-rule"></div>${rows}`;
+}
+
+async function generateReport(){
+  const miss = validateReport();
+  if(miss.length){ toast('请完善：'+miss.join('、')); return; }
+  const items = collectReport();
+  const no = document.getElementById('ctxNo').textContent;
+  const proj = document.getElementById('ctxProj').textContent;
+  const now = new Date(), p = n=>String(n).padStart(2,'0');
+  const time = `${now.getFullYear()}-${p(now.getMonth()+1)}-${p(now.getDate())} ${p(now.getHours())}:${p(now.getMinutes())}`;
+  buildReportDOM({no, proj, time}, items);
+  document.getElementById('previewSub').textContent = `工单号 ${no} · ${proj}`;
+  toast('正在生成 PDF…');
+
+  try{
+    const canvas = await html2canvas(document.getElementById('reportDoc'), {scale:2, backgroundColor:'#ffffff', useCORS:true, logging:false});
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({unit:'mm', format:'a4'});
+    const pw = doc.internal.pageSize.getWidth();
+    const ph = doc.internal.pageSize.getHeight();
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    const imgH = canvas.height * pw / canvas.width;
+    let heightLeft = imgH, pos = 0;
+    doc.addImage(imgData, 'JPEG', 0, pos, pw, imgH);
+    heightLeft -= ph;
+    while(heightLeft > 0){ pos -= ph; doc.addPage(); doc.addImage(imgData, 'JPEG', 0, pos, pw, imgH); heightLeft -= ph; }
+
+    const blob = doc.output('blob');
+    const frame = document.getElementById('pdfFrame');
+    if(frame.dataset.url) URL.revokeObjectURL(frame.dataset.url);
+    const url = URL.createObjectURL(blob);
+    frame.src = url; frame.dataset.url = url;
+    document.getElementById('preview').classList.add('show');
+  }catch(e){
+    console.error(e);
+    toast('PDF 生成失败（缺少依赖库）');
+  }
+}
+
+function closePreview(){
+  document.getElementById('preview').classList.remove('show');
+}
+
+function doSubmit(){
+  const no = document.getElementById('ctxNo').textContent;
+  const status = JSON.parse(localStorage.getItem('sg_report_status') || '{}');
+  status[no] = '审核中';
+  localStorage.setItem('sg_report_status', JSON.stringify(status));
+  document.getElementById('preview').classList.remove('show');
+  toast('报告已提交');
+  setTimeout(()=>{ location.href = '事故预防服务.html?tab=3'; }, 1100);
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
+
+render();
+</script>
+</body>
+</html>

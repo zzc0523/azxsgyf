@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>现场风险 · 风险列表</title>
+<style>
+  :root{--blue:#2b5ce6;--text:#1f2329;--lbl:#8b91a0;--val:#262b33;--bg:#f0f1f4;--line:#f1f3f7;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:30}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.22;z-index:30}
+
+  /* ===== 头部（浅色） ===== */
+  .header{flex:none;position:relative;background:#fff;z-index:10;padding-bottom:12px}
+  .statusbar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;color:var(--text)}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .navbar{display:flex;align-items:center;gap:6px;padding:2px 16px 0;height:44px}
+  .back{width:26px;height:26px;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300;color:var(--text)}
+  .navtitle{font-size:17px;font-weight:700;letter-spacing:.4px;color:var(--text)}
+  .summary{padding:6px 16px 0;font-size:11.5px;color:var(--lbl);line-height:1.6;white-space:nowrap}
+
+  /* ===== 列表 ===== */
+  .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:18px}
+  .body::-webkit-scrollbar{display:none}
+  .card{background:#fff;border-radius:12px;margin:12px 16px 0;box-shadow:0 4px 14px rgba(30,50,110,.05);overflow:hidden}
+  .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
+  .no{font-size:13.5px;line-height:1.4;min-width:0}
+  .no .k{color:var(--lbl)}
+  .no .v{color:var(--text);font-weight:700;word-break:break-all}
+  .badge{flex:none;font-size:12px;font-weight:600;line-height:1;padding:5px 10px;border-radius:6px;border:1px solid transparent;white-space:nowrap}
+  .badge.lv-red{background:#fdecec;color:#e5484d;border-color:#f8caca}
+  .badge.lv-orange{background:#fdf1e6;color:#e08b2e;border-color:#f6dcbd}
+  .badge.lv-blue{background:#e9eefb;color:#3b6fe0;border-color:#cfdcf8}
+  .badge.lv-green{background:#e8f5ec;color:#34a853;border-color:#c8e7d2}
+
+  .card-body{padding:6px 16px 12px}
+  .row{display:flex;padding:8px 0;font-size:13.5px;line-height:1.65}
+  .row .k{color:var(--lbl);flex:none}
+  .row .v{color:var(--val);flex:1;min-width:0;word-break:break-word}
+
+  .empty{text-align:center;color:var(--lbl);font-size:13.5px;padding:60px 0}
+
+  /* ===== 悬浮新增按钮 ===== */
+  .fab{position:absolute;left:50%;transform:translateX(-50%);bottom:26px;z-index:35;height:48px;padding:0 24px;
+    border:none;border-radius:24px;background:var(--blue);color:#fff;font-size:15.5px;font-weight:600;
+    display:flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 10px 24px rgba(43,92,230,.42)}
+  .fab:active{background:var(--blue-d)}
+  .fab .plus{font-size:22px;line-height:1;margin-top:-2px}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#1f2329"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#1f2329"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#1f2329" stroke-opacity=".4" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#1f2329"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#1f2329" fill-opacity=".4"/></svg>
+      </span>
+    </div>
+    <div class="navbar"><div class="back" onclick="history.back()">‹</div><div class="navtitle">风险列表</div></div>
+    <div class="summary" id="summary"></div>
+  </div>
+
+  <div class="body" id="body"></div>
+
+  <button class="fab" onclick="location.href='新增风险_安全风险辨识评估评价.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent('安全风险辨识、评估、评价')">＋ 新增风险</button>
+
+  <div class="home-ind"></div>
+</div>
+
+<script>
+/* ===== 风险等级 → 徽标样式（参照设计稿配色） ===== */
+const LEVEL_CLS = {
+  '重大风险':'lv-red',
+  '较大风险':'lv-orange',
+  '一般风险':'lv-blue',
+  '低风险':'lv-green',
+};
+/* ===== 风险数据（后续可对接接口/本地存储） ===== */
+const DEMO = [
+  {name:'存在土堆塌方风险，存在土堆塌方风险，存在土堆塌方风险，', effect:'坍塌、滑坡', advice:'加强工地巡逻', level:'重大风险'},
+  {name:'存在土堆塌方风险，存在土堆塌方风险，存在土堆塌方风险，', effect:'滑坡', advice:'加强工地巡逻', level:'较大风险'},
+  {name:'存在土堆塌方风险，存在土堆塌方风险，存在土堆塌方风险，', effect:'高处坠落', advice:'加强工地巡逻', level:'一般风险'},
+  {name:'存在土堆塌方风险，存在土堆塌方风险，存在土堆塌方风险，', effect:'物体打击', advice:'加强工地巡逻', level:'低风险'},
+];
+
+const q = new URLSearchParams(location.search);
+const orderNo = q.get('no') || 'YF2131900';
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function renderSummary(list){
+  const order = ['重大风险','较大风险','一般风险','低风险'];
+  const parts = order
+    .map(lv=>({lv, n:list.filter(r=>r.level===lv).length}))
+    .filter(o=>o.n>0)
+    .map(o=>`${o.lv} ${o.n}个`);
+  document.getElementById('summary').textContent = `总计${list.length}个：` + (parts.join('、') || '暂无');
+}
+
+function renderList(list){
+  const box = document.getElementById('body');
+  if(!list.length){ box.innerHTML = '<div class="empty">暂无风险</div>'; return; }
+  box.innerHTML = list.map((r,i)=>{
+    const no = `${orderNo}_FX_${String(i+1).padStart(3,'0')}`;
+    const cls = LEVEL_CLS[r.level] || 'lv-blue';
+    return `<div class="card">
+      <div class="card-head">
+        <div class="no"><span class="k">风险编号：</span><span class="v">${esc(no)}</span></div>
+        <span class="badge ${cls}">${esc(r.level)}</span>
+      </div>
+      <div class="card-body">
+        <div class="row"><span class="k">风险点名称：</span><span class="v">${esc(r.name)}</span></div>
+        <div class="row"><span class="k">可能导致的事故种类：</span><span class="v">${esc(r.effect)}</span></div>
+        <div class="row"><span class="k">管控措施：</span><span class="v">${esc(r.advice)}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+renderSummary(DEMO);
+renderList(DEMO);
+</script>
+</body>
+</html>

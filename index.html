@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>页面导航 · 事故预防服务</title>
+<style>
+  :root{--brand:#3b7cff;--brand-d:#2f63d6;--line:#eef0f5;--bg:#f4f6fb;--text:#1f2329;--sub:#8b91a0;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);}
+  .top{background:linear-gradient(135deg,#2f63d6,#5b86f5);padding:26px 32px;color:#fff;display:flex;align-items:center;gap:14px;}
+  .top .logo{width:44px;height:44px;border-radius:11px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:23px;}
+  .top h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.5px;}
+  .top p{margin:4px 0 0;font-size:13px;opacity:.85;}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 24px 60px;}
+  .group{margin-bottom:30px;}
+  .group h2{font-size:15px;color:#5d6879;margin:0 0 14px;display:flex;align-items:center;gap:8px;}
+  .group h2::before{content:"";width:3px;height:15px;background:var(--brand);border-radius:2px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;}
+  .item{background:#fff;border:1px solid var(--line);border-radius:9px;padding:15px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.15s;text-decoration:none;color:inherit;}
+  .item:hover{box-shadow:0 8px 20px rgba(30,50,110,.12);transform:translateY(-2px);border-color:#c7d0de;}
+  .item .ic{width:40px;height:40px;border-radius:10px;background:#eef3ff;color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+  .item .t{font-size:14px;font-weight:600;}
+  .item .sub{font-size:12px;color:var(--sub);margin-top:3px;word-break:break-all;}
+  .foot{text-align:center;color:var(--sub);font-size:12px;margin-top:18px;}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="logo">🧭</div>
+  <div>
+    <h1>事故预防服务 · 页面导航</h1>
+    <p>综合风险减量服务平台 — 全部页面统一入口</p>
+  </div>
+</div>
+
+<div class="wrap" id="wrap"></div>
+<div class="foot">点击任意卡片即可跳转到对应页面</div>
+
+<script>
+/* 页面分组与入口，新增页面时在此追加即可 */
+const GROUPS=[
+  {name:'保险机构端（管理后台）', items:[
+    {t:'隐患检查表管理', u:'检查表管理.html', ic:'📋'},
+    {t:'评分表管理', u:'评分表管理.html', ic:'⭐'},
+    {t:'投保查询', u:'投保查询.html', ic:'🔍'},
+    {t:'服务计划管理', u:'服务计划管理.html', ic:'📅'},
+    {t:'服务报告审核', u:'服务报告审核.html', ic:'✅'},
+    {t:'事故预防服务需求', u:'事故预防服务需求.html', ic:'📨'},
+  ]},
+  {name:'服务流程（小程序端）', items:[
+    {t:'首页', u:'首页.html', ic:'🏠'},
+    {t:'登录页', u:'登录页.html', ic:'🔑'},
+    {t:'事故预防服务', u:'事故预防服务.html', ic:'🛡️'},
+    {t:'事故预防服务管理', u:'事故预防服务管理.html', ic:'🗂️'},
+    {t:'服务登记', u:'服务登记.html', ic:'📝'},
+    {t:'服务确认', u:'服务确认.html', ic:'✔️'},
+    {t:'待执行详情', u:'待执行详情.html', ic:'📌'},
+  ]},
+  {name:'风险与隐患', items:[
+    {t:'风险列表', u:'风险列表.html', ic:'⚠️'},
+    {t:'隐患列表', u:'隐患列表.html', ic:'🚨'},
+    {t:'新增风险（辨识评估）', u:'新增风险_安全风险辨识评估评价.html', ic:'➕'},
+    {t:'新增隐患（重大排查）', u:'新增隐患_生产安全重大事故隐患排查.html', ic:'➕'},
+  ]},
+  {name:'报告整理', items:[
+    {t:'报告·安全风险辨识评估评价', u:'报告整理_安全风险辨识评估评价.html', ic:'📄'},
+    {t:'报告·安全生产标准化管理体系建设', u:'报告整理_安全生产标准化管理体系建设.html', ic:'📄'},
+    {t:'报告·安全生产宣传教育培训', u:'报告整理_安全生产宣传教育培训.html', ic:'📄'},
+    {t:'报告·安全生产应急救援演练', u:'报告整理_安全生产应急救援演练.html', ic:'📄'},
+    {t:'报告·安全生产应急预案编制', u:'报告整理_安全生产应急预案编制.html', ic:'📄'},
+    {t:'报告·生产安全重大事故隐患排查', u:'报告整理_生产安全重大事故隐患排查.html', ic:'📄'},
+    {t:'报告PDF预览', u:'报告PDF预览.html', ic:'🖨️'},
+  ]},
+  {name:'服务登记（分项）', items:[
+    {t:'登记·辨识评估评价', u:'服务登记_安全风险辨识评估评价.html', ic:'📝'},
+    {t:'登记·标准化体系建设', u:'服务登记_安全生产标准化管理体系建设.html', ic:'📝'},
+    {t:'登记·宣传教育培训', u:'服务登记_安全生产宣传教育培训.html', ic:'📝'},
+    {t:'登记·应急救援演练', u:'服务登记_安全生产应急救援演练.html', ic:'📝'},
+    {t:'登记·应急预案编制', u:'服务登记_安全生产应急预案编制.html', ic:'📝'},
+    {t:'登记·重大隐患排查', u:'服务登记_生产安全重大事故隐患排查.html', ic:'📝'},
+  ]},
+  {name:'采集与现场', items:[
+    {t:'打卡签到', u:'打卡签到.html', ic:'📍'},
+    {t:'签退', u:'签退.html', ic:'🚪'},
+    {t:'人脸活体检测', u:'人脸活体检测.html', ic:'🙂'},
+    {t:'照片采集', u:'照片采集.html', ic:'📷'},
+    {t:'现场评分', u:'现场评分.html', ic:'⭐'},
+    {t:'应急预案编制信息采集', u:'应急预案编制信息采集.html', ic:'🧾'},
+  ]},
+];
+
+const wrap=document.getElementById('wrap');
+wrap.innerHTML=GROUPS.map(g=>{
+  const cards=g.items.map(it=>`<a class="item" href="${it.u}"><div class="ic">${it.ic}</div><div><div class="t">${it.t}</div><div class="sub">${it.u}</div></div></a>`).join('');
+  return `<div class="group"><h2>${g.name}</h2><div class="grid">${cards}</div></div>`;
+}).join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>照片采集</title>
+<style>
+  :root{--blue:#2b5ce6;--blue-d:#1f49c4;--text:#1f2329;--sub:#9aa0ad;--bg:#f4f6fb;--line:#eef0f5;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:20}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.22;z-index:30}
+
+  .header{flex:none;position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 100%);color:#fff;z-index:10}
+  .header::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent) 90% 40%/200px 130px no-repeat,
+               radial-gradient(closest-side,rgba(255,255,255,.10),transparent) 6% 90%/170px 110px no-repeat}
+  .statusbar{position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .navbar{position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:2px 16px 12px;height:48px}
+  .back{width:26px;height:26px;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
+  .navtitle{font-size:17px;font-weight:700;letter-spacing:.5px}
+
+  .body{flex:1;overflow-y:auto}
+  .body::-webkit-scrollbar{display:none}
+  .sec{font-size:14.5px;font-weight:700;color:var(--text);padding:18px 16px 10px}
+  .sec .req{color:#e5484d;margin-right:2px}
+  .sec .cnt{font-size:12.5px;color:var(--sub);font-weight:500;margin-left:6px}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px 8px}
+  .cell{position:relative;aspect-ratio:1;border-radius:9px;overflow:hidden}
+  .thumb{background:linear-gradient(135deg,#cdd7ea 0%,#a9b6d2 100%)}
+  .thumb svg{position:absolute;bottom:0;left:0;right:0;width:100%}
+  .add{border:1.6px dashed #c3cad8;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#9aa0ad;font-size:30px;background:#fff;cursor:pointer}
+  .del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:#e5484d;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;z-index:3;cursor:pointer}
+
+  .footer{flex:none;padding:10px 16px 24px;background:var(--bg)}
+  .btn-main{width:100%;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
+  .btn-main:active{background:var(--blue-d)}
+
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:40;display:none;max-width:74%;text-align:center;line-height:1.6}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 5.8 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/></svg>
+      </span>
+    </div>
+    <div class="navbar"><div class="back" onclick="history.back()">‹</div><div class="navtitle" id="capTitle">企业（项目）门牌照</div></div>
+  </div>
+
+  <div class="body">
+    <div class="sec" id="secTitle"></div>
+    <div class="grid" id="grid"></div>
+    <div style="height:18px"></div>
+  </div>
+
+  <div class="footer"><button class="btn-main" onclick="finish()">完成</button></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const PHOTO_SVG = '<svg viewBox="0 0 90 60" preserveAspectRatio="none"><rect width="90" height="60" fill="transparent"/><circle cx="68" cy="14" r="7" fill="#f6d27a"/><path d="M0 60 28 30 44 46 60 28 90 52 90 60Z" fill="#8fa0c8" opacity=".85"/></svg>';
+const q = new URLSearchParams(location.search);
+const TITLE = q.get('title') || '企业（项目）门牌照';
+const MAX = parseInt(q.get('max') || '2', 10);
+document.getElementById('capTitle').textContent = TITLE;
+document.getElementById('secTitle').innerHTML = `<span class="req">*</span>${TITLE}(<span id="cntNow">0</span>/${MAX}张)`;
+
+let photos = MAX >= 2 ? 2 : 1;   // 演示初始已有照片
+const grid = document.getElementById('grid');
+
+function render(){
+  document.getElementById('cntNow').textContent = photos;
+  let html = '';
+  for(let i=0;i<photos;i++){
+    html += `<div class="cell thumb">${PHOTO_SVG}<span class="del" onclick="del(${i})">−</span></div>`;
+  }
+  if(photos < MAX){
+    html += `<div class="cell add" onclick="add()">+</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function add(){
+  if(photos >= MAX){ toast('已达上限 '+MAX+' 张'); return; }
+  photos++;
+  toast('调用相机 / 相册 / 照片库');
+  render();
+}
+function del(i){
+  photos = Math.max(0, photos-1);
+  render();
+  toast('已删除');
+}
+function finish(){
+  try{ localStorage.setItem('photo_'+TITLE, String(photos)); }catch(e){}
+  history.back();
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1500);}
+render();
+</script>
+</body>
+</html>

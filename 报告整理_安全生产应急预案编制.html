@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>报告整理 · 安全生产应急预案编制</title>
+<style>
+  :root{--blue:#2b5ce6;--blue-d:#1f49c4;--purple:#7c3aed;--text:#1f2329;--sub:#9aa0ad;--val:#3a4050;--bg:#f4f6fb;--line:#eef0f5;--red:#e5484d;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:30}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.22;z-index:30}
+
+  .header{flex:none;position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 100%);color:#fff;z-index:10}
+  .header::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent) 90% 40%/200px 130px no-repeat,
+               radial-gradient(closest-side,rgba(255,255,255,.10),transparent) 6% 90%/170px 110px no-repeat}
+  .statusbar{position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .navbar{position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:2px 16px 8px;height:46px}
+  .back{width:26px;height:26px;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
+  .navtitle{font-size:17px;font-weight:700;letter-spacing:.5px}
+  .capsule{margin-left:auto;display:flex;align-items:center;height:32px;padding:0 13px;border-radius:16px;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .cap-dots{font-size:14px;letter-spacing:2px;line-height:1;padding-bottom:5px;cursor:pointer}
+  .cap-line{width:1px;height:15px;background:rgba(255,255,255,.4);margin:0 9px}
+  .cap-circ{width:17px;height:17px;border-radius:50%;border:1.6px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .cap-circ i{width:6px;height:6px;border-radius:50%;background:#fff;display:block}
+  .ctx{position:relative;z-index:5;padding:0 16px 12px;font-size:12px;color:rgba(255,255,255,.9)}
+  .ctx b{font-weight:600}
+
+  .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .body::-webkit-scrollbar{display:none}
+  .card{background:#fff;border-radius:14px;margin:14px 16px;padding:6px 16px 14px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .card-title{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:700;color:var(--text);padding:14px 0 6px}
+  .card-title i{width:3px;height:15px;border-radius:2px;background:var(--blue);display:block}
+  .badge{margin-left:auto;font-size:11px;font-weight:600;padding:2px 9px;border-radius:10px;background:#f1f3f8;color:#9aa0ad}
+  .badge.done{background:#e9f6ef;color:#2f9e6b}
+
+  .doc-actions{display:flex;gap:10px;margin:4px 0 2px}
+  .act{flex:1;height:38px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;transition:.12s;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:inherit}
+  .act:active{background:#eef2fc}
+  .act svg{display:block}
+  .act.gen{border-color:var(--purple);background:var(--purple);color:#fff}
+  .act.gen:active{background:#6929d8;border-color:#6929d8}
+
+  .editor{margin-top:10px}
+  .doc-area{width:100%;min-height:210px;height:auto;border:1px solid #e0e5ef;border-radius:9px;padding:10px 12px;
+    font-size:13px;line-height:1.7;color:var(--val);outline:none;font-family:inherit;resize:vertical}
+  .doc-area:focus{border-color:var(--blue)}
+  .ctr{display:flex;justify-content:flex-end;margin-top:6px;color:#b9bfcc;font-size:12px}
+  .save{margin-top:8px;width:100%;height:40px;border:none;border-radius:9px;background:var(--blue);color:#fff;font-size:14px;font-weight:600;cursor:pointer}
+  .save:active{background:var(--blue-d)}
+
+  .fileline{margin-top:10px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:#6b7280}
+  .fileline .ok{color:#2f9e6b;flex:none}
+
+  /* 其他文档 / 上传 */
+  .upload{display:flex;align-items:center;gap:10px;margin-top:6px}
+  .up-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:9px;font-size:13.5px;cursor:pointer;font-weight:600}
+  .up-btn svg{display:block}
+  .fname{color:#6b7280;font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .footer{flex:none;padding:10px 16px 24px;background:var(--bg)}
+  .btn-main{width:100%;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
+  .btn-main:active{background:var(--blue-d)}
+
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:80;display:none;max-width:74%;text-align:center;line-height:1.6}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/></svg>
+      </span>
+    </div>
+    <div class="navbar">
+      <div class="back" onclick="history.back()">‹</div>
+      <div class="navtitle">报告整理</div>
+      <div class="capsule"><span class="cap-dots" onclick="toast('更多')">•••</span><span class="cap-line"></span><span class="cap-circ" onclick="toast('设置')"><i></i></span></div>
+    </div>
+    <div class="ctx">工单号 <b id="ctxNo">YF2131900</b> · <span id="ctxProj">安全生产应急预案编制</span></div>
+  </div>
+
+  <div class="body" id="body"></div>
+
+  <div class="footer"><button class="btn-main" onclick="doSubmit()">提交报告</button></div>
+
+  <div class="home-ind"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<input type="file" id="pdfInput" accept="application/pdf" style="display:none">
+<input type="file" id="docInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip" multiple style="display:none">
+
+<script>
+const PROJECT = '安全生产应急预案编制';
+const DOCS = [
+  {key:'resource', name:'应急资源调查报告', hint:'PDF 上传 或 根据前项内容大模型生成', gen:genResource},
+  {key:'risk',     name:'生产安全事故风险评估报告', hint:'PDF 上传 或 根据前项内容大模型生成', gen:genRisk},
+  {key:'plan',     name:'应急预案', hint:'PDF 上传 或 根据前项内容大模型生成', gen:genPlan},
+];
+
+const q = new URLSearchParams(location.search);
+const orderNo = q.get('no') || 'YF2131900';
+document.getElementById('ctxNo').textContent   = orderNo;
+document.getElementById('ctxProj').textContent = q.get('project') || PROJECT;
+
+/* 文档状态：{ key: {mode:'pdf'|'gen', name, text} } */
+let state = loadState();
+
+function loadState(){
+  try{ return JSON.parse(localStorage.getItem('report_应急预案编制_'+orderNo) || '{}'); }catch(e){ return {}; }
+}
+function saveState(){
+  try{ localStorage.setItem('report_应急预案编制_'+orderNo, JSON.stringify(state)); }catch(e){}
+}
+
+function render(){
+  const html = DOCS.map(d=>{
+    const st = state[d.key];
+    const badge = st ? `<span class="badge done">${st.mode==='pdf'?'已上传':'已生成'}</span>` : `<span class="badge">未上传</span>`;
+    const editorShown = (st && st.mode==='gen') ? '' : 'display:none';
+    const fileShown   = (st && st.mode==='pdf') ? '' : 'display:none';
+    const area = st && st.mode==='gen' ? esc(st.text||'') : '';
+    const fname = st && st.mode==='pdf' ? esc(st.name||'') : '';
+    return `
+    <div class="card" data-key="${d.key}">
+      <div class="card-title"><i></i>${d.name}${badge}</div>
+      <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">${d.hint}</div>
+      <div class="doc-actions">
+        <button class="act" onclick="uploadPDF('${d.key}')">PDF 上传</button>
+        <button class="act gen" onclick="genDoc('${d.key}')"><svg width="14" height="14" viewBox="0 0 16 16" fill="#fff"><path d="M8 0.6l1.75 4.65L14.4 7l-4.65 1.75L8 13.4l-1.75-4.65L1.6 7l4.65-1.75z"/></svg>大模型生成</button>
+      </div>
+      <div class="fileline" id="file_${d.key}" style="${fileShown}"><span class="ok">✓</span><span class="fname">${fname}</span></div>
+      <div class="editor" id="editor_${d.key}" style="${editorShown}">
+        <textarea class="doc-area" id="area_${d.key}" oninput="liveCount('${d.key}')">${area}</textarea>
+        <div class="ctr"><span id="cnt_${d.key}">${area.length} 字</span></div>
+        <button class="save" onclick="saveDoc('${d.key}')">保存并上传</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const other = state.__other;
+  const otherShown = other && other.names && other.names.length ? '' : 'display:none';
+  const otherNames = other && other.names ? other.names.join('、') : '';
+  document.getElementById('body').innerHTML = html + `
+    <div class="card">
+      <div class="card-title"><i></i>其他文档</div>
+      <div class="upload">
+        <span class="up-btn" onclick="uploadOther()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2b5ce6" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          上传文档
+        </span>
+        <span class="fname" id="otherNames">未选择文件</span>
+      </div>
+      <div class="fileline" id="otherline" style="${otherShown}"><span class="ok">✓</span><span>${otherNames}</span></div>
+    </div>`;
+}
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+function liveCount(key){
+  const el = document.getElementById('area_'+key);
+  document.getElementById('cnt_'+key).textContent = el.value.length + ' 字';
+}
+
+function uploadPDF(key){
+  const input = document.getElementById('pdfInput');
+  input.value = '';
+  input.onchange = ()=>{
+    if(input.files && input.files[0]){
+      const f = input.files[0];
+      state[key] = {mode:'pdf', name:f.name};
+      saveState(); render();
+      toast('已上传：'+f.name);
+    }
+  };
+  input.click();
+}
+
+function genDoc(key){
+  const doc = DOCS.find(d=>d.key===key);
+  const text = doc.gen();
+  state[key] = {mode:'gen', text};
+  saveState(); render();
+  toast('大模型已根据前项内容生成文档，可编辑后上传');
+}
+
+function saveDoc(key){
+  const text = document.getElementById('area_'+key).value.trim();
+  if(!text){ toast('文档内容不能为空'); return; }
+  state[key] = {mode:'gen', text};
+  saveState(); render();
+  toast('文档已保存并上传');
+}
+
+function uploadOther(){
+  const input = document.getElementById('docInput');
+  input.value = '';
+  input.onchange = ()=>{
+    if(input.files && input.files.length){
+      const names = [...input.files].map(f=>f.name);
+      state.__other = {names};
+      saveState(); render();
+      toast('已上传 '+names.length+' 个文档');
+    }
+  };
+  input.click();
+}
+
+function doSubmit(){
+  const miss = DOCS.filter(d=>!state[d.key]).map(d=>d.name);
+  if(miss.length){ toast('请完善：'+miss.join('、')); return; }
+  const status = JSON.parse(localStorage.getItem('sg_report_status') || '{}');
+  status[orderNo] = '审核中';
+  localStorage.setItem('sg_report_status', JSON.stringify(status));
+  toast('报告已提交');
+  setTimeout(()=>{ location.href = '事故预防服务.html?tab=3'; }, 1100);
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
+
+/* ===== 大模型生成（依据「应急预案编制信息采集」前项内容） ===== */
+function genResource(){
+  return `应急资源调查报告
+（依据本次事故预防服务「应急预案编制信息采集」前项内容整理）
+
+一、调查范围
+覆盖企业生产经营场所及可能发生的事故场景，结合现场采集的当前位置、风险场景等信息，明确应急资源的配置点位与保障能力。
+
+二、应急物资
+依据采集的应急物资清单，对企业配备的消防、急救、防护、照明、警戒等器材进行逐项核查，确认数量、有效期与存放位置满足预案要求。
+
+三、应急队伍
+结合应急组织架构及人员分工，核实应急指挥、抢险、救护、疏散等岗位人员到位情况，明确联系方式与替补机制。
+
+四、外部依托
+登记周边可依托的消防、医疗、公安等社会救援力量及联动电话。
+
+五、结论
+现有应急资源总体可支撑所列应急预案的初期响应需求，个别缺口已列明整改建议并纳入闭环管理。`;
+}
+function genRisk(){
+  return `生产安全事故风险评估报告
+（依据「应急预案编制信息采集」前项内容开展风险评估）
+
+一、评估对象
+针对企业辨识出的风险场景与事故种类进行逐项评估。
+
+二、风险辨识
+汇总各作业环节可能导致生产安全事故的致害因素（物体打击、触电、火灾、高处坠落等），标注发生可能性与后果严重性。
+
+三、风险分析
+结合现场工艺、设备与人员活动，分析事故链与扩大条件，确定关键控制点。
+
+四、风险评价
+采用风险矩阵对辨识出的风险进行分级，形成重大风险与较大风险清单。
+
+五、管控建议
+针对重大风险提出工程技术与管理措施，并衔接事故响应程序形成闭环。`;
+}
+function genPlan(){
+  return `应急预案
+（依据「应急预案编制信息采集」前项内容编制）
+
+一、总则
+明确编制目的、依据、适用范围与工作原则。
+
+二、应急组织机构及职责
+依据应急组织架构及人员分工，设立应急指挥部及下设小组，细化各岗位职责与汇报关系。
+
+三、风险与资源
+衔接风险评估与资源调查结论，明确响应所需的资源保障。
+
+四、预警与信息报告
+规定事故预警条件、内部报告程序与外部报送要求。
+
+五、应急响应
+依据事故响应程序，分级别描述响应启动、指挥协调、现场处置、人员疏散与医疗救护流程。
+
+六、后期处置
+包括善后、调查与恢复生产。
+
+七、预案管理
+明确培训、演练与修订要求。`;
+}
+
+render();
+</script>
+</body>
+</html>

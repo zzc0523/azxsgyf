@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>新增风险 · 安全风险辨识、评估、评价</title>
+<style>
+  :root{--blue:#2b5ce6;--blue-d:#1f49c4;--text:#1f2329;--sub:#9aa0ad;--val:#3a4050;--bg:#f4f6fb;--line:#eef0f5;--red:#e5484d;--pur:#6b46e0;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:30}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.22;z-index:30}
+
+  .header{flex:none;position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 100%);color:#fff;z-index:10}
+  .header::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent) 90% 40%/200px 130px no-repeat,
+               radial-gradient(closest-side,rgba(255,255,255,.10),transparent) 6% 90%/170px 110px no-repeat}
+  .statusbar{position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .navbar{position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:2px 16px 8px;height:46px}
+  .back{width:26px;height:26px;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
+  .navtitle{font-size:17px;font-weight:700;letter-spacing:.5px}
+  .capsule{margin-left:auto;display:flex;align-items:center;height:32px;padding:0 13px;border-radius:16px;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .cap-dots{font-size:14px;letter-spacing:2px;line-height:1;padding-bottom:5px;cursor:pointer}
+  .cap-line{width:1px;height:15px;background:rgba(255,255,255,.4);margin:0 9px}
+  .cap-circ{width:17px;height:17px;border-radius:50%;border:1.6px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .cap-circ i{width:6px;height:6px;border-radius:50%;background:#fff;display:block}
+  .ctx{position:relative;z-index:5;padding:0 16px 12px;font-size:12px;color:rgba(255,255,255,.9)}
+  .ctx b{font-weight:600}
+
+  .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .body::-webkit-scrollbar{display:none}
+  .card{background:#fff;border-radius:14px;margin:14px 16px;padding:6px 16px 14px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .card-title{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:700;color:var(--text);padding:14px 0 6px}
+  .card-title i{width:3px;height:15px;border-radius:2px;background:var(--blue);display:block}
+  .field{padding:13px 0;border-top:1px solid var(--line)}
+  .field:first-of-type{border-top:none}
+  .flbl{display:flex;align-items:center;color:var(--sub);font-size:13.5px;margin-bottom:10px}
+  .flbl .req{color:var(--red);margin-right:3px}
+
+  /* 子标题（评价方法分组） */
+  .group-head{padding:18px 0 4px;border-top:1px dashed #d8dde8}
+  .gtitle{font-size:14.5px;font-weight:700;color:var(--blue);border-left:3px solid var(--blue);padding-left:8px}
+
+  /* 选项 chips */
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{padding:8px 15px;border:1px solid #d8dde8;border-radius:18px;font-size:13.5px;color:var(--val);background:#fff;cursor:pointer;user-select:none;transition:.12s}
+  .chip.on{background:rgba(43,92,230,.10);border-color:var(--blue);color:var(--blue);font-weight:600}
+
+  /* 输入 */
+  .inp{width:100%;height:40px;border:1px solid #e0e5ef;border-radius:9px;padding:0 12px;font-size:14px;color:var(--val);outline:none;background:#fff;font-family:inherit}
+  .inp:focus{border-color:var(--blue)}
+  .area{min-height:96px;height:auto;padding:10px 12px;line-height:1.6;resize:none}
+  .ctr{display:flex;justify-content:flex-end;margin-top:6px;color:#b9bfcc;font-size:12px}
+
+  /* 照片 */
+  .photos{display:flex;flex-wrap:wrap;gap:10px}
+  .thumb{position:relative;width:78px;height:78px;border-radius:10px;overflow:hidden;flex:none;
+    display:flex;align-items:flex-end;box-shadow:0 3px 9px rgba(30,50,110,.14)}
+  .thumb .tag{position:absolute;left:0;top:0;background:rgba(0,0,0,.32);color:#fff;font-size:10px;padding:2px 6px;border-bottom-right-radius:8px}
+  .thumb .x{position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:13px;line-height:17px;text-align:center;cursor:pointer}
+  .thumb .ic{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:26px;height:26px;opacity:.9}
+  .add{width:78px;height:78px;border-radius:10px;border:1px dashed #c7cedd;background:#fafbfe;color:#9aa0ad;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font-size:24px;flex:none}
+  .add span{font-size:11px;font-weight:400}
+
+  /* AI 生成按钮 */
+  .ai-row{margin-top:10px;display:flex}
+  .ai-btn{display:inline-flex;align-items:center;gap:5px;height:38px;padding:0 14px;border:none;
+    background:linear-gradient(135deg,#7b5bef,#5b3ef2);color:#fff;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer}
+  .ai-btn:active{opacity:.9}
+
+  /* 风险计算 & 等级 */
+  .risk-calc{font-size:13px;color:#3a4050;background:#f6f8fc;border:1px solid #e3e8f2;border-radius:8px;padding:10px 12px;line-height:1.6}
+  .risk-badge{display:inline-block;padding:6px 16px;border-radius:18px;font-size:14px;font-weight:700;background:#eef1f6;color:#9aa0ad}
+  .risk-badge.blue{background:#e7f0ff;color:#2b5ce6;border:1px solid #b9d0ff}
+  .risk-badge.yellow{background:#fff7e0;color:#b8860b;border:1px solid #ffe08a}
+  .risk-badge.orange{background:#fff0e0;color:#e0772a;border:1px solid #ffc89a}
+  .risk-badge.red{background:#ffeaea;color:#e5484d;border:1px solid #ffb3b3}
+
+  .footer{flex:none;padding:10px 16px 24px;background:var(--bg)}
+  .btn-main{width:100%;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
+  .btn-main:active{background:var(--blue-d)}
+
+  /* 照片来源弹层 */
+  .mask{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:60;display:none}
+  .mask.show{display:block}
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:61;background:#fff;border-radius:16px 16px 0 0;transform:translateY(100%);transition:.25s;padding:8px 0 22px}
+  .sheet.show{transform:translateY(0)}
+  .sheet-title{text-align:center;color:#9aa0ad;font-size:13px;padding:12px 0 8px}
+  .sheet-opt{display:block;width:100%;border:none;background:#fff;text-align:center;font-size:16px;color:var(--val);padding:15px 0;cursor:pointer;border-top:1px solid var(--line)}
+  .sheet-opt:active{background:#f4f6fb}
+  .sheet-cancel{display:block;width:calc(100% - 32px);margin:14px 16px 0;height:46px;border:none;border-radius:10px;background:#f1f3f8;color:var(--val);font-size:16px;font-weight:600;cursor:pointer}
+
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:80;display:none;max-width:74%;text-align:center;line-height:1.6}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/></svg>
+      </span>
+    </div>
+    <div class="navbar">
+      <div class="back" onclick="history.back()">‹</div>
+      <div class="navtitle">新增风险</div>
+      <div class="capsule"><span class="cap-dots" onclick="toast('更多')">•••</span><span class="cap-line"></span><span class="cap-circ" onclick="toast('设置')"><i></i></span></div>
+    </div>
+    <div class="ctx">工单号 <b id="ctxNo">YF2131900</b> · <span id="ctxProj">安全风险辨识、评估、评价</span></div>
+  </div>
+
+  <div class="body" id="body"></div>
+
+  <div class="footer"><button class="btn-main" onclick="submitForm()">新增风险</button></div>
+
+  <div class="mask" id="mask" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-title" id="sheetTitle">选择照片来源</div>
+    <div id="sheetOpts"></div>
+    <button class="sheet-cancel" onclick="closeSheet()">取消</button>
+  </div>
+
+  <div class="home-ind"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const ACCIDENT = [
+  '物体打击','厂（场）内车辆致害','道路（轨道）车辆致害','机械致害','起重致害','触电','淹溺','灼烫','火灾','高处坠落',
+  '跌落','坍塌','水害','容器爆炸','管道爆炸','可燃气体爆炸','可燃液体蒸气爆炸','粉尘爆炸','民用爆炸物品爆炸','烟花爆竹爆炸','其他可燃固体爆炸',
+  '高温熔融物爆炸','中毒','窒息','滑坡','泄漏','其他'
+];
+
+const MATRIX_L = [
+  {v:1,t:'1 极不可能'},{v:2,t:'2 不可能'},{v:3,t:'3 可能'},{v:4,t:'4 很可能'},{v:5,t:'5 极易发生'}
+];
+const MATRIX_S = [
+  {v:1,t:'1 轻微可忽略'},{v:2,t:'2 较轻'},{v:3,t:'3 较重'},{v:4,t:'4 严重'},{v:5,t:'5 灾难性'}
+];
+const LEC_L = [
+  {v:10,t:'10 完全会被预料到'},{v:6,t:'6 相当可能'},{v:3,t:'3 可能，但不经常'},{v:1,t:'1 完全意外，很少可能'},{v:0.5,t:'0.5 可以设想，很不可能'},{v:0.2,t:'0.2 极不可能'},{v:0.1,t:'0.1 实际上不可能'}
+];
+const LEC_E = [
+  {v:10,t:'10 连续暴露于潜在危险环境'},{v:6,t:'6 逐日在工作时间内暴露'},{v:3,t:'3 每周一次或偶然暴露'},{v:2,t:'2 每月暴露一次'},{v:1,t:'1 每年几次出现在潜在危险环境'},{v:0.5,t:'0.5 非常罕见地暴露'}
+];
+const LEC_C = [
+  {v:100,t:'100 大灾难，许多人死亡'},{v:40,t:'40 灾难，数人死亡'},{v:15,t:'15 非常严重，一人死亡'},{v:7,t:'7 严重，严重伤害'},{v:3,t:'3 重大，致残'},{v:1,t:'1 引人注目，需要救护'}
+];
+
+const SECTIONS = [
+  { title:'安全风险辨识、评估、评价 · 新增风险', fields:[
+    {type:'photo', name:'风险点图片', max:1, sources:['拍照','引用照片库'], req:true},
+    {type:'text', name:'风险点名称', max:20, ph:'请填写风险点名称（20字以内）', req:true},
+    {type:'single', name:'风险点种类', opts:['设备设施','场所区域','作业活动'], def:'设备设施', req:true},
+    {type:'single', name:'风险位置', opts:['生产区域','辅助生产区域','非生产区域'], def:'生产区域', req:true},
+    {type:'multi', name:'可能导致的事故种类', opts:ACCIDENT, req:true},
+    {type:'single', name:'选用评价方法', opts:['风险判定矩阵法（R=LS）','作业条件危险性评价法(D=LEC)'], key:'method', def:'风险判定矩阵法（R=LS）', req:true},
+
+    {type:'group-title', name:'风险判定矩阵法', showIf:'method=风险判定矩阵法（R=LS）'},
+    {type:'single', name:'事故发生的可能性(L)', opts:MATRIX_L, fid:'Lm', showIf:'method=风险判定矩阵法（R=LS）', req:true},
+    {type:'single', name:'危害事件发生的严重程度(S)', opts:MATRIX_S, fid:'Sm', showIf:'method=风险判定矩阵法（R=LS）', req:true},
+    {type:'risk-result', method:'matrix', showIf:'method=风险判定矩阵法（R=LS）'},
+
+    {type:'group-title', name:'作业条件危险性评价法', showIf:'method=作业条件危险性评价法(D=LEC)'},
+    {type:'single', name:'事故发生的可能性(L)', opts:LEC_L, fid:'Ll', showIf:'method=作业条件危险性评价法(D=LEC)', req:true},
+    {type:'single', name:'人员暴露于危险环境的频繁程度(E)', opts:LEC_E, fid:'El', showIf:'method=作业条件危险性评价法(D=LEC)', req:true},
+    {type:'single', name:'发生事故可能造成的后果(C)', opts:LEC_C, fid:'Cl', showIf:'method=作业条件危险性评价法(D=LEC)', req:true},
+    {type:'risk-result', method:'lec', showIf:'method=作业条件危险性评价法(D=LEC)'},
+
+    {type:'risk-level', name:'风险等级', req:true},
+
+    {type:'area', name:'事故诱因', max:100, ph:'请填写事故诱因（100字以内），或点击「大模型生成」', ai:'cause', req:true},
+    {type:'area', name:'管控措施', max:100, ph:'请填写管控措施（100字以内），或点击「大模型生成」', ai:'measure', req:true},
+  ]},
+];
+
+const SRC_STYLE = {
+  '拍照':       {tag:'拍', bg:'linear-gradient(135deg,#5b86f5,#3f6ef2)'},
+  '引用照片库': {tag:'库', bg:'linear-gradient(135deg,#9b6bef,#6b46e0)'},
+};
+
+const q = new URLSearchParams(location.search);
+document.getElementById('ctxNo').textContent   = q.get('no') || 'YF2131900';
+document.getElementById('ctxProj').textContent = q.get('project') || '安全风险辨识、评估、评价';
+
+function render(){
+  const html = SECTIONS.map(sec=>{
+    const fields = sec.fields.map(f=>fieldHTML(f)).join('');
+    return `<div class="card"><div class="card-title"><i></i>${sec.title}</div>${fields}</div>`;
+  }).join('');
+  document.getElementById('body').innerHTML = html;
+}
+
+function fieldHTML(f){
+  if(f.type==='group-title'){
+    return `<div class="field cond group-head" data-showif="${f.showIf}"><div class="gtitle">${f.name}</div></div>`;
+  }
+  let inner = '';
+  if(f.type==='photo'){
+    inner = `<div class="photos" data-max="${f.max}" data-sources="${f.sources.join('|')}"><div class="add" onclick="openSheetFor(this)">+<span>添加</span></div></div>`;
+  } else if(f.type==='text'){
+    inner = `<input class="inp" type="text" maxlength="${f.max||''}" placeholder="${f.ph||''}"><div class="ctr"></div>`;
+  } else if(f.type==='area'){
+    const ta = `<textarea class="inp area" maxlength="${f.max}" placeholder="${f.ph||''}" oninput="updCount(this)"></textarea><div class="ctr"><span>0/${f.max}</span></div>`;
+    inner = f.ai ? ta + `<div class="ai-row"><button class="ai-btn" onclick="${f.ai==='cause'?'genCause':'genMeasure'}(this)">✦ 大模型生成</button></div>` : ta;
+  } else if(f.type==='single'){
+    const norm = f.opts.map(o=>typeof o==='string'?{v:o,t:o}:o);
+    inner = `<div class="chips" data-type="single"${f.key?` data-key="${f.key}"`:''}${f.fid?` data-fid="${f.fid}"`:''}>${norm.map(o=>`<span class="chip${f.def===o.v?' on':''}" data-v="${o.v}">${o.t}</span>`).join('')}</div>`;
+  } else if(f.type==='multi'){
+    inner = `<div class="chips" data-type="multi">${f.opts.map(o=>`<span class="chip" data-v="${o}">${o}</span>`).join('')}</div>`;
+  } else if(f.type==='risk-result'){
+    inner = `<div class="risk-calc" id="${f.method==='matrix'?'riskCalcMatrix':'riskCalcLec'}">请选择对应参数</div>`;
+  } else if(f.type==='risk-level'){
+    inner = `<div class="risk-badge" id="riskLevelBadge" data-level="">待计算</div>`;
+  }
+  const req = f.req?'<span class="req">*</span>':'';
+  const cls = f.showIf?' cond':'';
+  const showAttr = f.showIf?` data-showif="${f.showIf}"`:'';
+  const lbl = f.name ? `<div class="flbl">${req}${f.name}</div>` : '';
+  return `<div class="field${cls}"${showAttr}>${lbl}${inner}</div>`;
+}
+
+function updCount(el){
+  const max = el.maxLength || 0;
+  const ctr = el.parentElement.querySelector('.ctr span');
+  if(ctr && max) ctr.textContent = el.value.length + '/' + max;
+}
+
+document.getElementById('body').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip');
+  if(chip){
+    const box = chip.closest('.chips');
+    if(box.dataset.type==='single'){
+      box.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+      chip.classList.add('on');
+      applyShowIf(); computeRisk();
+    } else {
+      chip.classList.toggle('on');
+    }
+  }
+});
+
+function applyShowIf(){
+  document.querySelectorAll('#body .cond').forEach(el=>{
+    const si = el.dataset.showif, idx = si.indexOf('=');
+    const k = si.slice(0,idx), v = si.slice(idx+1);
+    const ctrl = document.querySelector(`.chips[data-key="${k}"] .chip.on`);
+    el.style.display = (ctrl && ctrl.dataset.v===v) ? '' : 'none';
+  });
+}
+
+/* 风险等级计算 */
+function selVal(fid){ const c = document.querySelector(`.chips[data-fid="${fid}"] .chip.on`); return c ? parseFloat(c.dataset.v) : null; }
+function matrixLevel(R){ if(R<=8) return {name:'低风险',color:'blue'}; if(R<=12) return {name:'一般风险',color:'yellow'}; if(R<=16) return {name:'较大风险',color:'orange'}; return {name:'重大风险',color:'red'}; }
+function lecLevel(R){ if(R<=70) return {name:'低风险',color:'blue'}; if(R<=160) return {name:'一般风险',color:'yellow'}; if(R<=320) return {name:'较大风险',color:'orange'}; return {name:'重大风险',color:'red'}; }
+function setBadge(b, lv){ const c={blue:'蓝',yellow:'黄',orange:'橙',red:'红'}[lv.color]; b.textContent = lv.name+'（'+c+'）'; b.className='risk-badge '+lv.color; b.dataset.level=lv.name; }
+
+function computeRisk(){
+  const badge = document.getElementById('riskLevelBadge');
+  const calcM = document.getElementById('riskCalcMatrix');
+  const calcL = document.getElementById('riskCalcLec');
+  const m = document.querySelector('.chips[data-key="method"] .chip.on');
+  if(!m){ if(badge){ badge.textContent='待计算'; badge.className='risk-badge'; badge.dataset.level=''; } if(calcM)calcM.textContent='请选择评价方法'; if(calcL)calcL.textContent='请选择评价方法'; return; }
+  const mv = m.dataset.v; let R = null;
+  if(mv==='风险判定矩阵法（R=LS）'){
+    if(calcL) calcL.textContent='—';
+    const L = selVal('Lm'), S = selVal('Sm');
+    if(L!=null && S!=null){ R = L*S; if(calcM) calcM.textContent = `R = L×S = ${L}×${S} = ${R}（${matrixLevel(R).name}）`; }
+    else if(calcM) calcM.textContent = '请选择 L、S';
+  } else {
+    if(calcM) calcM.textContent='—';
+    const L = selVal('Ll'), E = selVal('El'), C = selVal('Cl');
+    if(L!=null && E!=null && C!=null){ R = L*E*C; if(calcL) calcL.textContent = `R = L×E×C = ${L}×${E}×${C} = ${R}（${lecLevel(R).name}）`; }
+    else if(calcL) calcL.textContent = '请选择 L、E、C';
+  }
+  if(R==null){ badge.textContent='待计算'; badge.className='risk-badge'; badge.dataset.level=''; }
+  else { setBadge(badge, mv==='风险判定矩阵法（R=LS）' ? matrixLevel(R) : lecLevel(R)); }
+}
+
+/* 照片来源弹层 */
+let sheetBox = null, sheetMax = 0;
+function openSheetFor(el){
+  const box = el.closest('.photos');
+  const max = +box.dataset.max;
+  if(box.querySelectorAll('.thumb').length >= max){ toast('已达最大数量'); return; }
+  sheetBox = box; sheetMax = max;
+  const sources = box.dataset.sources.split('|');
+  document.getElementById('sheetTitle').textContent = `选择照片来源（最多 ${max} 张）`;
+  document.getElementById('sheetOpts').innerHTML = sources.map(s=>`<button class="sheet-opt" data-src="${s}">${s}</button>`).join('');
+  document.getElementById('mask').classList.add('show');
+  document.getElementById('sheet').classList.add('show');
+}
+function closeSheet(){ document.getElementById('mask').classList.remove('show'); document.getElementById('sheet').classList.remove('show'); sheetBox = null; }
+document.getElementById('sheetOpts').addEventListener('click', e=>{ const b = e.target.closest('.sheet-opt'); if(!b) return; addPhoto(b.dataset.src); closeSheet(); });
+function addPhoto(src){
+  if(!sheetBox) return;
+  const thumbs = sheetBox.querySelectorAll('.thumb');
+  if(thumbs.length >= sheetMax){ toast('已达最大数量'); return; }
+  const st = SRC_STYLE[src] || {tag:'照', bg:'#9aa0ad'};
+  const d = document.createElement('div'); d.className = 'thumb'; d.style.background = st.bg;
+  d.innerHTML = `<span class="tag">${st.tag}</span><span class="x" onclick="removeThumb(this)">×</span>`;
+  sheetBox.insertBefore(d, sheetBox.querySelector('.add'));
+  if(sheetBox.querySelectorAll('.thumb').length >= sheetMax) sheetBox.querySelector('.add').style.display = 'none';
+}
+function removeThumb(el){
+  const box = el.closest('.photos'); el.parentNode.remove();
+  if(box.querySelectorAll('.thumb').length < +box.dataset.max) box.querySelector('.add').style.display = 'flex';
+}
+
+/* 读取字段值（含风险等级徽标） */
+function getFieldVal(name){
+  let v = '—';
+  document.querySelectorAll('#body .field').forEach(f=>{
+    if(f.classList.contains('cond') && f.style.display==='none') return;
+    const flbl = f.querySelector('.flbl');
+    const lbl = flbl ? flbl.textContent.replace('*','').trim() : (f.querySelector('.gtitle') ? f.querySelector('.gtitle').textContent.trim() : '');
+    if(lbl!==name) return;
+    if(f.querySelector('.risk-badge')){ v = f.querySelector('.risk-badge').dataset.level ? f.querySelector('.risk-badge').textContent : '—'; }
+    else if(f.querySelector('.chips')){ const ons=[...f.querySelectorAll('.chip.on')].map(c=>c.dataset.v); v = ons.join('、') || '—'; }
+    else if(f.querySelector('textarea')){ v = f.querySelector('textarea').value.trim() || '—'; }
+    else if(f.querySelector('.inp')){ v = f.querySelector('.inp').value.trim() || '—'; }
+  });
+  return v;
+}
+function stripLv(s){ return (s||'').replace(/（.*）/,'').trim() || '待评定风险'; }
+
+function fillArea(btn, text){
+  text = text.length > 100 ? text.slice(0,100) : text;
+  const ta = btn.closest('.field').querySelector('textarea');
+  ta.value = text; updCount(ta); toast('已根据前项生成');
+}
+function genCause(btn){
+  const g = n => getFieldVal(n);
+  const name=g('风险点名称'), kind=g('风险点种类'), loc=g('风险位置'), acc=g('可能导致的事故种类'), lv=g('风险等级');
+  const accs = acc==='—' ? '相关事故' : acc;
+  fillArea(btn, `因${loc||'相关区域'}内${kind||'作业'}环节的「${name||'该风险点'}」，受${accs}因素影响，易引发${accs}事故；当前评定为${stripLv(lv)}，需重点辨识诱因并落实管控。`);
+}
+function genMeasure(btn){
+  const g = n => getFieldVal(n);
+  const kind=g('风险点种类'), acc=g('可能导致的事故种类'), lv=g('风险等级');
+  const accs = acc==='—' ? '相关事故' : acc;
+  fillArea(btn, `针对评定为${stripLv(lv)}的「${accs}」风险，建议：落实${kind||'该'}风险分级管控，设置警示标识、配齐防护装备，加强日常巡检与应急演练，明确责任人并定期复核措施有效性。`);
+}
+
+function submitForm(){
+  const miss = [];
+  document.querySelectorAll('#body .field').forEach(f=>{
+    if(f.classList.contains('cond') && f.style.display==='none') return;
+    const lbl = f.querySelector('.flbl') ? f.querySelector('.flbl').textContent.replace('*','').trim() : '';
+    if(f.querySelector('.risk-badge')){ if(!f.querySelector('.risk-badge').dataset.level) miss.push(lbl||'风险等级'); return; }
+    const req = f.querySelector('.req'); if(!req) return;
+    if(f.querySelector('.chips')){ if(!f.querySelector('.chip.on')) miss.push(lbl); }
+    else if(f.querySelector('.inp')){ if(!f.querySelector('.inp').value.trim()) miss.push(lbl); }
+    else if(f.querySelector('textarea')){ if(!f.querySelector('textarea').value.trim()) miss.push(lbl); }
+    else if(f.querySelector('.photos')){ if(!f.querySelector('.thumb')) miss.push(lbl); }
+  });
+  if(miss.length){ toast('请完善：'+miss.join('、')); return; }
+  try{ const k='riskcount_'+(q.get('project')||'安全风险辨识、评估、评价'); localStorage.setItem(k, Math.max(0,+localStorage.getItem(k)||0)+1); }catch(e){}
+  toast('风险已新增');
+  setTimeout(()=>{ history.back(); }, 1100);
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
+
+render();
+applyShowIf();
+computeRisk();
+</script>
+</body>
+</html>
