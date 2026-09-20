@@ -301,7 +301,7 @@
 <script src="ins-common.js"></script>
 <script>
 /* ===== 枚举 ===== */
-const INDUSTRIES=['建筑施工','危险化学品','煤矿','交通运输','其他'];
+const INDUSTRIES=['煤矿','非煤矿山','危险化学品','烟花爆竹','交通运输','建筑施工','民用爆炸物品','金属冶炼','渔业生产','其他'];
 const LEVELS=['重大隐患','一般隐患'];
 function fillSel(sel,arr,val){
   sel.innerHTML='<option value="">请选择</option>'+arr.map(o=>`<option ${o===val?'selected':''}>${o}</option>`).join('');

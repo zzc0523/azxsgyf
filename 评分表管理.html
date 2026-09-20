@@ -146,10 +146,10 @@
           </div>
           <table>
             <colgroup>
-              <col style="width:56px"><col style="width:140px"><col style="width:280px"><col style="width:90px"><col style="width:150px"><col style="width:210px"><col style="width:160px"><col style="width:210px">
+              <col style="width:56px"><col style="width:140px"><col style="width:240px"><col style="width:170px"><col style="width:90px"><col style="width:150px"><col style="width:200px"><col style="width:160px"><col style="width:210px">
             </colgroup>
             <thead><tr>
-              <th>序号</th><th>评分表编号</th><th>评分表名称</th><th>状态</th><th>创建人</th><th>所属机构</th><th>创建时间</th><th>操作</th>
+              <th>序号</th><th>评分表编号</th><th>评分表名称</th><th>适用行业</th><th>状态</th><th>创建人</th><th>所属机构</th><th>创建时间</th><th>操作</th>
             </tr></thead>
             <tbody id="tBody"></tbody>
           </table>
@@ -162,7 +162,7 @@
         <div class="vhead">
           <button class="btn" onclick="backToList()">‹ 返回</button>
           <span class="vtitle">评分项设置 · <b id="vName"></b></span>
-          <span class="vsub">编号 <b id="vCode"></b> · 所属机构 <b id="vOrg"></b> · 状态 <b id="vStatus"></b></span>
+          <span class="vsub">编号 <b id="vCode"></b> · 适用行业 <b id="vIndustry"></b> · 所属机构 <b id="vOrg"></b> · 状态 <b id="vStatus"></b></span>
           <span class="spacer"></span>
           <button class="btn primary" onclick="openIAdd()">＋ 新增评分项</button>
         </div>
@@ -210,15 +210,11 @@
     </div>
     <div class="mbody">
       <div class="form">
-        <div class="two">
-          <div class="fitem"><label>评分表编号：</label><input id="t_code" placeholder="留空自动生成"></div>
-          <div class="fitem"><label><i class="req">*</i>评分表名称：</label><input id="t_name" placeholder="请输入"></div>
-        </div>
-        <div class="two">
-          <div class="fitem"><label>创建人：</label><input id="t_creator" placeholder="请输入"></div>
-          <div class="fitem"><label>所属机构：</label><input id="t_org" placeholder="请输入"></div>
-        </div>
+        <div class="fitem"><label>评分表编号：</label><input id="t_code" placeholder="留空自动生成"></div>
+        <div class="fitem"><label><i class="req">*</i>评分表名称：</label><input id="t_name" placeholder="请输入"></div>
+        <div class="fitem"><label>适用行业：</label><select id="t_industry"><option value="">请选择</option><option>煤矿</option><option>非煤矿山</option><option>危险化学品</option><option>烟花爆竹</option><option>交通运输</option><option>建筑施工</option><option>民用爆炸物品</option><option>金属冶炼</option><option>渔业生产</option><option>其他</option></select></div>
         <div class="fitem"><label>状态：</label><select id="t_status"><option>启用</option><option>停用</option></select></div>
+        <input type="hidden" id="t_creator"><input type="hidden" id="t_org">
       </div>
     </div>
     <div class="mfoot">
@@ -266,10 +262,18 @@ function uid(p){ return (p||'')+(++_seq)+'_'+Date.now().toString(36); }
 function nowStr(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;}
 
 /* ===== 数据 ===== */
+const CURRENT_USER='中国人寿保险';
 function seedTables(){return [
-  {id:'T1',code:'PF-2026-001',name:'企业安全生产标准化评分表',status:'启用',creator:'中国人寿保险',org:'中国人寿保险',createdAt:'2026-09-01 09:20'},
-  {id:'T2',code:'PF-2026-002',name:'工矿商贸企业评分表',status:'启用',creator:'安全服务机构人员测试',org:'安全服务机构人员测试',createdAt:'2026-09-03 14:05'},
-  {id:'T3',code:'PF-2025-018',name:'危化品企业专项评分表',status:'停用',creator:'事故预防示范机构',org:'事故预防示范机构',createdAt:'2025-12-12 10:48'},
+  {id:'T1',code:'PF-2026-001',name:'企业安全生产标准化评分表',status:'启用',creator:'中国人寿保险',org:'中国人寿保险',industry:'煤矿',createdAt:'2026-09-01 09:20'},
+  {id:'T2',code:'PF-2026-002',name:'工矿商贸企业评分表',status:'启用',creator:'安全服务机构人员测试',org:'安全服务机构人员测试',industry:'非煤矿山',createdAt:'2026-09-03 14:05'},
+  {id:'T3',code:'PF-2025-018',name:'危化品企业专项评分表',status:'停用',creator:'事故预防示范机构',org:'事故预防示范机构',industry:'危险化学品',createdAt:'2025-12-12 10:48'},
+  {id:'T4',code:'PF-2026-003',name:'烟花爆竹经营企业安全评分表',status:'启用',creator:'中国人寿保险',org:'中国人寿保险',industry:'烟花爆竹',createdAt:'2026-09-05 10:12'},
+  {id:'T5',code:'PF-2026-004',name:'道路运输企业安全生产评分表',status:'启用',creator:'中国人寿保险',org:'中国人寿保险',industry:'交通运输',createdAt:'2026-09-06 15:30'},
+  {id:'T6',code:'PF-2026-005',name:'建筑施工企业安全生产评分表',status:'启用',creator:'安全服务机构人员测试',org:'安全服务机构人员测试',industry:'建筑施工',createdAt:'2026-09-08 09:45'},
+  {id:'T7',code:'PF-2026-006',name:'民用爆炸物品企业安全评分表',status:'停用',creator:'事故预防示范机构',org:'事故预防示范机构',industry:'民用爆炸物品',createdAt:'2026-09-09 11:20'},
+  {id:'T8',code:'PF-2026-007',name:'金属冶炼企业安全生产评分表',status:'启用',creator:'中国人寿保险',org:'中国人寿保险',industry:'金属冶炼',createdAt:'2026-09-10 16:05'},
+  {id:'T9',code:'PF-2026-008',name:'渔业生产企业安全生产评分表',status:'启用',creator:'安全服务机构人员测试',org:'安全服务机构人员测试',industry:'渔业生产',createdAt:'2026-09-11 08:50'},
+  {id:'T10',code:'PF-2026-009',name:'其他行业通用安全生产评分表',status:'启用',creator:'中国人寿保险',org:'中国人寿保险',industry:'其他',createdAt:'2026-09-12 13:15'},
 ];}
 function seedItems(){
   const base=[
@@ -285,9 +289,11 @@ function seedItems(){
   return base.map((r,i)=>({id:uid('I'),tid:i<6?'T1':'T2',l1:r[0],l2:r[1],crit:r[2],score:r[3],way:r[4]}));
 }
 let TABLES,ITEMS;
-try{const s=localStorage.getItem('ins_score_tables');TABLES=s?JSON.parse(s):seedTables();}catch(e){TABLES=seedTables();}
+try{const s=localStorage.getItem('ins_score_tables_v2');TABLES=s?JSON.parse(s):seedTables();}catch(e){TABLES=seedTables();}
 try{const s=localStorage.getItem('ins_score_items');ITEMS=s?JSON.parse(s):seedItems();}catch(e){ITEMS=seedItems();}
-function saveTables(){try{localStorage.setItem('ins_score_tables',JSON.stringify(TABLES));}catch(e){}}
+/* 兼容旧数据：缺失适用行业时补默认值 */
+TABLES.forEach(t=>{ if(!t.industry) t.industry='其他'; });
+function saveTables(){try{localStorage.setItem('ins_score_tables_v2',JSON.stringify(TABLES));}catch(e){}}
 function saveItems(){try{localStorage.setItem('ins_score_items',JSON.stringify(ITEMS));}catch(e){}}
 
 /* ===== 视图状态 ===== */
@@ -322,34 +328,35 @@ function renderList(){
       <td class="seq">${start+i+1}</td>
       <td>${esc(t.code)}</td>
       <td>${esc(t.name)}</td>
+      <td title="${esc(t.industry||'')}">${esc(t.industry||'')}</td>
       <td>${st}</td>
       <td>${esc(t.creator)}</td>
       <td>${esc(t.org)}</td>
       <td>${esc(t.createdAt)}</td>
       <td class="op"><a onclick="openTEdit('${t.id}')">编辑</a><a onclick="toggleStatus('${t.id}')">${t.status==='启用'?'停用':'启用'}</a><a onclick="openItems('${t.id}')">评分项设置</a></td>
     </tr>`;
-  }).join(''):`<tr><td colspan="8" class="empty">暂无评分表</td></tr>`;
+  }).join(''):`<tr><td colspan="9" class="empty">暂无评分表</td></tr>`;
   $('#listPager').innerHTML=pagerHtml(total,pages,listState.page,size,'gotoListPage','setListSize');
 }
 
 /* 外层弹窗：新增/编辑评分表 */
 let editingTid=null;
 function genCode(){const y=new Date().getFullYear();const ns=TABLES.filter(t=>t.code.indexOf('PF-'+y+'-')===0).map(t=>+t.code.slice(7)).filter(n=>!isNaN(n));return 'PF-'+y+'-'+String((ns.length?Math.max(...ns):0)+1).padStart(3,'0');}
-function openTAdd(){editingTid=null;$('#tTitle').textContent='新增评分表';['t_code','t_name','t_creator','t_org'].forEach(id=>$('#'+id).value='');$('#t_status').value='启用';$('#tModal').classList.add('show');$('#t_name').focus();}
-function openTEdit(id){const t=TABLES.find(x=>x.id===id);if(!t)return;editingTid=id;$('#tTitle').textContent='编辑评分表';$('#t_code').value=t.code;$('#t_name').value=t.name;$('#t_creator').value=t.creator;$('#t_org').value=t.org;$('#t_status').value=t.status;$('#tModal').classList.add('show');}
+function openTAdd(){editingTid=null;$('#tTitle').textContent='新增评分表';['t_code','t_name','t_industry'].forEach(id=>$('#'+id).value='');$('#t_creator').value=CURRENT_USER;$('#t_org').value=CURRENT_USER;$('#t_status').value='启用';$('#tModal').classList.add('show');$('#t_name').focus();}
+function openTEdit(id){const t=TABLES.find(x=>x.id===id);if(!t)return;editingTid=id;$('#tTitle').textContent='编辑评分表';$('#t_code').value=t.code;$('#t_name').value=t.name;$('#t_creator').value=t.creator;$('#t_org').value=t.org;$('#t_industry').value=t.industry||'';$('#t_status').value=t.status;$('#tModal').classList.add('show');}
 function closeTModal(){$('#tModal').classList.remove('show');}
 function val(id){return $('#'+id).value.trim();}
 function saveTable(){
   if(!val('t_name')){toast('请填写评分表名称');$('#t_name').focus();return;}
-  if(editingTid){const t=TABLES.find(x=>x.id===editingTid);t.name=val('t_name');t.code=val('t_code')||t.code;t.creator=val('t_creator')||t.creator;t.org=val('t_org')||t.org;t.status=$('#t_status').value;toast('评分表已更新');}
-  else{const code=val('t_code')||genCode();TABLES.push({id:uid('T'),code,name:val('t_name'),status:$('#t_status').value,creator:val('t_creator')||'中国人寿保险',org:val('t_org')||'中国人寿保险',createdAt:nowStr()});toast('评分表新增成功');}
+  if(editingTid){const t=TABLES.find(x=>x.id===editingTid);t.name=val('t_name');t.code=val('t_code')||t.code;t.creator=val('t_creator')||t.creator;t.org=val('t_org')||t.org;t.industry=val('t_industry');t.status=$('#t_status').value;toast('评分表已更新');}
+  else{const code=val('t_code')||genCode();TABLES.push({id:uid('T'),code,name:val('t_name'),status:$('#t_status').value,creator:val('t_creator')||CURRENT_USER,org:val('t_org')||CURRENT_USER,industry:val('t_industry'),createdAt:nowStr()});toast('评分表新增成功');}
   saveTables();closeTModal();renderList();
 }
 function toggleStatus(id){const t=TABLES.find(x=>x.id===id);if(!t)return;t.status=t.status==='启用'?'停用':'启用';saveTables();renderList();toast('已'+(t.status==='启用'?'启用':'停用'));}
 
 /* ===== 内层：评分项设置 ===== */
 function openItems(id){const t=TABLES.find(x=>x.id===id);if(!t)return;curTid=id;view='items';
-  $('#vName').textContent=t.name;$('#vCode').textContent=t.code;$('#vOrg').textContent=t.org;
+  $('#vName').textContent=t.name;$('#vCode').textContent=t.code;$('#vIndustry').textContent=t.industry||'—';$('#vOrg').textContent=t.org;
   $('#vStatus').innerHTML=t.status==='启用'?'<span class="st on">启用</span>':'<span class="st off">停用</span>';
   $('#listView').classList.add('hide');$('#itemsView').classList.remove('hide');
   itemState={page:1,size:10,q:{l1:'',l2:'',crit:''}};

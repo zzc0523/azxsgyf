@@ -23,6 +23,21 @@
   .item .t{font-size:14px;font-weight:600;}
   .item .sub{font-size:12px;color:var(--sub);margin-top:3px;word-break:break-all;}
   .foot{text-align:center;color:var(--sub);font-size:12px;margin-top:18px;}
+  /* ===== 版本内容说明 ===== */
+  .ver{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:26px;}
+  .ver-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
+  .ver-title{font-size:15px;font-weight:700;color:#2b3242;display:flex;align-items:center;gap:8px;}
+  .ver-title::before{content:"";width:3px;height:16px;background:var(--brand);border-radius:2px;}
+  .ver-acts{display:flex;gap:8px;}
+  .vbtn{height:30px;padding:0 14px;border-radius:5px;border:1px solid #dfe4ed;background:#fff;color:#3a4354;font-size:13px;cursor:pointer;}
+  .vbtn:hover{border-color:#c7d0de;}
+  .vbtn.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .vbtn.primary:hover{background:var(--brand-d);border-color:var(--brand-d);}
+  .ver-body{font-size:13.5px;line-height:1.9;color:#3a4354;white-space:pre-wrap;word-break:break-word;}
+  .ver-edit{width:100%;min-height:180px;border:1px solid #dfe4ed;border-radius:6px;padding:12px;font-size:13.5px;line-height:1.9;color:#1f2329;font-family:inherit;resize:vertical;}
+  .ver-edit:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);outline:none;}
+  .vtoast{position:fixed;left:50%;top:28px;transform:translateX(-50%) translateY(-8px);background:rgba(20,28,46,.92);color:#fff;padding:10px 18px;border-radius:8px;font-size:13.5px;z-index:60;opacity:0;pointer-events:none;transition:.2s;}
+  .vtoast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
@@ -34,8 +49,24 @@
   </div>
 </div>
 
+<div class="wrap">
+  <div class="ver">
+    <div class="ver-head">
+      <div class="ver-title">📌 版本内容说明</div>
+      <div class="ver-acts">
+        <button class="vbtn" id="verEdit" onclick="verEdit()">编辑</button>
+        <button class="vbtn primary" id="verSave" style="display:none" onclick="verSave()">保存</button>
+        <button class="vbtn" id="verCancel" style="display:none" onclick="verCancel()">取消</button>
+      </div>
+    </div>
+    <div class="ver-body" id="verView"></div>
+    <textarea class="ver-edit" id="verInput" style="display:none"></textarea>
+  </div>
+</div>
+
 <div class="wrap" id="wrap"></div>
 <div class="foot">点击任意卡片即可跳转到对应页面</div>
+<div class="vtoast" id="verToast"></div>
 
 <script>
 /* 页面分组与入口，新增页面时在此追加即可 */
@@ -90,11 +121,33 @@ const GROUPS=[
   ]},
 ];
 
+/* ===== 版本内容说明（纯文本，编辑后存 localStorage） ===== */
+const VER_KEY='index_version_notes';
+const VER_DEFAULT='v1.0.0（2026-09-20）\n'
+  +'- 新增 index 导航页：汇总跳转全部子页面；\n'
+  +'- 检查表管理：题目配置新增字数限制、全选/批量删除、去除序号列；\n'
+  +'- 评分表管理：新增「适用行业」字段（下拉选择），新增时默认回填当前账号；示例数据补充适用行业；\n'
+  +'- 全局统一「适用行业」枚举：煤矿 / 非煤矿山 / 危险化学品 / 烟花爆竹 / 交通运输 / 建筑施工 / 民用爆炸物品 / 金属冶炼 / 渔业生产 / 其他。';
+let _verDraft='';
+function verLoad(){ try{const s=localStorage.getItem(VER_KEY);return s!=null?s:VER_DEFAULT;}catch(e){return VER_DEFAULT;} }
+function renderVer(){ const t=verLoad(); document.getElementById('verView').textContent=t||'（暂无版本说明）'; }
+function verEdit(){ _verDraft=verLoad(); document.getElementById('verInput').value=_verDraft;
+  document.getElementById('verView').style.display='none'; document.getElementById('verInput').style.display='block';
+  document.getElementById('verEdit').style.display='none'; document.getElementById('verSave').style.display='inline-flex'; document.getElementById('verCancel').style.display='inline-flex'; }
+function verCancel(){ document.getElementById('verView').style.display='block'; document.getElementById('verInput').style.display='none';
+  document.getElementById('verEdit').style.display='inline-flex'; document.getElementById('verSave').style.display='none'; document.getElementById('verCancel').style.display='none'; }
+function verSave(){ const v=document.getElementById('verInput').value; try{localStorage.setItem(VER_KEY,v);}catch(e){}
+  document.getElementById('verView').textContent=v||'（暂无版本说明）'; verCancel(); verToast('版本说明已保存'); }
+
 const wrap=document.getElementById('wrap');
 wrap.innerHTML=GROUPS.map(g=>{
   const cards=g.items.map(it=>`<a class="item" href="${it.u}"><div class="ic">${it.ic}</div><div><div class="t">${it.t}</div><div class="sub">${it.u}</div></div></a>`).join('');
   return `<div class="group"><h2>${g.name}</h2><div class="grid">${cards}</div></div>`;
 }).join('');
+renderVer();
+
+let _vt;
+function verToast(m){const t=document.getElementById('verToast');if(!t)return;t.textContent=m;t.classList.add('show');clearTimeout(_vt);_vt=setTimeout(()=>t.classList.remove('show'),1600);}
 </script>
 </body>
 </html>
