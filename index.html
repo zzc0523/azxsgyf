@@ -59,7 +59,11 @@
         <button class="vbtn" id="verCancel" style="display:none" onclick="verCancel()">取消</button>
       </div>
     </div>
-    <div class="ver-body" id="verView"></div>
+    <div class="ver-body" id="verView">v1.0.0（2026-09-20）
+- 新增 index 导航页：汇总跳转全部子页面；
+- 检查表管理：题目配置新增字数限制、全选/批量删除、去除序号列；
+- 评分表管理：新增「适用行业」字段（下拉选择），新增时默认回填当前账号；示例数据补充适用行业；
+- 全局统一「适用行业」枚举：煤矿 / 非煤矿山 / 危险化学品 / 烟花爆竹 / 交通运输 / 建筑施工 / 民用爆炸物品 / 金属冶炼 / 渔业生产 / 其他。</div>
     <textarea class="ver-edit" id="verInput" style="display:none"></textarea>
   </div>
 </div>
@@ -121,22 +125,18 @@ const GROUPS=[
   ]},
 ];
 
-/* ===== 版本内容说明（纯文本，编辑后存 localStorage） ===== */
+/* ===== 版本内容说明（默认文本直接写在 HTML #verView 中；编辑保存后存 localStorage 覆盖） ===== */
 const VER_KEY='index_version_notes';
-const VER_DEFAULT='v1.0.0（2026-09-20）\n'
-  +'- 新增 index 导航页：汇总跳转全部子页面；\n'
-  +'- 检查表管理：题目配置新增字数限制、全选/批量删除、去除序号列；\n'
-  +'- 评分表管理：新增「适用行业」字段（下拉选择），新增时默认回填当前账号；示例数据补充适用行业；\n'
-  +'- 全局统一「适用行业」枚举：煤矿 / 非煤矿山 / 危险化学品 / 烟花爆竹 / 交通运输 / 建筑施工 / 民用爆炸物品 / 金属冶炼 / 渔业生产 / 其他。';
 let _verDraft='';
-function verLoad(){ try{const s=localStorage.getItem(VER_KEY);return s!=null?s:VER_DEFAULT;}catch(e){return VER_DEFAULT;} }
-function renderVer(){ const t=verLoad(); document.getElementById('verView').textContent=t||'（暂无版本说明）'; }
-function verEdit(){ _verDraft=verLoad(); document.getElementById('verInput').value=_verDraft;
+function verStored(){ try{const s=localStorage.getItem(VER_KEY);return s!=null?s:null;}catch(e){return null;} }
+function renderVer(){ const s=verStored(); if(s!=null) document.getElementById('verView').textContent=s; /* 无保存记录时保留 HTML 内置默认 */ }
+function verEdit(){ const cur=verStored(); _verDraft=cur!=null?cur:document.getElementById('verView').textContent; document.getElementById('verInput').value=_verDraft;
   document.getElementById('verView').style.display='none'; document.getElementById('verInput').style.display='block';
   document.getElementById('verEdit').style.display='none'; document.getElementById('verSave').style.display='inline-flex'; document.getElementById('verCancel').style.display='inline-flex'; }
 function verCancel(){ document.getElementById('verView').style.display='block'; document.getElementById('verInput').style.display='none';
   document.getElementById('verEdit').style.display='inline-flex'; document.getElementById('verSave').style.display='none'; document.getElementById('verCancel').style.display='none'; }
-function verSave(){ const v=document.getElementById('verInput').value; try{localStorage.setItem(VER_KEY,v);}catch(e){}
+function verSave(){ const v=document.getElementById('verInput').value;
+  if(v.trim()){ try{localStorage.setItem(VER_KEY,v);}catch(e){} } else { try{localStorage.removeItem(VER_KEY);}catch(e){} }
   document.getElementById('verView').textContent=v||'（暂无版本说明）'; verCancel(); verToast('版本说明已保存'); }
 
 const wrap=document.getElementById('wrap');
