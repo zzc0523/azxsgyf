@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>隐患检查表管理 · 服务机构端</title>
+<link rel="stylesheet" href="tech-common.css">
+<style>
+  .card{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(20,30,60,.04);}
+  /* 查询卡片 */
+  .search{padding:16px 20px;margin-bottom:14px;}
+  .sline{display:flex;align-items:center;gap:16px 22px;flex-wrap:wrap;}
+  .fi{display:flex;align-items:center;gap:8px;min-width:0;}
+  .fi label{color:#4a5568;white-space:nowrap;}
+  .fi input,.fi select{width:290px;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
+  .fi input:focus,.fi select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .sline .adv{display:none;}
+  .search.open .sline .adv{display:flex;}
+  .acts{display:flex;align-items:center;gap:12px;margin-left:auto;}
+  .btn{height:32px;padding:0 18px;border-radius:4px;border:1px solid #dfe4ed;background:#fff;color:#3a4354;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
+  .btn:hover{border-color:#c7d0de;}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .btn.primary:hover{background:var(--brand-d);border-color:var(--brand-d);}
+  .btn.link{border:none;background:none;color:#7c8aa0;padding:0 4px;}
+  .btn.link svg{width:11px;height:11px;transition:.2s;}
+  .btn.link.up svg{transform:rotate(180deg);}
+  .btn.danger{background:#fff;color:#e34d59;border-color:#f0b4b9;}
+  .btn.danger:hover{background:#fef0f0;border-color:#e34d59;}
+  .btn.danger:disabled{opacity:.45;cursor:not-allowed;background:#fff;border-color:#f0b4b9;}
+  .sel-info{margin-left:4px;color:#8a93a5;font-size:13px;}
+  .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+
+  /* 表格 */
+  .table-wrap{overflow:hidden;overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:1270px;}
+  table.qtable{min-width:1462px;}
+  thead th{background:#f7f9fc;color:#5d6879;font-weight:600;text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:13px;}
+  tbody td{padding:13px 14px;border-bottom:1px solid var(--line);color:#2b3242;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  tbody tr:hover{background:#f9fbff;}
+  .colset{float:right;color:#8a93a5;cursor:pointer;font-size:14px;}
+  .colset:hover{color:var(--brand);}
+  td.op a{color:var(--brand);cursor:pointer;margin-right:16px;}
+  td.op a:last-child{margin-right:0;}
+  td.op a:hover{text-decoration:underline;}
+  .empty{text-align:center;color:#9aa3b2;padding:38px 0 !important;}
+  .st{display:inline-block;padding:2px 11px;border-radius:3px;font-size:12px;}
+  .st.on{color:#2fa96b;background:rgba(47,169,107,.12);}
+  .st.off{color:#f04438;background:rgba(240,68,56,.1);}
+
+  /* 二级页面：题库配置 */
+  .subhead{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+  .subhead .cur-name{font-size:14px;color:#2b3242;}
+  .subhead .cur-name b{color:var(--brand);}
+  .subhead .cur-code{font-size:12px;color:#9aa3b2;}
+  .lv{display:inline-block;padding:2px 11px;border-radius:3px;font-size:12px;}
+  .lv.red{color:#f04438;background:rgba(240,68,56,.1);}
+  .lv.green{color:#2fa96b;background:rgba(47,169,107,.12);}
+
+  /* 分页 */
+  .pager{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:16px 2px 0;color:#5d6879;font-size:13px;flex-wrap:wrap;}
+  .pager .pgbtn{min-width:30px;height:30px;padding:0 8px;border:1px solid #e2e7f0;border-radius:4px;background:#fff;cursor:pointer;color:#3a4354;font-size:13px;}
+  .pager .pgbtn:hover:not(:disabled){border-color:#c7d0de;}
+  .pager .pgbtn.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .pager .pgbtn:disabled{opacity:.45;cursor:not-allowed;}
+  .pager .sizesel{height:30px;border:1px solid #e2e7f0;border-radius:4px;padding:0 6px;color:#3a4354;background:#fff;}
+  .pager .go input{width:44px;height:30px;border:1px solid #e2e7f0;border-radius:4px;padding:0 6px;text-align:center;}
+
+  /* ===== 弹窗 ===== */
+  .mask{position:fixed;inset:0;background:rgba(15,22,36,.45);display:none;align-items:center;justify-content:center;z-index:50;}
+  .mask.show{display:flex;}
+  .modal{width:min(760px,94vw);max-height:88vh;background:#fff;border-radius:6px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .mhead{height:52px;flex:0 0 52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);}
+  .mtitle{font-size:15px;font-weight:600;display:flex;align-items:center;gap:9px;}
+  .mtitle::before{content:"";width:3px;height:15px;background:var(--brand);border-radius:2px;}
+  .mclose{font-size:18px;color:#9aa3b2;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;}
+  .mclose:hover{background:#f0f2f7;}
+  .mbody{flex:1;overflow:auto;padding:22px 26px 26px;}
+  .mfoot{flex:0 0 60px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 26px;border-top:1px solid var(--line);}
+  .form{display:grid;grid-template-columns:1fr;gap:16px;}
+  /* 覆盖 tech-common.css 的 .fitem 纵向布局，保持与「检查表管理」一致的横向表单 */
+  .fitem{display:flex;flex-direction:row;align-items:flex-start;gap:0;}
+  .fitem label{flex:0 0 116px;width:116px;text-align:right;padding-right:12px;font-size:13px;font-weight:400;color:#3a4354;line-height:32px;}
+  .fitem .req{color:#f04438;margin-left:0;margin-right:3px;}
+  .fitem input,.fitem select,.fitem textarea{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;font-family:inherit;}
+  .fitem textarea{height:72px;min-height:0;padding:8px 10px;line-height:1.5;resize:vertical;}
+  .fitem input:focus,.fitem select:focus,.fitem textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  input:disabled{background:#f5f7fa;border-color:#eef1f6;color:#2b3242;-webkit-text-fill-color:#2b3242;cursor:default;}
+  /* 题库弹窗：加宽标签列，避免标签换行 */
+  .qform .fitem label{flex:0 0 132px;width:132px;white-space:nowrap;padding-right:14px;}
+
+  /* 批量导入弹窗 */
+  .imp-tip{font-size:12px;color:#7c8aa0;background:#f7f9fc;border:1px dashed #dfe4ed;border-radius:4px;padding:9px 12px;line-height:1.7;margin-bottom:14px;}
+  .imp-tip b{color:#3a4354;}
+  .imp-tip .lk{color:var(--brand);cursor:pointer;text-decoration:underline;}
+  .imp-up{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  .imp-up .fname{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;line-height:32px;color:#5d6879;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#fff;}
+  .imp-msg{margin-top:10px;font-size:12px;color:#7c8aa0;min-height:18px;}
+
+  .hide{display:none !important;}
+
+  @media (max-width:1024px){
+    .fi input,.fi select{width:220px;}
+    .fitem label{flex:0 0 96px;width:96px;}
+  }
+  @media (max-width:768px){
+    .page{padding:12px 10px 20px;}
+    .card.search{padding:14px;}
+    .fi input,.fi select{width:100%;}
+    .fi{width:100%;}
+    .mbody{padding:16px;}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="side">
+    <div class="brand"><i class="logo"><i></i><b></b></i><span>安全服务端</span></div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+
+  <main class="main">
+    <header class="topbar" id="topbar"></header>
+    <!-- 页签（公共组件，菜单/路由在 tech-common.js 中维护） -->
+    <div class="tabs" id="tabs"></div>
+
+    <div class="page">
+      <!-- ===================== 一级视图：检查表列表 ===================== -->
+      <div id="listView">
+        <!-- 查询 -->
+        <div class="card search" id="searchCard">
+          <div class="sline">
+            <div class="fi"><label>检查表名称</label>
+              <input id="q_name" placeholder="请输入检查表名称" onkeydown="if(event.key==='Enter')doSearch()"></div>
+            <div class="fi"><label>适用行业</label><select id="q_industry"></select></div>
+            <div class="fi adv"><label>状态</label>
+              <select id="q_status"><option value="">请选择</option><option>启用</option><option>停用</option></select></div>
+            <div class="acts">
+              <button class="btn primary" onclick="doSearch()">查询</button>
+              <button class="btn" onclick="doReset()">重置</button>
+              <button class="btn link" id="collapseBtn" onclick="toggleCollapse()">展开<svg viewBox="0 0 16 16"><path d="M4 10l4-4 4 4" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 操作区 -->
+        <div class="toolbar">
+          <button class="btn primary" onclick="openAdd()">新增</button>
+        </div>
+
+        <!-- 列表 -->
+        <div class="card table-wrap">
+          <table>
+            <colgroup>
+              <col style="width:60px"><col style="width:150px"><col style="width:160px"><col style="width:110px">
+              <col style="width:80px"><col style="width:110px"><col style="width:110px"><col style="width:170px"><col style="width:220px">
+            </colgroup>
+            <thead><tr>
+              <th>序号</th><th>检查表编号</th><th>检查表名称</th><th>适用行业</th>
+              <th>状态</th><th>创建人</th><th>所属机构</th><th>创建时间</th>
+              <th class="op">操作<span class="colset" title="列设置" onclick="toast('列设置（演示）')">⚙</span></th>
+            </tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="pager" id="pager"></div>
+      </div>
+
+      <!-- ===================== 二级视图：题库配置 ===================== -->
+      <div id="qView" class="hide">
+        <div class="subhead">
+          <button class="btn" onclick="backToList()">← 返回检查表</button>
+          <div>
+            <div class="cur-name">当前检查表：<b id="qName"></b> · 题库配置</div>
+            <div class="cur-code">检查表编号：<span id="qCode"></span></div>
+          </div>
+        </div>
+
+        <!-- 查询 -->
+        <div class="card search" id="qSearchCard">
+          <div class="sline">
+            <div class="fi"><label>检查内容</label>
+              <input id="qq_content" placeholder="请输入检查内容（支持模糊查询）" onkeydown="if(event.key==='Enter')doQSearch()"></div>
+            <div class="fi adv"><label>关联隐患等级</label>
+              <select id="qq_level"><option value="">请选择</option><option>重大隐患</option><option>一般隐患</option></select></div>
+            <div class="acts">
+              <button class="btn primary" onclick="doQSearch()">查询</button>
+              <button class="btn" onclick="doQReset()">重置</button>
+              <button class="btn link" id="qCollapseBtn" onclick="qToggleCollapse()">展开<svg viewBox="0 0 16 16"><path d="M4 10l4-4 4 4" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 操作区 -->
+        <div class="toolbar">
+          <button class="btn primary" onclick="openQAdd()">新增题目</button>
+          <button class="btn" onclick="openImp()">批量导入</button>
+          <button class="btn danger" id="qBatchBtn" onclick="qBatchDel()" disabled>批量删除</button>
+          <span class="sel-info" id="qSelInfo"></span>
+        </div>
+
+        <!-- 列表 -->
+        <div class="card table-wrap">
+          <table class="qtable">
+            <colgroup>
+              <col style="width:42px"><col style="width:130px"><col style="width:130px"><col style="width:200px"><col style="width:150px"><col style="width:90px"><col style="width:200px"><col style="width:200px"><col style="width:200px"><col style="width:120px">
+            </colgroup>
+            <thead><tr>
+              <th><input type="checkbox" id="qCheckAll" title="全选/取消全选" onclick="qCheckAllToggle(this.checked)"></th>
+              <th>检查对象一级目录</th><th>检查对象二级目录</th><th>检查内容</th><th>依据来源</th>
+              <th>隐患等级</th><th>隐患描述</th><th>整改建议</th><th>法律原文</th>
+              <th class="op">操作</th>
+            </tr></thead>
+            <tbody id="qbody"></tbody>
+          </table>
+        </div>
+
+        <div class="pager" id="qpager"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 检查表 新增/编辑弹窗 -->
+<div class="mask" id="mask">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle" id="mtitle">新增检查表</div>
+      <div class="mclose" onclick="closeModal()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="form">
+        <div class="fitem"><label>检查表编号：</label><input id="e_code" placeholder="保存后自动生成" disabled></div>
+        <div class="fitem"><label><i class="req">*</i>检查表名称：</label><input id="e_name" maxlength="50" placeholder="请输入检查表名称"></div>
+        <div class="fitem"><label><i class="req">*</i>适用行业：</label><select id="e_industry"></select></div>
+        <div class="fitem"><label><i class="req">*</i>状态：</label>
+          <select id="e_status"><option>启用</option><option>停用</option></select></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn primary" onclick="saveForm()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 题库 新增/编辑弹窗 -->
+<div class="mask" id="qMask">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle" id="qmTitle">新增题目</div>
+      <div class="mclose" onclick="closeQModal()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="form qform">
+        <div class="fitem"><label><i class="req">*</i>检查对象一级目录</label><input id="qm_dir1" maxlength="20" placeholder="如：房屋市政工程（20字以内）"></div>
+        <div class="fitem"><label><i class="req">*</i>检查对象二级目录</label><input id="qm_dir2" maxlength="20" placeholder="如：资质与许可（20字以内）"></div>
+        <div class="fitem"><label><i class="req">*</i>检查内容</label><textarea id="qm_content" maxlength="50" placeholder="请输入检查内容（50字以内）"></textarea></div>
+        <div class="fitem"><label>依据来源</label><input id="qm_source" maxlength="500" placeholder="如：《安全生产法》第二十一条（500字以内）"></div>
+        <div class="fitem"><label><i class="req">*</i>隐患等级</label><select id="qm_level"><option value="">请选择</option><option>重大隐患</option><option>一般隐患</option></select></div>
+        <div class="fitem"><label>隐患描述</label><textarea id="qm_desc" maxlength="500" placeholder="请输入隐患描述（500字以内）"></textarea></div>
+        <div class="fitem"><label>整改建议</label><textarea id="qm_advice" maxlength="500" placeholder="请输入整改建议（500字以内）"></textarea></div>
+        <div class="fitem"><label>法律原文</label><textarea id="qm_law" maxlength="500" placeholder="请输入法律原文（500字以内）"></textarea></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeQModal()">取消</button>
+      <button class="btn primary" onclick="saveQForm()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 题库 批量导入弹窗 -->
+<div class="mask" id="impMask">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle">批量导入题目</div>
+      <div class="mclose" onclick="closeImp()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="imp-tip">
+        列顺序（每行一条，逗号或 Tab 分隔）：<br>
+        <b>检查对象一级目录、检查对象二级目录、检查内容、依据来源、隐患等级、隐患描述、整改建议、法律原文</b><br>
+        前两项为必填；隐患等级仅支持「重大隐患 / 一般隐患」，留空则置空。支持
+        <span class="lk" onclick="downloadTpl()">下载模板</span>，再上传 CSV 文件导入。
+      </div>
+      <div class="imp-up">
+        <div class="fname" id="impFile">未选择文件</div>
+        <button class="btn" onclick="$('#impInput').click()">上传文件</button>
+        <input id="impInput" type="file" accept=".csv,.txt" style="display:none" onchange="onImpFile(this)">
+      </div>
+      <div class="imp-msg" id="impMsg"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeImp()">取消</button>
+      <button class="btn primary" onclick="doImport()">导入</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="tech-common.js"></script>
+<script>
+/* ===== 枚举 ===== */
+const INDUSTRIES=['煤矿','非煤矿山','危险化学品','烟花爆竹','交通运输','建筑施工','民用爆炸物品','金属冶炼','渔业生产','其他'];
+const LEVELS=['重大隐患','一般隐患'];
+/* 检查对象一级目录（与图片标准范围一致）；二级目录为各子类 */
+const DIR1='房屋市政工程';
+function normQ(q){
+  return {
+    dir1:q.dir1||DIR1,
+    dir2:q.dir2||q.dir||'',
+    content:q.content||'',
+    source:q.source||'',
+    level:q.level||'',
+    desc:q.desc||'',
+    advice:q.advice||'',
+    law:q.law||''
+  };
+}
+function fillSel(sel,arr,val){
+  sel.innerHTML='<option value="">请选择</option>'+arr.map(o=>`<option ${o===val?'selected':''}>${o}</option>`).join('');
+}
+fillSel($('#q_industry'),INDUSTRIES,'');
+fillSel($('#e_industry'),INDUSTRIES,'');
+
+/* ===== 检查表 列表数据（演示）：共 35 条 ===== */
+function fmt(d){const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());}
+function seed(){
+  const R=[
+    ['2088082639112712118','施工现场安全风险检查表','建筑施工','启用','安全服务端','-','2026-08-14 09:57:51'],
+    ['2088082343800156119','施工现场安全隐患检查表','建筑施工','启用','安全服务端','-','2026-08-14 09:56:40'],
+    ['2085181952246018017','化学品生产企业重大事故隐患排查表','危险化学品','启用','安全服务端','-','2026-08-06 09:51:33'],
+    ['2085181733529841613','市政房屋工程重大事故隐患排查表','建筑施工','停用','安全服务端','-','2026-08-06 09:50:41'],
+    ['2084923126070505410','建筑施工-市政房屋工程隐患排查表','建筑施工','停用','安全服务端','-','2026-08-05 16:43:04'],
+    ['2084897736211951612','工贸企业','其他','启用','技术人员测试','安全服务端','2026-08-05 15:02:10'],
+    ['2084583522133995514','111','煤矿','启用','技术人员测试','-','2026-08-04 18:13:36'],
+    ['2084556149107847116','测试金属矿','煤矿','启用','安全服务端','-','2026-08-04 16:24:50'],
+    ['2004115218715000811','自定','煤矿','启用','技术人员测试','安全服务端','2025-12-25 17:01:17'],
+    ['2004115074573549515','定义及','交通运输','启用','技术人员测试','安全服务端','2025-12-25 17:00:43']
+  ];
+  const list=R.map(([code,name,industry,status,creator,org,time])=>({code,name,industry,status,creator,org,time}));
+  const NAMES=['非煤矿山安全隐患检查表','道路运输企业安全检查表','危险化学品储存安全检查表','建筑施工起重机械检查表','工贸企业粉尘防爆检查表',
+    '城镇燃气经营安全检查表','消防设施完好情况检查表','特种设备使用安全检查表','有限空间作业安全检查表','高处作业安全检查表'];
+  const base=new Date('2025-12-20T16:30:00').getTime();
+  for(let i=0;i<25;i++){
+    list.push({
+      code:'208'+String(4900000000000000-(i+1)*771231337).slice(0,16),
+      name:NAMES[i%10]+(i>=10?'（'+(Math.floor(i/10)+1)+'）':''),
+      industry:INDUSTRIES[i%5],
+      status:i%5===0?'停用':'启用',
+      creator:i%3===0?'技术人员测试':'安全服务端',
+      org:i%3===0?'安全服务端':'-',
+      time:fmt(new Date(base-i*2*86400000-(i%7)*3600000))
+    });
+  }
+  return list;
+}
+let DATA;
+try{ const s=localStorage.getItem('svc_patrol_tables'); DATA=s?JSON.parse(s):null; }catch(e){ DATA=null; }
+if(!Array.isArray(DATA)||!DATA.length) DATA=seed();
+function saveTables(){ try{ localStorage.setItem('svc_patrol_tables', JSON.stringify(DATA)); }catch(e){} }
+saveTables();   // 持久化供移动端「服务登记」从服务机构端选用启用检查表
+
+/* ===== 题库 演示数据（示例题目按图片构建：房屋市政工程生产安全重大事故隐患） ===== */
+const QBASE=[
+  ['资质与许可','是否取得安全生产许可证、资质',
+   '《建筑施工企业安全生产许可证管理规定》第二条《建设工程质量管理条例》第二十五条《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（一）',
+   '重大隐患',
+   '建筑施工企业未取得安全生产许可证擅自从事建筑施工活动或超（无）资质承揽工程；国家对建筑施工企业实行安全生产许可制度，建筑施工企业未取得安全生产许可证的，不得从事建筑施工活动。建筑施工企业应当依法取得相应的资质证书，并在其资质等级许可的范围内承揽工程，禁止施工单位超越本单位资质等级许可的业务范围或者以其他施工单位的名义承揽工程。',
+   '', ''],
+  ['人员资格','项目部专职安全管理人员是否按要求配置',
+   '《建设工程安全生产管理条例》第二十三条《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（二）',
+   '重大隐患',
+   '未按规定配备专职安全管理人员；专职安全管理人员配备人数不符合要求；施工作业单位应当设立安全生产管理机构，配备专职安全生产管理人员。',
+   '', ''],
+  ['人员资格','项目主要负责人、安全管理人员是否按规定持证',
+   '《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（二）',
+   '重大隐患',
+   '项目负责人、专职安全生产管理人员未取得有效安全生产考核合格证书；建筑施工企业未按规定要求足额配备安全生产管理人员，或其主要负责人、项目负责人、专职安全生产管理人员未取得有效安全生产考核合格证书。',
+   '', ''],
+  ['人员资格','特种作业人员是否按规定持证',
+   '《建设工程安全生产管理条例》第二十五条《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（三）',
+   '重大隐患',
+   '建筑施工特种作业人员未取得有效特种作业人员操作资格证书上岗作业；垂直运输机械作业人员、安装拆卸工、爆破作业人员、起重信号工、登高架设作业人员等特种作业人员，必须按照国家有关规定经过专门的安全作业培训，并取得特种作业操作资格证书后，方可上岗作业。',
+   '', ''],
+  ['分包管理','分包单位资质是否满足要求',
+   '《房屋建筑和市政基础设施工程施工分包管理办法》第八条《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（一）',
+   '重大隐患',
+   '分包单位资质不符合要求；分包单位未取得安全生产许可证分包工程；承包人必须具有相应的资质，并在其资质等级许可的范围内承揽业务。',
+   '', ''],
+  ['分包管理','分包单位安全管理机构、人员是否按要求配置',
+   '《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（二）',
+   '重大隐患',
+   '分包单位未设置安全管理机构、未配备专职安全管理人员；建筑施工企业未按规定要求足额配备安全生产管理人员，或其主要负责人、项目负责人、专职安全生产管理人员未取得有效安全生产考核合格证书从事相关工作。',
+   '', ''],
+  ['危大工程','危大工程方案是否按规定编制',
+   '《危险性较大的分部分项工程安全管理规定》第十条《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（四）',
+   '重大隐患',
+   '危大工程未编制专项施工方案；施工单位应当在危大工程施工前组织工程技术人员编制专项施工方案。',
+   '', ''],
+  ['危大工程','危大工程方案是否按规定审批',
+   '《危险性较大的分部分项工程安全管理规定》第十一条《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（四）',
+   '重大隐患',
+   '危大工程专项施工方案未按规定进行审批；专项施工方案应当由施工单位技术负责人审核签字、加盖单位公章，并由总监理工程师审查签字、加盖执业印章后方可实施。',
+   '', ''],
+  ['危大工程','危大工程方案内容是否存在严重缺陷',
+   '《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（四）',
+   '重大隐患',
+   '危大工程专项施工方案存在严重缺陷；专项施工方案的严重缺陷整改需通过技术、安全技术、管理缺陷整改，需要强化逐条整改、责任划分问题。',
+   '', '']
+];
+function seedQuestions(){
+  return QBASE.map(b=>normQ({dir1:DIR1,dir2:b[0],content:b[1],source:b[2],level:b[3],desc:b[4],advice:b[5],law:b[6]}));
+}
+/* 按检查表名称隔离题库数据（懒初始化，持久化到 localStorage 供现场排查表读取） */
+const BANK={};
+function nameOf(code){ const d=DATA.find(x=>x.code===code); return d?d.name:code; }
+function bankKey(nm){ return 'svc_qbank_'+encodeURIComponent(nm); }
+function saveBank(code){ try{ localStorage.setItem(bankKey(nameOf(code)), JSON.stringify(BANK[code])); }catch(e){} }
+function bankOf(code){
+  const nm=nameOf(code);
+  if(!BANK[code]){
+    let arr=null;
+    try{ const s=localStorage.getItem(bankKey(nm)); if(s) arr=JSON.parse(s); }catch(e){}
+    if(!arr||!Array.isArray(arr)||!arr.length) arr=seedQuestions();
+    else arr=arr.map(normQ);
+    BANK[code]=arr; saveBank(code);
+  }
+  return BANK[code];
+}
+
+/* ==========================================================
+   一级视图：隐患检查表管理
+   ========================================================== */
+let state={page:1,size:10,q:{name:'',industry:'',status:''}};
+function filtered(){
+  const {name,industry,status}=state.q;
+  return DATA.filter(r=>(!name||r.name.toLowerCase().includes(name))
+    &&(!industry||r.industry===industry)
+    &&(!status||r.status===status));
+}
+function doSearch(){
+  state.q={name:$('#q_name').value.trim().toLowerCase(),industry:$('#q_industry').value,status:$('#q_status').value};
+  state.page=1;renderTable();
+}
+function doReset(){
+  $('#q_name').value='';$('#q_industry').value='';$('#q_status').value='';
+  state.q={name:'',industry:'',status:''};state.page=1;renderTable();
+}
+function toggleCollapse(){
+  const card=$('#searchCard'),b=$('#collapseBtn');
+  const open=card.classList.toggle('open');
+  b.classList.toggle('up',open);
+  b.firstChild.textContent=open?'收起':'展开';
+}
+function setSize(v){state.size=+v;state.page=1;renderTable();}
+function gotoPage(p){state.page=p;renderTable();}
+
+function renderTable(){
+  const rows=filtered(),total=rows.length,size=state.size;
+  const pages=Math.max(1,Math.ceil(total/size));
+  if(state.page>pages)state.page=pages;
+  const start=(state.page-1)*size,cur=rows.slice(start,start+size);
+  $('#tbody').innerHTML=cur.length?cur.map((r,i)=>{
+    const idx=DATA.indexOf(r);
+    return `<tr>
+      <td>${start+i+1}</td>
+      <td title="${esc(r.code)}">${esc(r.code)}</td>
+      <td title="${esc(r.name)}">${esc(r.name)}</td>
+      <td>${esc(r.industry)}</td>
+      <td><span class="st ${r.status==='启用'?'on':'off'}">${esc(r.status)}</span></td>
+      <td>${esc(r.creator)}</td>
+      <td>${esc(r.org)}</td>
+      <td>${esc(r.time)}</td>
+      <td class="op"><a onclick="openEdit(${idx})">编辑</a><a onclick="toggleStatus(${idx})">${r.status==='启用'?'停用':'启用'}</a><a onclick="configQ(${idx})">题目配置</a></td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="9" class="empty">暂无数据</td></tr>`;
+  renderPager(total,pages);
+}
+function renderPager(total,pages){
+  const cur=state.page;
+  let wS=Math.max(1,cur-2),wE=Math.min(pages,wS+4);wS=Math.max(1,wE-4);
+  let pg='';for(let i=wS;i<=wE;i++)pg+=`<button class="pgbtn ${i===cur?'on':''}" onclick="gotoPage(${i})">${i}</button>`;
+  $('#pager').innerHTML=
+    `<span>共 ${total} 条</span>`+
+    `<select class="sizesel" onchange="setSize(this.value)">${[10,20,50].map(n=>`<option ${n===state.size?'selected':''}>${n}条/页</option>`).join('')}</select>`+
+    `<button class="pgbtn" onclick="gotoPage(${Math.max(1,cur-1)})" ${cur===1?'disabled':''}>‹</button>`+
+    pg+
+    `<button class="pgbtn" onclick="gotoPage(${Math.min(pages,cur+1)})" ${cur===pages?'disabled':''}>›</button>`+
+    `<span class="go">前往<input type="number" min="1" max="${pages}" value="${cur}" onchange="gotoPage(Math.min(${pages},Math.max(1,+this.value||1)))">页</span>`;
+}
+
+/* ===== 检查表 行操作 ===== */
+function toggleStatus(i){
+  const r=DATA[i];
+  r.status=r.status==='启用'?'停用':'启用';
+  saveTables();
+  renderTable();toast(`「${r.name}」已${r.status}`);
+}
+/* 进入二级页面：题库配置 */
+let curIdx=-1;
+function configQ(i){
+  curIdx=i;const r=DATA[i];
+  $('#listView').classList.add('hide');
+  $('#qView').classList.remove('hide');
+  $('#qName').textContent=r.name;
+  $('#qCode').textContent=r.code;
+  renderTopbar(['隐患检查表管理', r.name+' · 题库配置']);
+  qState={page:1,size:10,q:{content:'',level:''}};
+  qSel.clear();
+  doQReset(true);
+  renderQTable();
+}
+function backToList(){
+  $('#qView').classList.add('hide');
+  $('#listView').classList.remove('hide');
+  curIdx=-1;
+  renderTopbar(['隐患检查表管理']);
+  renderTable();
+}
+
+/* ===== 检查表 新增 / 编辑弹窗 ===== */
+let editIdx=-1;
+function closeModal(){$('#mask').classList.remove('show');}
+$('#mask').addEventListener('click',e=>{if(e.target===$('#mask'))closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+function openAdd(){
+  editIdx=-1;
+  $('#mtitle').textContent='新增检查表';
+  $('#e_code').value='';$('#e_name').value='';
+  fillSel($('#e_industry'),INDUSTRIES,'');
+  $('#e_status').value='启用';
+  $('#mask').classList.add('show');$('#e_name').focus();
+}
+function openEdit(i){
+  const r=DATA[i];editIdx=i;
+  $('#mtitle').textContent='编辑检查表';
+  $('#e_code').value=r.code;$('#e_name').value=r.name;
+  fillSel($('#e_industry'),INDUSTRIES,r.industry);
+  $('#e_status').value=r.status;
+  $('#mask').classList.add('show');
+}
+function genCode(){return '208'+String(Date.now()).slice(-16).padStart(16,'0');}
+function saveForm(){
+  const name=$('#e_name').value.trim();
+  if(!name){toast('请输入检查表名称');return;}
+  if(!$('#e_industry').value){toast('请选择适用行业');return;}
+  const rec={
+    code:$('#e_code').value||genCode(),
+    name:name,
+    industry:$('#e_industry').value,
+    status:$('#e_status').value,
+    creator:'安全服务端',
+    org:'安全服务端',
+    time:fmt(new Date())
+  };
+  if(editIdx<0){DATA.unshift(rec);state.page=1;toast('检查表新增成功');}
+  else{rec.creator=DATA[editIdx].creator;rec.org=DATA[editIdx].org;rec.time=DATA[editIdx].time;DATA[editIdx]=rec;toast('检查表已更新');}
+  closeModal();renderTable();saveTables();
+}
+
+/* ==========================================================
+   二级视图：题库配置（按检查表隔离）
+   ========================================================== */
+let qState={page:1,size:10,q:{content:'',level:''}};
+let qSel=new Set();
+function qFiltered(){
+  const {content,level}=qState.q;
+  const rows=bankOf(DATA[curIdx].code);
+  return rows.filter(r=>(!content||r.content.toLowerCase().includes(content))
+    &&(!level||r.level===level))
+    .sort((a,b)=> a.dir1===b.dir1 ? a.dir2.localeCompare(b.dir2,'zh-Hans-CN') : a.dir1.localeCompare(b.dir1,'zh-Hans-CN'));
+}
+function doQSearch(){
+  qState.q={content:$('#qq_content').value.trim().toLowerCase(),level:$('#qq_level').value};
+  qState.page=1;renderQTable();
+}
+function doQReset(silent){
+  $('#qq_content').value='';$('#qq_level').value='';
+  if(!silent){qState.q={content:'',level:''};qState.page=1;renderQTable();}
+  else{qState.q={content:'',level:''};}
+}
+function qToggleCollapse(){
+  const card=$('#qSearchCard'),b=$('#qCollapseBtn');
+  const open=card.classList.toggle('open');
+  b.classList.toggle('up',open);
+  b.firstChild.textContent=open?'收起':'展开';
+}
+function qSetSize(v){qState.size=+v;qState.page=1;renderQTable();}
+function qGotoPage(p){qState.page=p;renderQTable();}
+
+function qCls(l){return l==='重大隐患'?'red':'green';}
+function renderQTable(){
+  const rows=qFiltered(),total=rows.length,size=qState.size;
+  const pages=Math.max(1,Math.ceil(total/size));
+  if(qState.page>pages)qState.page=pages;
+  const start=(qState.page-1)*size,cur=rows.slice(start,start+size);
+  const bank=bankOf(DATA[curIdx].code);
+  let qhtml='';
+  if(cur.length){
+    cur.forEach(rr=>{
+      const ix=bank.indexOf(rr);
+      qhtml+=`<tr>
+        <td class="c"><input type="checkbox" ${qSel.has(ix)?'checked':''} onchange="qRowCheck(${ix},this.checked)"></td>
+        <td title="${esc(rr.dir1)}">${esc(rr.dir1)}</td>
+        <td title="${esc(rr.dir2)}">${esc(rr.dir2)}</td>
+        <td title="${esc(rr.content)}">${esc(rr.content)}</td>
+        <td title="${esc(rr.source)}">${esc(rr.source)}</td>
+        <td><span class="lv ${qCls(rr.level)}">${esc(rr.level)}</span></td>
+        <td title="${esc(rr.desc)}">${esc(rr.desc)}</td>
+        <td title="${esc(rr.advice)}">${esc(rr.advice)}</td>
+        <td title="${esc(rr.law)}">${esc(rr.law)}</td>
+        <td class="op"><a onclick="openQEdit(${ix})">编辑</a><a onclick="qDel(${ix})">删除</a></td>
+      </tr>`;
+    });
+  }
+  $('#qbody').innerHTML=qhtml||`<tr><td colspan="10" class="empty">暂无数据</td></tr>`;
+  // 同步全选框状态与选中提示
+  const visSel=cur.filter(r=>qSel.has(bank.indexOf(r))).length;
+  const all=$('#qCheckAll');
+  all.checked=cur.length>0&&visSel===cur.length;
+  all.indeterminate=visSel>0&&visSel<cur.length;
+  $('#qSelInfo').textContent=qSel.size?`已选 ${qSel.size} 项`:'';
+  $('#qBatchBtn').disabled=!qSel.size;
+  renderQPager(total,pages);
+}
+function renderQPager(total,pages){
+  const cur=qState.page;
+  let wS=Math.max(1,cur-2),wE=Math.min(pages,wS+4);wS=Math.max(1,wE-4);
+  let pg='';for(let i=wS;i<=wE;i++)pg+=`<button class="pgbtn ${i===cur?'on':''}" onclick="qGotoPage(${i})">${i}</button>`;
+  $('#qpager').innerHTML=
+    `<span>共 ${total} 条</span>`+
+    `<select class="sizesel" onchange="qSetSize(this.value)">${[10,20,50].map(n=>`<option ${n===qState.size?'selected':''}>${n}条/页</option>`).join('')}</select>`+
+    `<button class="pgbtn" onclick="qGotoPage(${Math.max(1,cur-1)})" ${cur===1?'disabled':''}>‹</button>`+
+    pg+
+    `<button class="pgbtn" onclick="qGotoPage(${Math.min(pages,cur+1)})" ${cur===pages?'disabled':''}>›</button>`+
+    `<span class="go">前往<input type="number" min="1" max="${pages}" value="${cur}" onchange="qGotoPage(Math.min(${pages},Math.max(1,+this.value||1)))">页</span>`;
+}
+
+/* ===== 题库 行操作 ===== */
+function qDel(i){ const b=bankOf(DATA[curIdx].code); b.splice(i,1); saveBank(DATA[curIdx].code); renderQTable(); toast('已删除该题'); }
+
+/* ===== 题库 多选 / 批量删除 ===== */
+function qRowCheck(idx,checked){ checked?qSel.add(idx):qSel.delete(idx); renderQTable(); }
+function qCheckAllToggle(checked){
+  const bank=bankOf(DATA[curIdx].code);
+  const cur=qFiltered().slice((qState.page-1)*qState.size,qState.page*qState.size);
+  cur.forEach(r=>{const idx=bank.indexOf(r);checked?qSel.add(idx):qSel.delete(idx);});
+  renderQTable();
+}
+function qBatchDel(){
+  if(!qSel.size){toast('请先勾选要删除的题目');return;}
+  if(!confirm(`确认删除选中的 ${qSel.size} 道题？`))return;
+  const bank=bankOf(DATA[curIdx].code);
+  for(let i=bank.length-1;i>=0;i--)if(qSel.has(i))bank.splice(i,1);
+  qSel.clear();saveBank(DATA[curIdx].code);renderQTable();toast('已批量删除');
+}
+
+/* ===== 题库 新增 / 编辑弹窗 ===== */
+let qEditIdx=-1;
+function closeQModal(){$('#qMask').classList.remove('show');}
+$('#qMask').addEventListener('click',e=>{if(e.target===$('#qMask'))closeQModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeQModal();});
+
+function openQAdd(){
+  qEditIdx=-1;
+  $('#qmTitle').textContent='新增题目';
+  ['qm_dir1','qm_dir2','qm_content','qm_source','qm_desc','qm_advice','qm_law'].forEach(id=>$('#'+id).value='');
+  $('#qm_level').value='';
+  $('#qMask').classList.add('show');$('#qm_dir1').focus();
+}
+function openQEdit(i){
+  const r=bankOf(DATA[curIdx].code)[i];qEditIdx=i;
+  $('#qmTitle').textContent='编辑题目';
+  $('#qm_dir1').value=r.dir1;$('#qm_dir2').value=r.dir2;$('#qm_content').value=r.content;
+  $('#qm_source').value=r.source;$('#qm_level').value=r.level;$('#qm_desc').value=r.desc;
+  $('#qm_advice').value=r.advice;$('#qm_law').value=r.law;
+  $('#qMask').classList.add('show');
+}
+function saveQForm(){
+  const dir1=$('#qm_dir1').value.trim(), dir2=$('#qm_dir2').value.trim(), content=$('#qm_content').value.trim();
+  if(!dir1){toast('请输入检查对象一级目录');return;}
+  if(!dir2){toast('请输入检查对象二级目录');return;}
+  if(!content){toast('请输入检查内容');return;}
+  if(!$('#qm_level').value){toast('请选择隐患等级');return;}
+  const rec={
+    dir1:dir1, dir2:dir2, content:content,
+    source:$('#qm_source').value.trim(),
+    level:$('#qm_level').value, desc:$('#qm_desc').value.trim(),
+    advice:$('#qm_advice').value.trim(), law:$('#qm_law').value.trim()
+  };
+  const bank=bankOf(DATA[curIdx].code);
+  if(qEditIdx<0){bank.unshift(rec);toast('题目新增成功');}
+  else{bank[qEditIdx]=rec;toast('题目已更新');}
+  saveBank(DATA[curIdx].code); closeQModal();renderQTable();
+}
+
+/* ===== 题库 批量导入 ===== */
+let impText='';
+function openImp(){
+  impText='';
+  $('#impInput').value='';
+  $('#impFile').textContent='未选择文件';
+  $('#impMsg').textContent='';
+  $('#impMask').classList.add('show');
+}
+function closeImp(){$('#impMask').classList.remove('show');}
+$('#impMask').addEventListener('click',e=>{if(e.target===$('#impMask'))closeImp();});
+function onImpFile(input){
+  const f=input.files&&input.files[0];if(!f)return;
+  $('#impFile').textContent=f.name;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    impText=ev.target.result||'';
+    const {rows,skip}=parseImport(impText);
+    $('#impMsg').textContent=`已读取文件，解析到 ${rows.length} 条有效数据${skip?`，${skip} 条无效`:''}，点击「导入」写入题库`;
+  };
+  reader.onerror=()=>{ $('#impMsg').textContent='文件读取失败，请重试'; };
+  reader.readAsText(f);
+}
+function downloadTpl(){
+  const header='检查对象一级目录,检查对象二级目录,检查内容,依据来源,隐患等级,隐患描述,整改建议,法律原文\n';
+  const sample='房屋市政工程,资质与许可,是否取得安全生产许可证、资质,《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（一）,重大隐患,未取得安全生产许可证擅自承揽工程,依法取得资质并在许可范围内承揽工程\n';
+  const blob=new Blob(['﻿'+header+sample],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='题库导入模板.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+function parseImport(text){
+  const lines=text.split(/\r?\n/).map(l=>l.replace(/^﻿/,'').trim()).filter(Boolean);
+  const rows=[];let skip=0;
+  lines.forEach(line=>{
+    const delim=line.includes('\t')?'\t':',';
+    const c=line.split(delim).map(s=>s.trim());
+    const [dir1,dir2,content,source,level,desc,advice,law]=c;
+    if(!content){skip++;return;}
+    rows.push({
+      dir1:dir1||DIR1,dir2:dir2||'',
+      content,
+      source:source||'',
+      level:LEVELS.includes(level)?level:'',
+      desc:desc||'',advice:advice||'',law:law||''
+    });
+  });
+  return {rows,skip};
+}
+function doImport(){
+  if(!impText.trim()){toast('请先上传导入文件');return;}
+  const {rows,skip}=parseImport(impText);
+  if(!rows.length){toast('未解析到有效数据');return;}
+  const bank=bankOf(DATA[curIdx].code);
+  bank.unshift(...rows);
+  saveBank(DATA[curIdx].code);
+  closeImp();
+  renderQTable();
+  toast(`成功导入 ${rows.length} 条${skip?`，跳过 ${skip} 条无效/缺检查内容`:''}`);
+}
+
+/* ===== 初始化（公共组件入口） ===== */
+initTech({
+  bread:['隐患检查表管理'],
+  active:'检查表管理',
+  tabs:['检查表管理'],
+  tabActive:'检查表管理'
+});
+renderTable();
+</script>
+</body>
+</html>
