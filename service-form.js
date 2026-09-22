@@ -362,8 +362,26 @@ function scorePick(id){
 function closeScoreSheet(){ const b = document.getElementById('scoreSheet'); if(b) b.classList.remove('show'); }
 
 /* 现场排查表：从保险机构端「检查表管理」中选取状态为“启用”、且「适用行业」与企业行业一致的检查表添加 */
+/* 机构端「检查表管理」示例数据：当浏览器中还没有 ins_patrol_tables（未打开过机构端页面）时兜底，保证演示环境可用 */
+const PATROL_DEFAULT_TABLES = [
+  {code:'2088082639112712118', name:'施工现场安全风险检查表',           industry:'建筑施工',   status:'启用', creator:'监管部门',     org:'-'},
+  {code:'2088082343800156119', name:'施工现场安全隐患检查表',           industry:'建筑施工',   status:'启用', creator:'监管部门',     org:'-'},
+  {code:'2085181952246018017', name:'化学品生产企业重大事故隐患排查表', industry:'危险化学品', status:'启用', creator:'监管部门',     org:'-'},
+  {code:'2085181733529841613', name:'市政房屋工程重大事故隐患排查表',   industry:'建筑施工',   status:'停用', creator:'监管部门',     org:'-'},
+  {code:'2084923126070505410', name:'建筑施工-市政房屋工程隐患排查表', industry:'建筑施工',   status:'停用', creator:'监管部门',     org:'-'},
+  {code:'2084897736211951612', name:'工贸企业',                         industry:'其他',       status:'启用', creator:'技术人员测试', org:'中国人寿保险'},
+  {code:'2084583522133995514', name:'111',                              industry:'煤矿',       status:'启用', creator:'技术人员测试', org:'-'},
+  {code:'2084556149107847116', name:'测试金属矿',                       industry:'煤矿',       status:'启用', creator:'监管部门',     org:'-'},
+  {code:'2004115218715000811', name:'自定',                             industry:'煤矿',       status:'启用', creator:'技术人员测试', org:'中国人寿保险'},
+  {code:'2004115074573549515', name:'定义及',                           industry:'交通运输',   status:'启用', creator:'技术人员测试', org:'中国人寿保险'}
+];
 function patrolTables(){
-  try{ const s = localStorage.getItem('ins_patrol_tables'); const a = s ? JSON.parse(s) : []; return Array.isArray(a) ? a : []; }catch(e){ return []; }
+  try{
+    const s = localStorage.getItem('ins_patrol_tables');
+    const a = s ? JSON.parse(s) : [];
+    if(Array.isArray(a) && a.length) return a;   // 机构端已初始化 → 以机构端数据为准
+  }catch(e){}
+  return PATROL_DEFAULT_TABLES;                  // 机构端未初始化 → 使用内置示例数据
 }
 /* 企业行业：优先取 URL 参数 industry，其次按企业名称匹配「服务计划管理」数据，最后用演示映射兜底 */
 const DEMO_COMPANY_INDUSTRY = { '福州无比欢信息科技有限公司':'建筑施工', '福建厦发信息有限公司':'建筑施工' };
