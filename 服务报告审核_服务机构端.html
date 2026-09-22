@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>服务报告审核 · 服务机构端</title>
+<link rel="stylesheet" href="tech-common.css">
+<style>
+  #grid{table-layout:fixed}
+  #grid td{overflow:hidden;text-overflow:ellipsis}
+
+  /* 查询卡片 */
+  .qcard{padding:16px 18px;margin-bottom:14px}
+  .qline{display:flex;align-items:center;gap:22px}
+  .qline+.qline{margin-top:14px}
+  .qfi{flex:1;min-width:0;display:flex;align-items:center}
+  .qfi label{flex:0 0 auto;padding-right:10px;color:#5d6879;white-space:nowrap}
+  .qfi input,.qfi select{flex:1;min-width:0;height:34px;border:1px solid #dfe4ed;border-radius:5px;padding:0 10px;font-size:13px;color:var(--txt);background:#fff;outline:none}
+  .qfi input:focus,.qfi select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(43,92,230,.12)}
+  .qacts{margin-left:auto;display:flex;align-items:center;gap:10px;flex:0 0 auto}
+
+  /* 工具栏 */
+  .tbar{display:flex;align-items:center;gap:12px;margin:0 0 14px}
+  .tbar .tip{margin-left:auto;color:#9aa3b2;font-size:12.5px}
+  .empty{text-align:center;color:var(--sub);padding:44px 0}
+
+  /* 按钮补充色 */
+  .btn.ok{background:#2fa96b;border-color:#2fa96b;color:#fff}
+  .btn.ok:hover{background:#27935c;border-color:#27935c}
+  .btn.no{background:#e5484d;border-color:#e5484d;color:#fff}
+  .btn.no:hover{background:#cf3b40;border-color:#cf3b40}
+  .btn.back{background:#8a63d2;border-color:#8a63d2;color:#fff}
+  .btn.back:hover{background:#7653bf;border-color:#7653bf}
+
+  /* 详情/审核弹窗 */
+  .modal.doc{width:min(1080px,96vw);height:min(820px,94vh);max-height:94vh}
+  .rhead{display:flex;gap:20px;background:#f7f9fc;border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin-bottom:14px}
+  .rinfo{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:2px 24px}
+  .rmeta{flex:0 0 180px;border-left:1px dashed #e2e7f0;padding-left:18px;display:flex;flex-direction:column;justify-content:center;gap:12px}
+  .rmrow{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#8b91a0}
+  .rmrow b{font-size:14px;color:#2b3242;font-weight:600}
+  .rrow{display:flex;gap:12px;padding:7px 0;border-bottom:1px dashed #eef1f6;font-size:13px}
+  .rrow .rk{flex:0 0 130px;color:#8b91a0}
+  .rrow .rv{flex:1;color:#2b3242;word-break:break-word}
+
+  .rsec{font-size:14px;font-weight:600;color:var(--brand);margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+  .rsec::before{content:"";width:3px;height:14px;background:var(--brand);border-radius:2px}
+  .hzt{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+  .hzt th{background:#f7f9fc;color:#5d6879;font-weight:600;text-align:left;padding:8px 10px;border:1px solid #eef1f6;white-space:nowrap}
+  .hzt td{padding:8px 10px;border:1px solid #eef1f6;color:#2b3242;white-space:normal}
+
+  /* 审核记录 */
+  .revrow{background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:10px}
+  .revtop{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .revstage{font-size:13px;font-weight:600;color:#2b3242}
+  .revmeta{color:#9aa3b2;font-size:12px}
+  .revop{background:#f7f9fc;border-radius:4px;padding:8px 10px;font-size:13px;color:#2b3242;white-space:pre-wrap;line-height:1.6}
+  .empty2{color:#9aa3b2;padding:8px 0 14px;font-size:13px}
+
+  /* 审核操作区 */
+  .revbox{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
+  .wd textarea{width:100%;min-height:84px;resize:vertical;border:1px solid #dfe4ed;border-radius:5px;padding:9px 10px;font-size:13px;line-height:1.6;color:var(--txt);background:#fff;outline:none;font-family:inherit}
+  .wd textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(43,92,230,.12)}
+  .rev-actions{display:flex;gap:12px;margin-top:12px}
+  .revdone{margin-bottom:12px;font-size:13px;color:#5d6879}
+
+  /* PDF 操作条 */
+  .rbar{display:flex;gap:10px;margin:0 0 4px}
+
+  /* 报告 PDF 生成源（离屏） */
+  .pdfsrc{position:fixed;left:-10000px;top:0;width:794px;background:#fff;color:#1f2329;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  .pdfsrc .doc{padding:50px 56px 40px}
+  .pdfsrc .head{text-align:center;border-bottom:2px solid #1f2329;padding-bottom:14px}
+  .pdfsrc .head .k{font-size:12px;color:#8a909c;letter-spacing:3px}
+  .pdfsrc .head .h{font-size:22px;font-weight:800;margin-top:8px}
+  .pdfsrc table.meta{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}
+  .pdfsrc table.meta td{padding:7px 10px;border:1px solid #e6e9ef;vertical-align:top;white-space:normal}
+  .pdfsrc table.meta td.k{width:118px;color:#8a909c;background:#f7f9fc;font-weight:600}
+  .pdfsrc h3{font-size:15px;margin:20px 0 8px;padding-left:9px;border-left:3px solid var(--brand)}
+  .pdfsrc table.kv{width:100%;border-collapse:collapse;font-size:13px}
+  .pdfsrc table.kv td{padding:7px 10px;border:1px solid #eef1f6;vertical-align:top;white-space:normal}
+  .pdfsrc table.kv td.k{width:140px;color:#8a909c;font-weight:600}
+  .pdfsrc table.hz{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+  .pdfsrc table.hz th,.pdfsrc table.hz td{padding:7px 9px;border:1px solid #e6e9ef;text-align:left;white-space:normal}
+  .pdfsrc table.hz th{background:#f7f9fc;color:#5d6879;font-weight:600}
+  .pdfsrc .sign{display:flex;justify-content:space-between;margin-top:28px;font-size:12px;color:#8a909c}
+  .pdfload{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#5d6879;font-size:14px}
+  #pdfframe{width:100%;height:100%;border:0}
+
+  @media (max-width:1024px){
+    .qline{flex-wrap:wrap}
+    .qfi{flex:1 1 100%}
+    .qacts{margin-left:0}
+    .rhead{flex-direction:column}
+    .rmeta{flex:0 0 auto;border-left:none;border-top:1px dashed #e2e7f0;padding-left:0;padding-top:12px;flex-direction:row}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="side">
+    <div class="brand"><i class="logo"><i></i><b></b></i><span>安全服务端</span></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-toggle" onclick="toggleSide()" title="收起/展开菜单"><i>«</i></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar" id="topbar"></header>
+
+    <div class="page">
+      <!-- 查询 -->
+      <div class="card qcard">
+        <div class="qline">
+          <div class="qfi"><label>企业名称：</label>
+            <input id="q_company" placeholder="请输入企业名称" onkeydown="if(event.key==='Enter')doSearch()"></div>
+          <div class="qfi"><label>服务项目：</label>
+            <select id="q_project">
+              <option value="">全部</option>
+              <option>安全生产宣传教育培训</option>
+              <option>生产安全重大事故隐患排查</option>
+              <option>安全风险辨识、评估、评价</option>
+              <option>安全生产应急救援演练</option>
+              <option>安全生产应急预案编制</option>
+              <option>安全生产标准化管理体系建设</option>
+            </select></div>
+          <div class="qacts">
+            <button class="btn primary" onclick="doSearch()">查询</button>
+            <button class="btn" onclick="doReset()">重置</button>
+          </div>
+        </div>
+        <div class="qline">
+          <div class="qfi"><label>审核状态：</label>
+            <select id="q_status">
+              <option value="">全部</option>
+              <option>待初审</option><option>初审通过</option>
+              <option>初审不通过</option><option>退回修改</option>
+            </select></div>
+          <div class="qfi"></div>
+          <div class="qacts"></div>
+        </div>
+      </div>
+
+      <!-- 工具栏 -->
+      <div class="tbar">
+        <span class="tip">报告需先经「服务机构初审」，初审通过后自动提交保险机构端「复审 → 终审」。</span>
+      </div>
+
+      <!-- 列表 -->
+      <div class="card table-wrap">
+        <table id="grid">
+          <colgroup>
+            <col style="width:150px"><col style="width:180px"><col style="width:180px"><col style="width:130px">
+            <col style="width:140px"><col style="width:110px"><col style="width:110px">
+          </colgroup>
+          <thead><tr>
+            <th>预防服务工单</th><th>企业名称</th><th>服务项目</th><th>计划服务日期</th>
+            <th>提交时间</th><th>审核状态</th><th>操作</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="pager" id="pager"></div>
+    </div>
+  </main>
+</div>
+
+<!-- 详情 / 审核弹窗 -->
+<div class="mask" id="mask">
+  <div class="modal doc">
+    <div class="mhead">
+      <div class="mtitle" id="mtitle">服务报告审核</div>
+      <div class="mclose" onclick="closeModal()">✕</div>
+    </div>
+    <div class="mbody" id="mbody"></div>
+  </div>
+</div>
+
+<!-- 报告 PDF 预览弹窗 -->
+<div class="mask" id="pdfmask">
+  <div class="modal doc">
+    <div class="mhead">
+      <div class="mtitle">报告 PDF 预览</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn" id="pdfDl" style="display:none" onclick="downloadPDF()">下载 PDF</button>
+        <div class="mclose" onclick="closePdfModal()">✕</div>
+      </div>
+    </div>
+    <div class="mbody" style="padding:0;position:relative">
+      <iframe id="pdfframe" style="display:none"></iframe>
+      <div id="pdfload" class="pdfload">正在生成报告 PDF…</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<!-- 报告 PDF 生成源（离屏） -->
+<div id="pdfSrc" class="pdfsrc"></div>
+
+<script src="tech-common.js"></script>
+<script src="libs/html2canvas.min.js"></script>
+<script src="libs/jspdf.umd.min.js"></script>
+<script>
+/* ===== 工具 ===== */
+function val(id){return $('#'+id).value.trim();}
+function nowStr(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;}
+function stCls(s){
+  if(s==='待初审')return 'blue';
+  if(s==='初审通过')return 'green';
+  if(s==='退回修改')return 'gray';
+  return 'red';
+}
+
+/* ===== 数据 ===== */
+const STORE_KEY='org_review_reports';
+let REPORTS=[];
+let curNo='';
+
+function seedReports(){
+  return [
+    {no:'YF20260001',company:'福州无比欢信息科技有限公司',project:'生产安全重大事故隐患排查',
+     date:'2025.01.01-2025.01.05',place:'福州马尾区海峡广场A座',contact:'张三',phone:'18000000000',
+     submitTime:'2026-09-10 14:30',status:'待初审',
+     content:{
+       sections:[
+         {title:'现场照片',rows:[['企业（项目）门牌照','2 张'],['技术人员现场服务照片','2 张'],['现场检查照片','0 张']]},
+         {title:'现场排查',rows:[['现场用电类排查表','已完成'],['安全管理类排查表','已完成']]}
+       ],
+       hazards:[
+         {name:'消防通道被杂物堵塞，影响应急疏散',category:'消防安全类',level:'重大隐患',owner:'张伟',deadline:'2026-09-30',status:'整改中'},
+         {name:'配电箱未上锁且缺少安全警示标识',category:'现场用电类',level:'一般隐患',owner:'李强',deadline:'2026-10-15',status:'未整改'},
+         {name:'临时用电线缆拖地敷设未做防护',category:'现场用电类',level:'一般隐患',owner:'王芳',deadline:'2026-09-28',status:'已整改'},
+         {name:'起重机限位装置失效，存在超限风险',category:'特种设备类',level:'重大隐患',owner:'赵磊',deadline:'2026-10-08',status:'未整改'}
+       ]
+     },reviews:{}},
+    {no:'YF20260002',company:'福建蓝海石化有限公司',project:'安全风险辨识、评估、评价',
+     date:'2025.02.10-2025.02.12',place:'泉州泉港区石化园区',contact:'陈敏',phone:'18100000001',
+     submitTime:'2026-09-08 10:12',status:'初审通过',
+     content:{
+       sections:[
+         {title:'风险辨识',rows:[['风险点名称','储罐区静电接地装置'],['风险点种类','设备设施'],['可能导致的事故种类','火灾、爆炸'],['评价方法','风险判定矩阵法（R=LS）'],['风险等级','较大风险（橙）'],['管控措施','增设等电位跨接并定期检测接地电阻，纳入日常巡检']]}
+       ],hazards:[]
+     },reviews:{review1:{result:'通过',opinion:'辨识方法正确，等级判定与管控措施合理，同意提交保险机构复审。',reviewer:'安全服务端·技术负责人',time:'2026-09-09 09:20'}}},
+    {no:'YF20260003',company:'厦门云途物流有限公司',project:'安全生产宣传教育培训',
+     date:'2025.03.01-2025.03.01',place:'厦门集美区物流园',contact:'林涛',phone:'18200000002',
+     submitTime:'2026-09-11 16:45',status:'待初审',
+     content:{
+       sections:[
+         {title:'培训信息',rows:[['培训形式','线下培训'],['培训主题','新《安全生产法》专题培训'],['培训对象','全体人员、特种作业人员'],['参与人数','86 人'],['培训效果评估','满意度调查']]}
+       ],hazards:[]
+     },reviews:{}},
+    {no:'YF20260004',company:'龙岩恒基机械制造有限公司',project:'安全生产应急救援演练',
+     date:'2025.03.15-2025.03.15',place:'龙岩新罗区经开区',contact:'黄蕾',phone:'18300000003',
+     submitTime:'2026-09-05 11:30',status:'初审通过',
+     content:{
+       sections:[
+         {title:'演练信息',rows:[['演练名称','特种设备事故专项应急演练'],['演练类型','专项应急演练'],['演练方式','实战演练'],['演练地点','厂区冲压车间'],['演练人数','42 人'],['效果评价','达到既定目标']]},
+         {title:'演练评估',rows:[['方案编制','符合'],['人员分工','符合'],['组织协调','基本符合'],['事故报告','符合'],['人员配合','符合'],['应急处置','符合'],['医疗救护','符合']]}
+       ],hazards:[]
+     },reviews:{review1:{result:'通过',opinion:'演练组织规范，评估结论客观，同意提交保险机构复审。',reviewer:'安全服务端·技术负责人',time:'2026-09-06 09:10'}}},
+    {no:'YF20260005',company:'漳州绿源食品有限公司',project:'安全生产应急预案编制',
+     date:'2025.04.02-2025.04.03',place:'漳州龙海区',contact:'吴静',phone:'18400000004',
+     submitTime:'2026-09-09 09:50',status:'退回修改',
+     content:{
+       sections:[
+         {title:'预案信息',rows:[['应急预案名称','漳州绿源食物中毒突发事件应急预案'],['预案种类','专项应急预案'],['事故种类','中毒、泄漏'],['应急组织架构及分工','后勤保障组职责描述缺失']]}
+       ],hazards:[]
+     },reviews:{review1:{result:'退回',opinion:'应急组织架构中后勤保障组职责描述缺失，请补充后重新提交。',reviewer:'安全服务端·技术负责人',time:'2026-09-09 17:30'}}},
+    {no:'YF20260006',company:'莆田宏远纺织有限公司',project:'安全生产标准化管理体系建设',
+     date:'2025.04.20-2025.04.22',place:'莆田秀屿区',contact:'郑凯',phone:'18500000005',
+     submitTime:'2026-09-07 13:20',status:'初审不通过',
+     content:{
+       sections:[
+         {title:'标准化评分',rows:[['标准总分','100 分'],['扣除分','12 分'],['空项分','8 分'],['评定得分','80 分'],['百分制总分','87.0 分']]}
+       ],hazards:[]
+     },reviews:{review1:{result:'不通过',opinion:'评分与扣分项佐证材料不一致，整改记录未上传，初审不通过。',reviewer:'安全服务端·技术负责人',time:'2026-09-08 10:40'}}}
+  ];
+}
+function loadReports(){
+  try{const s=localStorage.getItem(STORE_KEY);if(s){const a=JSON.parse(s);if(Array.isArray(a)&&a.length)return a;}}catch(e){}
+  const seed=seedReports();saveReports(seed);return seed;
+}
+function saveReports(arr){try{localStorage.setItem(STORE_KEY,JSON.stringify(arr||REPORTS));}catch(e){}}
+function getReport(no){return REPORTS.find(r=>r.no===no);}
+
+/* ===== 查询与分页 ===== */
+const state={page:1,size:10,q:{company:'',project:'',status:''}};
+function doSearch(){
+  state.q.company=val('q_company');state.q.project=val('q_project');state.q.status=val('q_status');
+  state.page=1;renderTable();
+}
+function doReset(){
+  ['q_company','q_project','q_status'].forEach(id=>$('#'+id).value='');
+  state.q={company:'',project:'',status:''};state.page=1;renderTable();
+}
+function filtered(){
+  return REPORTS.filter(r=>
+    (!state.q.company||r.company.includes(state.q.company)) &&
+    (!state.q.project||r.project===state.q.project) &&
+    (!state.q.status||r.status===state.q.status)
+  );
+}
+function renderTable(){
+  const list=filtered();
+  const total=list.length,pages=Math.max(1,Math.ceil(total/state.size));
+  if(state.page>pages)state.page=pages;
+  const start=(state.page-1)*state.size;
+  const cur=list.slice(start,start+state.size);
+  $('#tbody').innerHTML=cur.length?cur.map(r=>`
+    <tr>
+      <td title="${esc(r.no)}">${esc(r.no)}</td>
+      <td title="${esc(r.company)}">${esc(r.company)}</td>
+      <td title="${esc(r.project)}">${esc(r.project)}</td>
+      <td>${esc(r.date)}</td>
+      <td>${esc(r.submitTime)}</td>
+      <td><span class="badge ${stCls(r.status)}">${esc(r.status)}</span></td>
+      <td class="op"><span class="link" onclick="openDetail('${r.no}')">查看 / 审核</span></td>
+    </tr>`).join(''):`<tr><td colspan="7" class="empty">暂无符合条件的报告</td></tr>`;
+  renderPager(total,pages);
+}
+function renderPager(total,pages){
+  let pg='';const wS=Math.max(1,state.page-2),wE=Math.min(pages,state.page+2);
+  for(let i=wS;i<=wE;i++)pg+=`<button class="pgbtn ${i===state.page?'on':''}" onclick="gotoPage(${i})">${i}</button>`;
+  $('#pager').innerHTML=
+    `<span class="total">共 <b>${total}</b> 条</span>
+     <div class="right">
+       <select onchange="setSize(this.value)">${[10,20,50].map(n=>`<option ${n===state.size?'selected':''}>${n}条/页</option>`).join('')}</select>
+       <span style="display:flex;gap:6px">
+         <button class="pgbtn" onclick="gotoPage(${Math.max(1,state.page-1)})" ${state.page===1?'disabled':''}>‹</button>${pg}
+         <button class="pgbtn" onclick="gotoPage(${Math.min(pages,state.page+1)})" ${state.page===pages?'disabled':''}>›</button>
+       </span>
+       <span class="jump">前往 <input type="number" min="1" max="${pages}" value="${state.page}" onchange="gotoPage(Math.min(${pages},Math.max(1,+this.value||1)))"> 页</span>
+     </div>`;
+}
+function gotoPage(p){state.page=Math.max(1,p|0);renderTable();}
+function setSize(n){state.size=+n;state.page=1;renderTable();}
+
+/* ===== 详情 / 审核 ===== */
+function closeModal(){$('#mask').classList.remove('show');}
+$('#mask').addEventListener('click',e=>{if(e.target===$('#mask'))closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closePdfModal();}});
+
+function renderHistory(r){
+  const items=[];
+  if(r.reviews.review1)items.push(['初审',r.reviews.review1]);
+  if(!items.length)return '<div class="rsec">审核记录</div><div class="empty2">暂无审核记录</div>';
+  let h='<div class="rsec">审核记录</div>';
+  items.forEach(([stage,rv])=>{
+    const cls=rv.result==='通过'?'green':(rv.result==='退回'?'gray':'red');
+    const txt=rv.result==='通过'?'审核通过':(rv.result==='退回'?'退回修改':'审核不通过');
+    h+=`<div class="revrow"><div class="revtop"><span class="revstage">${stage}</span><span class="badge ${cls}">${txt}</span><span class="revmeta">${esc(rv.reviewer)} · ${esc(rv.time)}</span></div><div class="revop">${esc(rv.opinion)||'—'}</div></div>`;
+  });
+  return h;
+}
+function renderRevBox(r){
+  if(r.status!=='待初审'){
+    return `<div class="revbox"><div class="rsec">审核结论</div>
+      <div class="revdone">本报告当前状态：<span class="badge ${stCls(r.status)}">${esc(r.status)}</span></div>
+      <button class="btn" onclick="resubmit('${r.no}')">模拟技术人员重新提交</button></div>`;
+  }
+  return `<div class="revbox"><div class="rsec">初审审核</div>
+    <div class="wd"><textarea id="revOpinion" maxlength="300" placeholder="初审意见（审核不通过 / 退回修改 时必填）"></textarea></div>
+    <div class="rev-actions">
+      <button class="btn ok" onclick="submitReview('通过')">审核通过</button>
+      <button class="btn no" onclick="submitReview('不通过')">审核不通过</button>
+      <button class="btn back" onclick="submitReview('退回')">退回修改</button>
+    </div></div>`;
+}
+function openDetail(no){
+  const r=getReport(no);if(!r)return;
+  curNo=no;
+  const infoRows=[['预防服务工单',r.no],['企业名称',r.company],['服务项目',r.project],['计划服务日期',r.date],['计划服务地点',r.place],['联系人',r.contact],['联系电话',r.phone]];
+  $('#mtitle').textContent='服务报告审核';
+  $('#mbody').innerHTML=
+    `<div class="rhead">
+       <div class="rinfo">${infoRows.map(([k,v])=>`<div class="rrow"><span class="rk">${k}</span><span class="rv">${esc(v)}</span></div>`).join('')}</div>
+       <div class="rmeta">
+         <div class="rmrow"><span>当前环节</span><b>初审</b></div>
+         <div class="rmrow"><span>审核状态</span><b class="badge ${stCls(r.status)}">${esc(r.status)}</b></div>
+       </div>
+     </div>
+     <div class="rbar">
+       <button class="btn" onclick="previewPDF()">预览报告 PDF</button>
+       <button class="btn" onclick="downloadPDF()">下载报告 PDF</button>
+     </div>
+     ${renderHistory(r)}
+     ${renderRevBox(r)}`;
+  $('#mask').classList.add('show');
+}
+function nextStatus(result){
+  if(result==='通过')return '初审通过';
+  if(result==='不通过')return '初审不通过';
+  return '退回修改';
+}
+function submitReview(result){
+  const r=getReport(curNo);if(!r)return;
+  if(r.status!=='待初审')return;
+  const opinion=val('revOpinion');
+  if(result!=='通过'&&!opinion)return toast(result==='退回'?'退回修改需填写审核意见':'审核不通过需填写审核意见');
+  r.reviews.review1={result,opinion,reviewer:'安全服务端·技术负责人',time:nowStr()};
+  r.status=nextStatus(result);
+  saveReports();renderTable();openDetail(curNo);
+  toast('审核提交成功：'+r.status);
+}
+function resubmit(no){
+  const r=getReport(no);if(!r)return;
+  r.status='待初审';r.reviews={};
+  saveReports();renderTable();openDetail(no);
+  toast('已模拟技术人员重新提交，回到待初审');
+}
+
+/* ===== 报告 PDF 生成与预览 ===== */
+let lastPdf=null,lastName='',lastNo='';
+function buildPdfHtml(r){
+  const info=[['预防服务工单',r.no],['企业名称',r.company],['服务项目',r.project],['计划服务日期',r.date],['计划服务地点',r.place],['联系人',r.contact],['联系电话',r.phone]];
+  const meta=info.map(([k,v])=>`<tr><td class="k">${esc(k)}</td><td>${esc(v)}</td></tr>`).join('');
+  let secs='';
+  (r.content.sections||[]).forEach(s=>{
+    secs+=`<h3>${esc(s.title)}</h3><table class="kv">`+(s.rows||[]).map(row=>`<tr><td class="k">${esc(row[0])}</td><td>${esc(row[1])}</td></tr>`).join('')+`</table>`;
+  });
+  let hz='';
+  if(r.content.hazards&&r.content.hazards.length){
+    hz=`<h3>隐患清单（共 ${r.content.hazards.length} 项）</h3><table class="hz"><thead><tr><th>隐患描述</th><th>类别</th><th>等级</th><th>责任人</th><th>期限</th><th>状态</th></tr></thead><tbody>`+
+      r.content.hazards.map(z=>`<tr><td>${esc(z.name)}</td><td>${esc(z.category)}</td><td>${esc(z.level)}</td><td>${esc(z.owner)}</td><td>${esc(z.deadline)}</td><td>${esc(z.status)}</td></tr>`).join('')+`</tbody></table>`;
+  }
+  return `<div class="doc"><div class="head"><div class="k">事故预防服务 · 服务报告</div><div class="h">${esc(r.project)}服务报告</div></div>`+
+    `<table class="meta">${meta}</table>${secs}${hz}`+
+    `<div class="sign"><span>编制：服务专员</span><span>审核：技术负责人</span><span>生成日期：${nowStr()}</span></div></div>`;
+}
+async function makePdf(no){
+  const r=getReport(no);if(!r)throw new Error('报告不存在');
+  const src=document.getElementById('pdfSrc');
+  src.innerHTML=buildPdfHtml(r);
+  await new Promise(requestAnimationFrame);
+  const canvas=await html2canvas(src,{scale:2,backgroundColor:'#ffffff',logging:false});
+  const img=canvas.toDataURL('image/jpeg',0.92);
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF('p','mm','a4');
+  const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight();
+  const iw=pw,ih=canvas.height*iw/canvas.width;
+  let pos=0,left=ih;
+  pdf.addImage(img,'JPEG',0,pos,iw,ih);left-=ph;
+  while(left>0){pos=left-ih;pdf.addPage();pdf.addImage(img,'JPEG',0,pos,iw,ih);left-=ph;}
+  return {pdf,filename:`${r.no}_${r.project}服务报告.pdf`};
+}
+async function ensurePdf(){
+  if(lastNo!==curNo||!lastPdf){const {pdf,filename}=await makePdf(curNo);lastPdf=pdf;lastName=filename;lastNo=curNo;}
+  return {pdf:lastPdf,filename:lastName};
+}
+function openPdfModal(){
+  $('#pdfmask').classList.add('show');
+  $('#pdfframe').style.display='none';
+  $('#pdfload').style.display='flex';
+  $('#pdfDl').style.display='none';
+  if($('#pdfmask')._url){URL.revokeObjectURL($('#pdfmask')._url);$('#pdfmask')._url=null;}
+}
+function closePdfModal(){
+  $('#pdfmask').classList.remove('show');
+  const f=$('#pdfframe');if(f)f.src='';
+  if($('#pdfmask')._url){URL.revokeObjectURL($('#pdfmask')._url);$('#pdfmask')._url=null;}
+}
+$('#pdfmask').addEventListener('click',e=>{if(e.target===$('#pdfmask'))closePdfModal();});
+async function previewPDF(){
+  openPdfModal();
+  try{
+    const {pdf}=await ensurePdf();
+    const url=URL.createObjectURL(pdf.output('blob'));
+    $('#pdfmask')._url=url;
+    const f=$('#pdfframe');f.src=url;f.style.display='block';
+    $('#pdfload').style.display='none';$('#pdfDl').style.display='';
+  }catch(e){$('#pdfload').textContent='PDF 生成失败：'+(e&&e.message||e);}
+}
+async function downloadPDF(){
+  try{const {pdf,filename}=await ensurePdf();pdf.save(filename);toast('报告 PDF 已下载');}
+  catch(e){toast('PDF 生成失败');}
+}
+
+/* ===== 初始化 ===== */
+initTech({bread:['事故预防服务管理','服务报告审核'],active:'服务报告审核'});
+REPORTS=loadReports();
+renderTable();
+</script>
+</body>
+</html>

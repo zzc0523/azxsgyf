@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>现场排查表</title>
+<style>
+  :root{--blue:#2b5ce6;--blue-d:#1f49c4;--text:#1f2329;--sub:#9aa0ad;--val:#3a4050;--bg:#f4f6fb;--line:#eef0f5;--red:#e5484d;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:20}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.22;z-index:30}
+
+  .header{flex:none;position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 100%);color:#fff;z-index:10}
+  .header::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent) 90% 40%/200px 130px no-repeat,
+               radial-gradient(closest-side,rgba(255,255,255,.10),transparent) 6% 90%/170px 110px no-repeat}
+  .statusbar{position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .navbar{position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:2px 16px 4px;height:46px}
+  .back{width:26px;height:26px;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
+  .navtitle{font-size:16px;font-weight:700;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+
+  .body{flex:1;overflow-y:auto;padding-bottom:8px}
+  .body::-webkit-scrollbar{display:none}
+  .card{background:#fff;border-radius:14px;margin:0 16px;padding:4px 16px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .sec{font-size:15px;font-weight:700;color:var(--text);padding:18px 16px 8px;display:flex;align-items:center}
+  .sec::before{content:"";width:3px;height:15px;background:var(--blue);border-radius:2px;margin-right:8px}
+
+  .info .frow{display:flex;padding:9px 0;border:none;font-size:13.5px;line-height:1.5}
+  .info .k{color:#8b91a0;flex:none;width:84px}
+  .info .v{color:#1f2329;font-weight:600;flex:1;min-width:0;word-break:break-word}
+
+  /* 检查方案详情 顶部汇总 */
+  .headsum{margin:14px 16px 4px;background:linear-gradient(135deg,#eef3ff,#f7faff);border:1px solid #dfe7fb;border-radius:12px;padding:14px 16px}
+  .headsum .ht{font-size:13px;color:#5b6472;font-weight:600}
+  .headsum .hn{font-size:15px;color:#2b5ce6;font-weight:800;margin-top:5px;line-height:1.5}
+  .headsum .hn b{font-size:21px;color:#2b5ce6}
+  .headsum .hn .bad{color:var(--red)}
+
+  /* 分组 */
+  .gdir{margin:16px 16px 0;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    font-size:14px;font-weight:700;color:var(--text);
+    background:#eef2fc;border-radius:10px 10px 0 0;padding:12px 14px;border-bottom:2px solid var(--blue);cursor:pointer}
+  .gdir.collapsed{border-radius:10px;border-bottom:none}
+  .gdir .gd-t{flex:1;min-width:0;word-break:break-word;line-height:1.4}
+  .gdir .gd-c{flex:none;color:#8a93a5;font-size:14px;transition:transform .15s}
+  .gdir.collapsed .gd-c{transform:rotate(-90deg)}
+  .gbody{background:#fff;border-radius:0 0 12px 12px;margin:0 16px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .qcard{background:transparent;border-radius:0;margin:0;padding:14px 16px;box-shadow:none}
+  .qcard + .qcard{border-top:1px solid var(--line)}
+  .qno{color:var(--blue);font-weight:800;margin-right:4px}
+  .qline{font-size:14px;color:#1f2329;font-weight:600;line-height:1.6;margin:2px 0 8px}
+  .qlv{display:inline-block;font-size:12px;font-weight:700;padding:1px 7px;border-radius:4px;margin-right:6px;vertical-align:middle;line-height:1.5}
+  .qlv.一般{color:#b45309;background:#fef3c7}
+  .qlv.重大{color:#dc2626;background:#fee2e2}
+  .qd2{display:inline-block;font-size:12px;font-weight:600;color:#475569;background:#eef2f7;border:1px solid #e2e8f0;border-radius:4px;padding:1px 7px;margin-right:6px;vertical-align:middle;line-height:1.5}
+
+  .detail-link{display:inline-block;color:var(--blue);font-size:13px;font-weight:600;cursor:pointer}
+  .detail-link:active{opacity:.6}
+
+  .stbtns{display:flex;gap:8px;margin-top:12px}
+  .stbtn{position:relative;flex:1;height:40px;border:1px solid #dde2ec;background:#fff;border-radius:9px;font-size:13.5px;color:#5b6472;cursor:pointer;transition:.12s;overflow:hidden;white-space:nowrap}
+  .stbtn:active{transform:scale(.98)}
+  .stbtn.on{font-weight:700;box-shadow:0 2px 8px rgba(43,92,230,.14)}
+  .stbtn.on::after{content:"✓";margin-left:4px;font-weight:700}
+  .stbtn.on.ok{background:#e9f8ef;border-color:#2bb673;color:#1a9e57}
+  .stbtn.on.bad{background:#fdecec;border-color:var(--red);color:var(--red)}
+  .stbtn.on.na{background:#eef1f6;border-color:#aeb6c2;color:#6b7280}
+
+  /* 检查项详情 弹窗 */
+  .mask{position:absolute;inset:0;background:rgba(15,19,32,.5);display:none;align-items:flex-end;justify-content:center;z-index:50}
+  .mask.show{display:flex}
+  .modal{width:100%;max-height:88%;background:#fff;border-radius:18px 18px 0 0;overflow:hidden;display:flex;flex-direction:column;animation:rise .2s ease}
+  @keyframes rise{from{transform:translateY(20px);opacity:.6}to{transform:none;opacity:1}}
+  .modal .mhead{flex:none;display:flex;align-items:center;justify-content:space-between;padding:16px;font-size:16px;font-weight:700;color:#1f2329;border-bottom:1px solid var(--line)}
+  .modal .mhead .x{font-size:22px;color:#9aa0ad;cursor:pointer;line-height:1;padding:0 4px}
+  .modal .mbody{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:6px 16px 20px}
+  .dfrow{display:flex;padding:12px 0;border-bottom:1px solid #f1f3f7;font-size:14px;line-height:1.6}
+  .dfrow .dk{flex:none;width:74px;color:#8b91a0}
+  .dfrow .dv{flex:1;color:#1f2329;font-weight:600;word-break:break-word}
+  .radios{display:flex;gap:18px;margin-top:2px}
+  .radios label{display:flex;align-items:center;gap:6px;font-size:14px;color:#3a4050;cursor:pointer}
+  .radios input{width:16px;height:16px;accent-color:var(--blue)}
+  .dtxt{width:100%;min-height:64px;border:1px solid #e6e9f0;border-radius:8px;padding:9px;font-size:13.5px;outline:none;resize:vertical;font-family:inherit;color:var(--val)}
+  .dtxt:focus{border-color:var(--blue)}
+
+  /* 新增隐患 全屏页面 */
+  .hzpage{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:30}
+  .hzpage.show{display:flex}
+  .hzpage .navbar{position:static}
+  .hzbody{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:0 0 12px}
+  .hzbody .sec{margin:14px 16px 8px}
+  .hzbody .card{padding:14px 16px}
+  .qfield{margin-top:12px}
+  .hzbody .qfield{margin:12px 16px 0}
+  .qlbl{font-size:13px;color:#5b6472;font-weight:600;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+  .qlbl .opt{color:#a0a6b3;font-weight:400;font-size:12.5px;margin-left:2px}
+  .creq{color:var(--red);font-weight:700}
+  .qtop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+  .qtop .qlbl{margin-bottom:0}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid #dde2ec;color:#5b6472;background:#fff;padding:7px 13px;border-radius:18px;font-size:13px;cursor:pointer;transition:.12s}
+  .chip.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:500}
+  .chip.bad.on{background:var(--red);border-color:var(--red);color:#fff}
+  .chip.sm{padding:5px 10px;font-size:12px}
+
+  .ta{width:100%;min-height:60px;border:1px solid #e6e9f0;border-radius:8px;padding:9px;font-size:13.5px;outline:none;resize:vertical;font-family:inherit;box-sizing:border-box;color:var(--val)}
+  .ta:focus{border-color:var(--blue)}
+
+  .aibtn{height:34px;padding:0 14px;border:none;border-radius:8px;background:linear-gradient(90deg,#6f4ff0,#9b6cf0);color:#fff;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+  .aibtn:disabled{opacity:.5}
+  .mini{height:30px;padding:0 11px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:8px;font-size:12px;cursor:pointer;white-space:nowrap}
+
+  /* 照片上传 */
+  .phbox{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .upsub{font-size:12.5px;color:#a0a6b3;margin:-2px 0 10px}
+  .upbox{width:84px;height:84px;border:1.5px dashed #c7ceda;border-radius:10px;background:#fafbfd;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#9aa3b2;font-size:12px;cursor:pointer}
+  .upbox .plus{font-size:26px;line-height:1;font-weight:300;color:#aab2c0}
+  .upbox:active{background:#f1f4f9}
+  .thumb{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid #e6e9f0}
+  .thumb.up{width:84px;height:84px}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb .rm{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+  /* 照片来源 底部选择 */
+  .sheet{position:absolute;inset:0;background:rgba(15,19,32,.45);display:none;align-items:flex-end;justify-content:center;z-index:60}
+  .sheet.show{display:flex}
+  .sheetbox{width:100%;background:#f2f3f5;padding:0 8px 12px;border-radius:16px 16px 0 0;animation:rise .2s ease}
+  .sheettitle{text-align:center;color:#8a909c;font-size:13px;padding:16px 0}
+  .sheetopt{height:52px;display:flex;align-items:center;justify-content:center;color:#2b3242;font-size:16px;background:#fff;cursor:pointer}
+  .sheetopt:first-of-type{border-radius:10px 10px 0 0}
+  .sheetopt + .sheetopt{border-top:1px solid #f0f1f4;border-radius:0 0 10px 10px}
+  .sheetopt:active{background:#f6f7f9}
+  .sheetcancel{height:52px;margin-top:8px;display:flex;align-items:center;justify-content:center;color:#2b3242;font-size:16px;font-weight:600;background:#fff;border-radius:10px;cursor:pointer}
+  .sheetcancel:active{background:#f6f7f9}
+
+  .cand{margin-top:9px;display:flex;flex-direction:column;gap:7px}
+  .cand .c{display:flex;gap:8px;align-items:flex-start;border:1px solid #eceff6;background:#f7f9fd;border-radius:8px;padding:9px 11px;font-size:13px;color:var(--val);cursor:pointer;line-height:1.5}
+  .cand .c:active{background:#eef2fc}
+  .cand .c .dot{flex:none;width:16px;height:16px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+
+  .hzsum{margin:8px 16px 0;font-size:13px;color:#d97706;line-height:1.6;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:8px 10px}
+
+  .footer{flex:none;padding:10px 16px 24px;background:var(--bg);display:flex;gap:10px}
+  .btn-ghost{flex:1;height:46px;border:1px solid #dfe3ec;background:#fff;border-radius:10px;color:#6b7280;font-size:15px;cursor:pointer}
+  .btn-main{flex:1.4;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
+
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:40;display:none;max-width:74%;text-align:center;line-height:1.6}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/></svg>
+      </span>
+    </div>
+    <div class="navbar"><div class="back" onclick="history.back()">‹</div><div class="navtitle" id="navtitle">检查方案详情</div></div>
+  </div>
+
+  <div class="body" id="body"></div>
+
+  <div class="footer">
+    <button class="btn-ghost" onclick="history.back()">返回</button>
+    <button class="btn-main" onclick="saveInspect()">保存排查</button>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <!-- 检查项详情 弹窗 -->
+  <div class="mask" id="dtMask" onclick="if(event.target===this)closeDetail()">
+    <div class="modal">
+      <div class="mhead"><span>检查项详情</span><span class="x" onclick="closeDetail()">×</span></div>
+      <div class="mbody" id="dtBody"></div>
+    </div>
+  </div>
+
+  <!-- 新增隐患 全屏页面 -->
+  <div class="hzpage" id="hzpage">
+    <div class="header">
+      <div class="statusbar"><span>9:41</span><span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/></svg>
+      </span></div>
+      <div class="navbar"><div class="back" onclick="closeHazard()">‹</div><div class="navtitle" id="hztitle">新增隐患</div></div>
+    </div>
+    <div class="hzbody" id="hzbody"></div>
+    <div class="footer">
+      <button class="btn-ghost" onclick="closeHazard()">取消</button>
+      <button class="btn-main" onclick="saveHazard()">保存隐患</button>
+    </div>
+  </div>
+
+  <!-- 照片来源 底部选择 -->
+  <div class="sheet" id="srcSheet" onclick="if(event.target===this)closeSrcSheet()">
+    <div class="sheetbox">
+      <div class="sheettitle">选择照片来源（最多 1 张）</div>
+      <div class="sheetopt" onclick="sheetPick(true)">拍照</div>
+      <div class="sheetopt" onclick="sheetPick(false)">引用现场检查照片</div>
+      <div class="sheetcancel" onclick="closeSrcSheet()">取消</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* 注：题库为按界面（7 大分类）重构的示例数据，具体检查项文字请以实际排查方案为准。 */
+const q = new URLSearchParams(location.search);
+const ORDER   = q.get('no') || 'YF2131900';
+const PROJECT = q.get('project') || '生产安全重大事故隐患排查';
+const NAME    = q.get('name') || '现场排查表';
+const INDUSTRY = q.get('industry') || '';
+const COMPANY = '福州无比欢信息科技有限公司';
+
+document.getElementById('navtitle').textContent = '检查方案详情';
+
+/* 27 项事故种类（GB 6441） */
+const ACCIDENT = ['物体打击','厂（场）内车辆致害','道路（轨道）车辆致害','机械致害','起重致害','触电','淹溺','灼烫','火灾','高处坠落','跌落','坍塌','水害','容器爆炸','管道爆炸','可燃气体爆炸','可燃液体蒸气爆炸','粉尘爆炸','民用爆炸物品爆炸','烟花爆竹爆炸','其他可燃固体爆炸','高温熔融物爆炸','中毒','窒息','滑坡','泄漏','其他'];
+
+/* 检查方案（7 大类，内容参照现场排查方案） */
+const CATEGORIES = [
+  { name:'安全管理制度', items:[
+    {dir2:'安全生产责任制',  content:'是否建立并落实全员安全生产责任制', source:'《安全生产法》第二十一条', law:'生产经营单位的主要负责人对本单位安全生产工作负有下列职责：（一）建立健全并落实本单位全员安全生产责任制，加强安全生产标准化建设……', level:'一般'},
+    {dir2:'安全管理制度',    content:'是否制定覆盖各岗位的安全管理制度', source:'《安全生产法》第四条', law:'生产经营单位必须遵守本法和其他有关安全生产的法律、法规，加强安全生产管理，建立健全并落实全员安全生产责任制和安全生产规章制度……', level:'一般'},
+    {dir2:'安全投入',        content:'是否按规定提取和使用安全生产费用', source:'《企业安全生产费用提取和使用管理办法》', law:'企业应当编制年度安全生产费用提取和使用计划，专项用于完善、改造和维护安全防护设施设备支出等。', level:'一般'},
+    {dir2:'教育培训',        content:'是否开展并留存安全生产教育培训记录', source:'《生产经营单位安全培训规定》', law:'生产经营单位应当进行安全教育和培训，保证从业人员具备必要的安全生产知识，熟悉有关的安全生产规章制度和安全操作规程。', level:'一般'}
+  ]},
+  { name:'工艺安全与仪表系统', items:[
+    {dir2:'工艺操作规程', content:'是否制定并严格执行工艺操作规程', source:'《化工企业工艺安全管理实施导则》', law:'企业应编制工艺操作培训计划，对操作人员进行工艺培训，确保严格执行工艺操作规程。', level:'一般'},
+    {dir2:'安全仪表系统', content:'安全仪表系统（SIS）是否投用并定期功能测试', source:'《国家安全监管总局关于加强化工安全仪表系统管理的指导意见》', law:'化工企业要按照相关标准对本企业的安全仪表系统进行评估、整改，确保具备完好性及可靠性。', level:'重大'},
+    {dir2:'联锁保护',     content:'工艺联锁、报警设施是否完好有效', source:'《危险化学品企业安全风险隐患排查治理导则》', law:'企业应保证自动化控制系统、安全仪表系统正常投用，杜绝摘除联锁或停用报警设施。', level:'重大'}
+  ]},
+  { name:'消防安全', items:[
+    {dir2:'消防设施',  content:'消防器材、设施是否完好有效', source:'《消防法》第十六条', law:'机关、团体、企业、事业等单位应当履行下列消防安全职责：对建筑消防设施每年至少进行一次全面检测，确保完好有效。', level:'一般'},
+    {dir2:'疏散通道',  content:'疏散通道、安全出口是否保持畅通', source:'《消防法》第二十八条', law:'任何单位、个人不得占用、堵塞、封闭疏散通道、安全出口、消防车通道。', level:'重大'},
+    {dir2:'动火作业',  content:'动火作业是否办理作业票并落实监护', source:'《化学品生产单位特殊作业安全规范》', law:'动火作业应办理《动火安全作业证》，作业前应进行动火分析并设专人监护。', level:'一般'}
+  ]},
+  { name:'电气系统', items:[
+    {dir2:'防爆电气',  content:'爆炸危险场所是否使用合格防爆电气设备', source:'《爆炸危险环境电力装置设计规范》', law:'爆炸性环境内电气设备选型应与爆炸性环境相适应，并符合相应防爆等级要求。', level:'重大'},
+    {dir2:'接地接零',  content:'电气设备和线路是否可靠接地（接零）', source:'《低压配电设计规范》', law:'电气装置的金属外壳、构架等均应可靠接地或接零，防止触电事故发生。', level:'一般'},
+    {dir2:'漏电保护',  content:'配电系统是否装设并定期测试漏电保护装置', source:'《施工现场临时用电安全技术规范》', law:'施工现场临时用电工程必须采用 TN-S 系统，并必须在配电系统的首端、中间、末端处做重复接地，装设漏电保护器。', level:'一般'}
+  ]},
+  { name:'一般设备设施', items:[
+    {dir2:'防护装置',  content:'旋转、传动设备是否设置安全防护罩/栏', source:'《生产设备安全卫生设计总则》', law:'生产设备外露的旋转、传动部位应设置安全防护装置，防止人员接触造成机械伤害。', level:'一般'},
+    {dir2:'特种设备',  content:'特种设备是否在检验有效期内使用', source:'《特种设备安全法》第四十条', law:'特种设备使用单位应当按照安全技术规范的要求，在检验合格有效期届满前一个月向特种设备检验机构提出定期检验要求。', level:'重大'},
+    {dir2:'警示标识',  content:'设备设施是否设置清晰的安全警示标识', source:'《安全标志及其使用导则》', law:'生产经营单位应在有较大危险因素的生产经营场所和有关设施、设备上，设置明显的安全警示标志。', level:'一般'}
+  ]},
+  { name:'监测与预警', items:[
+    {dir2:'视频监控',  content:'重点部位是否设置视频监控系统', source:'《安全生产法》第三十五条', law:'生产经营单位应当在有较大危险因素的生产经营场所和有关设施、设备上设置明显的安全警示标志，并可采用视频监控等技术手段加强监测。', level:'一般'},
+    {dir2:'气体检测',  content:'有毒有害/可燃气体场所是否设置报警装置', source:'《石油化工可燃气体和有毒气体检测报警设计标准》', law:'在生产、储运、使用可燃和有毒气体的工艺装置及设施内，应按要求设置可燃气体和有毒气体检测报警系统。', level:'重大'},
+    {dir2:'预警机制',  content:'是否建立安全监测预警与联动处置机制', source:'《安全生产监测预警系统建设指南》', law:'企业应建设安全生产风险监测预警系统，实现风险实时监测、分级预警和联动处置。', level:'一般'}
+  ]},
+  { name:'危险化学品管理', items:[
+    {dir2:'储存管理', content:'危化品是否分类分区储存并设警示标志', source:'《危险化学品安全管理条例》第二十四条', law:'危险化学品应当储存在专用仓库、专用场地或者专用储存室（区）内，并由专人负责管理；剧毒化学品以及储存数量构成重大危险源的其他危险化学品，应当在专用仓库内单独存放。', level:'重大'},
+    {dir2:'使用管理', content:'危化品使用场所是否通风、防爆', source:'《危险化学品安全管理条例》', law:'生产、储存、使用危险化学品的单位，应当根据危险化学品的种类、危险特性，在作业场所设置相应的监测、通风、防爆、泄压等安全设施、设备。', level:'重大'},
+    {dir2:'装卸作业', content:'危化品装卸是否落实防静电与防泄漏措施', source:'《危险化学品企业安全风险隐患排查治理导则》', law:'危险化学品装卸作业应落实防静电、防溢流、防泄漏措施，并设置紧急切断装置。', level:'一般'}
+  ]}
+];
+
+/* 展平为逐项列表 */
+const ITEMS = [];
+CATEGORIES.forEach((c,ci)=> c.items.forEach((it,k)=> ITEMS.push({
+  ci, dir1:c.name, dir2:it.dir2, content:it.content, source:it.source, law:it.law, level:it.level, no:k+1
+})));
+
+/* 逐项排查状态 */
+function blankState(){ return {status:'', nature:'', photo:'', photoConform:'', hazardDesc:'', basis:'', accidents:[], advice:'', law:'', detailOpen:false}; }
+let STATE = ITEMS.map(()=>blankState());
+function loadState(){
+  const key = 'inspect_' + encodeURIComponent(ORDER + '_' + NAME);
+  try{ const s = localStorage.getItem(key); if(s){ const a = JSON.parse(s); if(Array.isArray(a)){ for(let i=0;i<ITEMS.length;i++){ STATE[i] = Object.assign(blankState(), a[i]||{}); if(!Array.isArray(STATE[i].accidents)) STATE[i].accidents=[]; } } } }catch(e){}
+}
+function persist(){
+  const key = 'inspect_' + encodeURIComponent(ORDER + '_' + NAME);
+  try{ localStorage.setItem(key, JSON.stringify(STATE)); }catch(e){}
+}
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function cnNum(n){const C=['零','一','二','三','四','五','六','七','八','九','十'];return n<=10?C[n]:(n<20?'十'+C[n-10]:String(n));}
+
+const COLLAPSED = new Set();
+
+/* ===== 渲染 ===== */
+function headSumHtml(){
+  let checked=0, bad=0;
+  STATE.forEach(s=>{ if(s.status) checked++; if(s.status==='不符合') bad++; });
+  return `<div class="headsum"><div class="ht">检查进度</div>
+    <div class="hn">当前已检查 <b>${checked}</b> 项，其中不符合 <b class="bad">${bad}</b> 项</div></div>`;
+}
+function render(){
+  let html = headSumHtml();
+  CATEGORIES.forEach((c,ci)=>{
+    const idxs = ITEMS.map((it,i)=>i).filter(i=>ITEMS[i].ci===ci);
+    const checked = idxs.filter(i=>STATE[i].status).length;
+    const collapsed = COLLAPSED.has(ci);
+    html += `<div class="gdir ${collapsed?'collapsed':''}" onclick="toggleDir(${ci})">
+        <span class="gd-t">${cnNum(ci+1)}、${esc(c.name)}｜已检查(${checked}/${idxs.length})</span>
+        <span class="gd-c">▾</span></div>
+      <div class="gbody" id="gb_${ci}" style="${collapsed?'display:none':''}">
+        ${idxs.map(i=>renderCard(i)).join('')}
+      </div>`;
+  });
+  document.getElementById('body').innerHTML = html;
+}
+function renderCard(i){
+  const it = ITEMS[i], s = STATE[i];
+  const lv = it.level || '';
+  const st = s.status;
+  const btn = (v,cls,label)=>`<button class="stbtn ${st===v?'on '+cls:''}" data-v="${v}">${label}</button>`;
+  return `<div class="qcard" id="card_${i}">
+    <div class="qline">${lv?`<span class="qlv ${esc(lv)}">${esc(lv)}</span>`:''}<span class="qno">${it.no}.</span>${esc(it.content)}</div>
+    <span class="detail-link" onclick="openDetail(${i})">查看详情 ››</span>
+    <div class="stbtns" data-i="${i}">
+      ${btn('符合','ok','符合')}
+      ${btn('不符合','bad','不符合')}
+      ${btn('不涉及','na','不涉及')}
+    </div>
+    ${st==='符合'?`<div class="qfield">${confPhotoBox(i)}</div>`:''}
+  </div>`;
+}
+
+function toggleDir(ci){
+  const body=document.getElementById('gb_'+ci); if(!body) return;
+  const hide=body.style.display!=='none';
+  body.style.display=hide?'none':'';
+  const head=body.previousElementSibling;
+  if(head) head.classList.toggle('collapsed',hide);
+  if(hide) COLLAPSED.add(ci); else COLLAPSED.delete(ci);
+}
+function refreshCard(i){
+  const el=document.getElementById('card_'+i); if(el) el.outerHTML = renderCard(i);
+  updHead(i);
+}
+function updHead(i){
+  const ci=ITEMS[i].ci;
+  const idxs=ITEMS.map((it,k)=>k).filter(k=>ITEMS[k].ci===ci);
+  const c=idxs.filter(k=>STATE[k].status).length;
+  const t=document.querySelector('.gdir[onclick="toggleDir('+ci+')"] .gd-t');
+  if(t) t.textContent=cnNum(ci+1)+'、'+CATEGORIES[ci].name+'｜已检查('+c+'/'+idxs.length+')';
+  const hs=document.querySelector('.headsum .hn');
+  if(hs){ let ch=0,bd=0; STATE.forEach(s=>{if(s.status)ch++; if(s.status==='不符合')bd++;});
+    hs.innerHTML='当前已检查 <b>'+ch+'</b> 项，其中不符合 <b class="bad">'+bd+'</b> 项'; }
+}
+
+/* ===== 状态 / 隐患等级 点击 ===== */
+document.addEventListener('click', e=>{
+  const sb=e.target.closest('.stbtn');
+  if(sb){
+    const box=sb.closest('.stbtns'); if(!box) return;
+    const i=+box.dataset.i, v=sb.dataset.v;
+    box.querySelectorAll('.stbtn').forEach(x=>x.classList.remove('on'));
+    sb.classList.add('on');
+    STATE[i].status=v;
+    if(v!=='符合') STATE[i].photoConform='';
+    persist();
+    refreshCard(i);
+    if(v==='不符合') openHazard(i);
+    return;
+  }
+  const chip=e.target.closest('.chip');
+  if(chip){
+    const box=chip.closest('.chips'); if(!box||!box.classList.contains('acc')) return;
+    const i=+box.dataset.i, a=chip.dataset.acc, arr=STATE[i].accidents, k=arr.indexOf(a);
+    if(k>=0) arr.splice(k,1); else arr.push(a);
+    chip.classList.toggle('on'); persist();
+  }
+});
+
+/* ===== 检查项详情 弹窗 ===== */
+function openDetail(i){
+  const it=ITEMS[i], s=STATE[i];
+  const nat=s.nature||(it.level==='重大'?'重大隐患':'一般隐患');
+  document.getElementById('dtBody').innerHTML =
+    `<div class="dfrow"><span class="dk">一级目录</span><span class="dv">${esc(it.dir1)}</span></div>
+     <div class="dfrow"><span class="dk">二级目录</span><span class="dv">${esc(it.dir2)}</span></div>
+     <div class="dfrow"><span class="dk">检查内容</span><span class="dv">${esc(it.content)}</span></div>
+     <div class="dfrow" style="flex-direction:column;align-items:stretch"><span class="dk" style="margin-bottom:8px">隐患等级</span>
+       <div class="dv" style="font-weight:600">${esc(nat)}</div></div>
+     <div class="dfrow"><span class="dk">依据来源</span><span class="dv">${esc(it.source)}</span></div>
+     <div class="dfrow" style="flex-direction:column;align-items:stretch"><span class="dk" style="margin-bottom:8px">依据原文</span>
+       <div class="dv" style="white-space:pre-wrap;font-weight:400;line-height:1.6">${esc(s.law||it.law)||'—'}</div></div>`;
+  document.getElementById('dtMask').classList.add('show');
+}
+function closeDetail(){ document.getElementById('dtMask').classList.remove('show'); }
+
+/* ===== 新增隐患 全屏页面 ===== */
+let hzCur = -1;
+function openHazard(i){
+  hzCur=i; const it=ITEMS[i], s=STATE[i];
+  if(!s.nature) s.nature = it.level==='重大'?'重大隐患':'一般隐患';
+  const accSel=Array.isArray(s.accidents)?s.accidents:[];
+  const accChips=ACCIDENT.map(a=>`<span class="chip sm ${accSel.indexOf(a)>=0?'on':''}" data-acc="${esc(a)}">${esc(a)}</span>`).join('');
+  const candHtml=s.hazardDescCands?s.hazardDescCands.map((t,k)=>`<div class="c" onclick="pickHazard(${i},${k})"><span class="dot">${k+1}</span><span>${esc(t)}</span></div>`).join(''):'';
+  document.getElementById('hztitle').textContent='新增隐患'+(s.hazardDesc?'（已录入）':'');
+  document.getElementById('hzbody').innerHTML=`
+    <div class="sec">检查内容</div>
+    <div class="card"><div class="qline">${it.level?`<span class="qlv ${esc(it.level)}">${esc(it.level)}</span>`:''}<span class="qno">${it.no}.</span>${esc(it.content)}</div></div>
+
+    <div class="qfield">${phBox(i,'photo','隐患图片')}</div>
+
+    <div class="qfield">
+      <div class="qtop"><span class="qlbl">隐患等级</span></div>
+      <div class="chips" style="margin-top:6px">
+        <span class="chip ${s.nature==='一般隐患'?'on':''}" data-v="一般隐患" onclick="setHzNature(${i},'一般隐患',this)">一般隐患</span>
+        <span class="chip bad ${s.nature==='重大隐患'?'on':''}" data-v="重大隐患" onclick="setHzNature(${i},'重大隐患',this)">重大隐患</span>
+      </div>
+    </div>
+
+    <div class="qfield">
+      <div class="qtop"><span class="qlbl">隐患描述</span>
+        <button class="aibtn" onclick="genHazard(${i})">图片辨识 · 5条备选</button></div>
+      <textarea class="ta" id="hd_${i}" placeholder="手动输入，或上传图片由大模型辨识隐患（反馈5条备选人工选择）" oninput="STATE[${i}].hazardDesc=this.value;persist()">${esc(s.hazardDesc)}</textarea>
+      <div class="cand" id="cand_${i}">${candHtml}</div>
+    </div>
+
+    <div class="qfield">
+      <div class="qtop"><span class="qlbl">排查依据</span>
+        <button class="aibtn" onclick="genBasis(${i})">大模型生成</button></div>
+      <textarea class="ta" id="bs_${i}" placeholder="手动输入，或大模型根据「行业类别 + 隐患描述」生成" oninput="STATE[${i}].basis=this.value;persist()">${esc(s.basis)}</textarea>
+    </div>
+
+    <div class="qfield">
+      <div class="qtop"><span class="qlbl">事故种类（27项）</span>
+        <button class="aibtn" onclick="genAcc(${i})">大模型生成</button></div>
+      <div class="chips acc" data-i="${i}">${accChips}</div>
+    </div>
+
+    <div class="qfield">
+      <div class="qtop"><span class="qlbl">整改建议</span>
+        <button class="aibtn" onclick="genAdv(${i})">大模型生成</button></div>
+      <textarea class="ta" id="ad_${i}" placeholder="手动输入，或大模型根据「隐患描述」生成" oninput="STATE[${i}].advice=this.value;persist()">${esc(s.advice)}</textarea>
+    </div>`;
+  document.getElementById('hzpage').classList.add('show');
+  const b=document.getElementById('hzbody'); if(b) b.scrollTop=0;
+}
+function setHzNature(i,v,el){
+  STATE[i].nature=v; persist();
+  const box=el.closest('.chips');
+  box.querySelectorAll('.chip').forEach(x=>{x.classList.remove('on'); if(x.dataset.v==='重大隐患')x.classList.remove('bad');});
+  el.classList.add('on'); if(v==='重大隐患') el.classList.add('bad');
+}
+function closeHazard(){
+  hzCur=-1;
+  const p=document.getElementById('hzpage'); if(p) p.classList.remove('show');
+}
+function saveHazard(){
+  const i=hzCur;
+  if(i>=0){ persist(); refreshCard(i); toast('隐患已保存'); }
+  closeHazard();
+}
+function phInner(i,key){
+  const src=STATE[i][key]||'';
+  if(src) return `<div class="thumb up"><img src="${src}"><span class="rm" onclick="removePhoto(${i},'${key}')">×</span></div>`;
+  return `<div class="upbox" onclick="openSrcSheet(${i},'${key}')"><span class="plus">+</span><span>添加</span></div>`;
+}
+function confPhotoBox(i){
+  return `<div class="qlbl" style="margin-bottom:8px">现场照片<span class="opt">（选填）</span></div>
+    <div class="upsub">拍摄或引用现场检查照片，留作符合项佐证（最多 1 张）</div>
+    <div class="phbox" id="ph_photoConform_${i}">${phInner(i,'photoConform')}</div>`;
+}
+function phBox(i,key,label){
+  return `<div class="qlbl"><span class="creq">*</span>${esc(label)}</div>
+    <div class="upsub">上传 1 张现场照片，可用于大模型隐患辨识</div>
+    <div class="phbox" id="ph_${key}_${i}">${phInner(i,key)}</div>`;
+}
+function updatePhotoBox(i,key){ const el=document.getElementById('ph_'+key+'_'+i); if(el) el.innerHTML=phInner(i,key); }
+
+let sheetI=-1, sheetKey='';
+function openSrcSheet(i,key){ sheetI=i; sheetKey=key; const s=document.getElementById('srcSheet'); if(s) s.classList.add('show'); }
+function closeSrcSheet(){ const s=document.getElementById('srcSheet'); if(s) s.classList.remove('show'); }
+function sheetPick(capture){ const i=sheetI, key=sheetKey; closeSrcSheet(); pickPhoto(i,key,capture); }
+function pickPhoto(i,key,capture){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  if(capture) inp.capture='environment';
+  inp.onchange=()=>{ const f=inp.files[0]; if(!f) return;
+    const rd=new FileReader(); rd.onload=e=>{STATE[i][key]=e.target.result;persist();updatePhotoBox(i,key);}; rd.readAsDataURL(f); };
+  inp.click();
+}
+function removePhoto(i,key){ STATE[i][key]=''; persist(); updatePhotoBox(i,key); }
+
+/* ===== 大模型（演示：本地模拟生成） ===== */
+function genHazard(i){
+  toast('正在上传图片并由大模型辨识…');
+  const it=ITEMS[i];
+  setTimeout(()=>{
+    const cands=['未建立相关安全管理制度，存在管理缺失，责任未逐级落实',
+      '现场设备设施缺失安全防护装置，未设置明显警示标识',
+      '作业人员未按操作规程执行，存在违章作业现象',
+      '隐患排查治理未闭环，整改时限与责任人不明确',
+      '应急准备不足，未针对该风险制定现场处置方案'];
+    STATE[i].hazardDescCands=cands;
+    const el=document.getElementById('cand_'+i); if(el) el.innerHTML=cands.map((t,k)=>`<div class="c" onclick="pickHazard(${i},${k})"><span class="dot">${k+1}</span><span>${esc(t)}</span></div>`).join('');
+  },650);
+}
+function pickHazard(i,k){
+  const cands=STATE[i].hazardDescCands||[]; const t=cands[k]; if(t==null) return;
+  STATE[i].hazardDesc=t; STATE[i].hazardDescCands=null; persist();
+  const ta=document.getElementById('hd_'+i); if(ta) ta.value=t;
+  const el=document.getElementById('cand_'+i); if(el) el.innerHTML='';
+}
+function genBasis(i){
+  toast('大模型根据行业类别与隐患描述生成依据…');
+  const d=STATE[i].hazardDesc||ITEMS[i].content; const ind=INDUSTRY||NAME.replace(/排查表|类/g,'')||'相关';
+  setTimeout(()=>{ const v=`依据《安全生产法》及${ind}行业安全规范，针对「${d}」应落实${ind}安全标准要求，明确排查与整改依据。`; STATE[i].basis=v; persist(); const ta=document.getElementById('bs_'+i); if(ta) ta.value=v; },550);
+}
+function genAcc(i){
+  toast('大模型根据行业类别与隐患描述推荐事故种类…');
+  const d=(STATE[i].hazardDesc||ITEMS[i].content);
+  setTimeout(()=>{
+    let pick=[];
+    if(d.indexOf('电')>=0) pick.push('触电');
+    if(d.indexOf('火')>=0||d.indexOf('爆')>=0) pick.push('火灾');
+    if(d.indexOf('坠')>=0||d.indexOf('高')>=0) pick.push('高处坠落');
+    if(d.indexOf('爆')>=0) pick.push('容器爆炸');
+    if(d.indexOf('毒')>=0||d.indexOf('泄漏')>=0) pick.push('中毒');
+    if(d.indexOf('车')>=0||d.indexOf('驾驶')>=0) pick.push('厂（场）内车辆致害');
+    if(!pick.length) pick=ACCIDENT.slice(0,2);
+    STATE[i].accidents=pick; persist();
+    document.querySelectorAll('.chips.acc[data-i="'+i+'"] .chip').forEach(c=>c.classList.toggle('on',pick.indexOf(c.dataset.acc)>=0));
+  },550);
+}
+function genAdv(i){
+  toast('大模型根据隐患描述生成整改建议…');
+  const d=STATE[i].hazardDesc||ITEMS[i].content;
+  setTimeout(()=>{ const v=`针对「${d}」，建议：立即采取临时管控措施，明确整改责任人与整改期限，限期闭环；整改完成后组织复查验收，防止同类隐患反复出现。`; STATE[i].advice=v; persist(); const ta=document.getElementById('ad_'+i); if(ta) ta.value=v; },550);
+}
+
+/* ===== 保存 ===== */
+function saveInspect(){
+  persist();
+  try{
+    const key='patrol_'+PROJECT;
+    const list=JSON.parse(localStorage.getItem(key)||'[]');
+    const it=list.filter(x=>x.name===NAME)[0];
+    if(it){ it.done=true; localStorage.setItem(key,JSON.stringify(list)); }
+  }catch(e){}
+  toast('排查已保存');
+  setTimeout(()=>history.back(),700);
+}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1600);}
+
+loadState();
+render();
+</script>
+</body>
+</html>

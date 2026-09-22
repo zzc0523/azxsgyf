@@ -97,6 +97,24 @@
 
   .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:40;display:none;max-width:74%;text-align:center;line-height:1.6}
   .toast.show{display:block}
+
+  /* 检查表选择弹层（从机构端检查表管理选用“启用”的表） */
+  .as-mask{position:absolute;inset:0;z-index:60;display:none;background:rgba(15,22,36,.4);align-items:flex-end}
+  .as-mask.show{display:flex}
+  .as-panel{width:100%;background:#fff;border-radius:16px 16px 0 0;overflow:hidden;animation:asUp .2s ease}
+  @keyframes asUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .as-head{position:relative;padding:15px 16px;font-size:15px;font-weight:700;color:var(--text);text-align:center;border-bottom:1px solid var(--line)}
+  .as-search{padding:10px 16px;border-bottom:1px solid var(--line)}
+  .as-search input{width:100%;height:36px;border:none;border-radius:8px;background:#f4f6fb;padding:0 12px;font-size:13.5px;color:var(--val);outline:none}
+  .as-search input::placeholder{color:#c2c8d4}
+  .as-list{max-height:320px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .as-list::-webkit-scrollbar{display:none}
+  .as-item{padding:13px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);cursor:pointer}
+  .as-item:active{background:#f7f9fd}
+  .as-item .ai-name{font-size:14px;color:var(--text);font-weight:500;line-height:1.4}
+  .as-item .ai-code{font-size:12px;color:var(--sub);margin-top:3px}
+  .as-empty{padding:28px 16px;text-align:center;color:var(--sub);font-size:13px}
+  .as-cancel{height:50px;display:flex;align-items:center;justify-content:center;color:#5b6472;font-size:15px;font-weight:600;cursor:pointer}
 </style>
 </head>
 <body>
@@ -119,6 +137,16 @@
     <button class="btn-main" onclick="toast('服务登记已提交')">提交服务登记</button>
   </div>
   <div class="toast" id="toast"></div>
+
+  <!-- 检查表选择 弹层 -->
+  <div class="as-mask" id="patrolSheet" onclick="if(event.target===this)closePatrolSheet()">
+    <div class="as-panel">
+      <div class="as-head">选择检查表</div>
+      <div class="as-search"><input id="patrolSheetQ" placeholder="搜索检查表名称 / 编号 / 行业" oninput="patrolFilter()"></div>
+      <div class="as-list" id="patrolSheetList"></div>
+      <div class="as-cancel" onclick="closePatrolSheet()">取消</div>
+    </div>
+  </div>
 </div>
 
 <script src="service-form.js"></script>

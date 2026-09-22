@@ -33,6 +33,7 @@
   /* 表格 */
   .table-wrap{overflow:hidden;overflow-x:auto;}
   table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:1270px;}
+  table.qtable{min-width:1462px;}
   thead th{background:#f7f9fc;color:#5d6879;font-weight:600;text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:13px;}
   tbody td{padding:13px 14px;border-bottom:1px solid var(--line);color:#2b3242;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   tbody tr:hover{background:#f9fbff;}
@@ -199,7 +200,7 @@
 
         <!-- 列表 -->
         <div class="card table-wrap">
-          <table>
+          <table class="qtable">
             <colgroup>
               <col style="width:42px"><col style="width:130px"><col style="width:130px"><col style="width:200px"><col style="width:150px"><col style="width:90px"><col style="width:200px"><col style="width:200px"><col style="width:200px"><col style="width:120px">
             </colgroup>
@@ -251,8 +252,8 @@
     </div>
     <div class="mbody">
       <div class="form qform">
-        <div class="fitem"><label><i class="req">*</i>检查对象一级目录</label><input id="qm_lv1" maxlength="20" placeholder="请输入一级目录，如：安全管理（20字以内）"></div>
-        <div class="fitem"><label><i class="req">*</i>检查对象二级目录</label><input id="qm_lv2" maxlength="20" placeholder="请输入二级目录，如：安全生产责任制（20字以内）"></div>
+        <div class="fitem"><label><i class="req">*</i>检查对象一级目录</label><input id="qm_dir1" maxlength="20" placeholder="如：房屋市政工程（20字以内）"></div>
+        <div class="fitem"><label><i class="req">*</i>检查对象二级目录</label><input id="qm_dir2" maxlength="20" placeholder="如：资质与许可（20字以内）"></div>
         <div class="fitem"><label><i class="req">*</i>检查内容</label><textarea id="qm_content" maxlength="50" placeholder="请输入检查内容（50字以内）"></textarea></div>
         <div class="fitem"><label>依据来源</label><input id="qm_source" maxlength="500" placeholder="如：《安全生产法》第二十一条（500字以内）"></div>
         <div class="fitem"><label><i class="req">*</i>隐患等级</label><select id="qm_level"><option value="">请选择</option><option>重大隐患</option><option>一般隐患</option></select></div>
@@ -279,7 +280,7 @@
       <div class="imp-tip">
         列顺序（每行一条，逗号或 Tab 分隔）：<br>
         <b>检查对象一级目录、检查对象二级目录、检查内容、依据来源、隐患等级、隐患描述、整改建议、法律原文</b><br>
-        前三项为必填；隐患等级仅支持「重大隐患 / 一般隐患」，留空则置空。支持
+        前两项为必填；隐患等级仅支持「重大隐患 / 一般隐患」，留空则置空。支持
         <span class="lk" onclick="downloadTpl()">下载模板</span>，再上传 CSV 文件导入。
       </div>
       <div class="imp-up">
@@ -303,6 +304,20 @@
 /* ===== 枚举 ===== */
 const INDUSTRIES=['煤矿','非煤矿山','危险化学品','烟花爆竹','交通运输','建筑施工','民用爆炸物品','金属冶炼','渔业生产','其他'];
 const LEVELS=['重大隐患','一般隐患'];
+/* 检查对象一级目录（与图片标准范围一致）；二级目录为各子类 */
+const DIR1='房屋市政工程';
+function normQ(q){
+  return {
+    dir1:q.dir1||DIR1,
+    dir2:q.dir2||q.dir||'',
+    content:q.content||'',
+    source:q.source||'',
+    level:q.level||'',
+    desc:q.desc||'',
+    advice:q.advice||'',
+    law:q.law||''
+  };
+}
 function fillSel(sel,arr,val){
   sel.innerHTML='<option value="">请选择</option>'+arr.map(o=>`<option ${o===val?'selected':''}>${o}</option>`).join('');
 }
@@ -341,34 +356,79 @@ function seed(){
   }
   return list;
 }
-let DATA=seed();
+let DATA;
+try{ const s=localStorage.getItem('ins_patrol_tables'); DATA=s?JSON.parse(s):null; }catch(e){ DATA=null; }
+if(!Array.isArray(DATA)||!DATA.length) DATA=seed();
+function saveTables(){ try{ localStorage.setItem('ins_patrol_tables', JSON.stringify(DATA)); }catch(e){} }
+saveTables();   // 持久化供移动端「服务登记」从机构端选用启用检查表
 
-/* ===== 题库 演示数据（每个检查表独立维护） ===== */
+/* ===== 题库 演示数据（示例题目按图片构建：房屋市政工程生产安全重大事故隐患） ===== */
 const QBASE=[
-  ['安全管理','安全生产责任制','是否建立并落实全员安全生产责任制','《安全生产法》第二十一条','未逐级签订安全生产责任书','分解签订各岗位责任书并公示','生产经营单位应当建立健全全员安全生产责任制'],
-  ['安全管理','安全管理制度','是否制定覆盖各岗位的安全管理制度','《安全生产法》第四条','缺少特种作业管理制度','补充完善并发布实施','生产经营单位应当加强安全生产管理，建立健全各项规章制度'],
-  ['教育培训','三级安全教育','新入厂员工是否完成公司、车间、班组三级安全教育','《生产经营单位安全培训规定》','新员工未经三级教育即上岗','立即补训并考核合格后方可上岗','生产经营单位应当对从业人员进行安全生产教育和培训'],
-  ['危险化学品','储存管理','危化品是否分类分区储存并设警示标志','《危险化学品安全管理条例》','禁忌物料混存','立即分库分类储存并张贴标志','危险化学品应当储存在专用仓库、专用场地或者专用储存室'],
-  ['危险化学品','使用管理','危化品使用场所是否通风、防爆','《危险化学品安全管理条例》','使用场所未设防爆电气','整改为防爆型并加强通风','危化品专用仓库应当符合国家标准、行业标准的要求'],
-  ['建筑施工','高处作业','高处作业人员是否持证并系挂安全带','《建筑施工高处作业安全技术规范》','高处作业未系安全带','立即停止作业并系挂安全带','作业人员应当遵守安全施工的强制性标准、规章制度和操作规程'],
-  ['建筑施工','临边防护','预留洞口、临边是否设置防护栏杆','《建筑施工高处作业安全技术规范》','楼层临边未设防护','增设防护栏杆并验收','高处作业施工前，应按类别对安全防护设施进行检查'],
-  ['煤矿','瓦斯防治','采掘工作面瓦斯浓度是否监测并记录','《煤矿安全规程》','瓦斯监测数据缺失','恢复监测并记录建档','煤矿企业必须建立瓦斯检查制度，配备足够瓦斯检查工'],
-  ['煤矿','通风系统','矿井通风系统是否稳定可靠','《煤矿安全规程》','主扇风机停运','立即恢复并查明原因','矿井必须有完整独立可靠的通风系统'],
-  ['交通运输','车辆管理','营运车辆是否按期检验检测','《道路运输车辆技术管理规定》','车辆逾期未检','立即送检并停运整改','道路运输经营者应当对营运车辆进行定期维护和检测'],
-  ['交通运输','驾驶员管理','驾驶员是否持有效从业资格证','《道路运输从业人员管理规定》','驾驶员资格证过期','调离岗位并重新取证','经营性道路客货运输驾驶员必须取得相应从业资格'],
-  ['特种设备','定期检验','特种设备是否在检验有效期内使用','《特种设备安全法》','电梯超期未检','停用并申报检验','特种设备使用单位应当按照安全技术规范的要求及时申报检验']
+  ['资质与许可','是否取得安全生产许可证、资质',
+   '《建筑施工企业安全生产许可证管理规定》第二条《建设工程质量管理条例》第二十五条《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（一）',
+   '重大隐患',
+   '建筑施工企业未取得安全生产许可证擅自从事建筑施工活动或超（无）资质承揽工程；国家对建筑施工企业实行安全生产许可制度，建筑施工企业未取得安全生产许可证的，不得从事建筑施工活动。建筑施工企业应当依法取得相应的资质证书，并在其资质等级许可的范围内承揽工程，禁止施工单位超越本单位资质等级许可的业务范围或者以其他施工单位的名义承揽工程。',
+   '', ''],
+  ['人员资格','项目部专职安全管理人员是否按要求配置',
+   '《建设工程安全生产管理条例》第二十三条《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（二）',
+   '重大隐患',
+   '未按规定配备专职安全管理人员；专职安全管理人员配备人数不符合要求；施工作业单位应当设立安全生产管理机构，配备专职安全生产管理人员。',
+   '', ''],
+  ['人员资格','项目主要负责人、安全管理人员是否按规定持证',
+   '《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（二）',
+   '重大隐患',
+   '项目负责人、专职安全生产管理人员未取得有效安全生产考核合格证书；建筑施工企业未按规定要求足额配备安全生产管理人员，或其主要负责人、项目负责人、专职安全生产管理人员未取得有效安全生产考核合格证书。',
+   '', ''],
+  ['人员资格','特种作业人员是否按规定持证',
+   '《建设工程安全生产管理条例》第二十五条《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（三）',
+   '重大隐患',
+   '建筑施工特种作业人员未取得有效特种作业人员操作资格证书上岗作业；垂直运输机械作业人员、安装拆卸工、爆破作业人员、起重信号工、登高架设作业人员等特种作业人员，必须按照国家有关规定经过专门的安全作业培训，并取得特种作业操作资格证书后，方可上岗作业。',
+   '', ''],
+  ['分包管理','分包单位资质是否满足要求',
+   '《房屋建筑和市政基础设施工程施工分包管理办法》第八条《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（一）',
+   '重大隐患',
+   '分包单位资质不符合要求；分包单位未取得安全生产许可证分包工程；承包人必须具有相应的资质，并在其资质等级许可的范围内承揽业务。',
+   '', ''],
+  ['分包管理','分包单位安全管理机构、人员是否按要求配置',
+   '《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（二）',
+   '重大隐患',
+   '分包单位未设置安全管理机构、未配备专职安全管理人员；建筑施工企业未按规定要求足额配备安全生产管理人员，或其主要负责人、项目负责人、专职安全生产管理人员未取得有效安全生产考核合格证书从事相关工作。',
+   '', ''],
+  ['危大工程','危大工程方案是否按规定编制',
+   '《危险性较大的分部分项工程安全管理规定》第十条《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（四）',
+   '重大隐患',
+   '危大工程未编制专项施工方案；施工单位应当在危大工程施工前组织工程技术人员编制专项施工方案。',
+   '', ''],
+  ['危大工程','危大工程方案是否按规定审批',
+   '《危险性较大的分部分项工程安全管理规定》第十一条《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（四）',
+   '重大隐患',
+   '危大工程专项施工方案未按规定进行审批；专项施工方案应当由施工单位技术负责人审核签字、加盖单位公章，并由总监理工程师审查签字、加盖执业印章后方可实施。',
+   '', ''],
+  ['危大工程','危大工程方案内容是否存在严重缺陷',
+   '《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（四）',
+   '重大隐患',
+   '危大工程专项施工方案存在严重缺陷；专项施工方案的严重缺陷整改需通过技术、安全技术、管理缺陷整改，需要强化逐条整改、责任划分问题。',
+   '', '']
 ];
 function seedQuestions(){
-  const list=[];
-  for(let i=0;i<36;i++){
-    const b=QBASE[i%12];
-    list.push({lv1:b[0],lv2:b[1],content:b[2],source:b[3],level:LEVELS[i%2],desc:b[4],advice:b[5],law:b[6]});
-  }
-  return list;
+  return QBASE.map(b=>normQ({dir1:DIR1,dir2:b[0],content:b[1],source:b[2],level:b[3],desc:b[4],advice:b[5],law:b[6]}));
 }
-/* 按检查表编号隔离题库数据（懒初始化） */
+/* 按检查表名称隔离题库数据（懒初始化，持久化到 localStorage 供现场排查表读取） */
 const BANK={};
-function bankOf(code){ if(!BANK[code]) BANK[code]=seedQuestions(); return BANK[code]; }
+function nameOf(code){ const d=DATA.find(x=>x.code===code); return d?d.name:code; }
+function bankKey(nm){ return 'ins_qbank_'+encodeURIComponent(nm); }
+function saveBank(code){ try{ localStorage.setItem(bankKey(nameOf(code)), JSON.stringify(BANK[code])); }catch(e){} }
+function bankOf(code){
+  const nm=nameOf(code);
+  if(!BANK[code]){
+    let arr=null;
+    try{ const s=localStorage.getItem(bankKey(nm)); if(s) arr=JSON.parse(s); }catch(e){}
+    if(!arr||!Array.isArray(arr)||!arr.length) arr=seedQuestions();
+    else arr=arr.map(normQ);
+    BANK[code]=arr; saveBank(code);
+  }
+  return BANK[code];
+}
 
 /* ==========================================================
    一级视图：隐患检查表管理
@@ -435,6 +495,7 @@ function renderPager(total,pages){
 function toggleStatus(i){
   const r=DATA[i];
   r.status=r.status==='启用'?'停用':'启用';
+  saveTables();
   renderTable();toast(`「${r.name}」已${r.status}`);
 }
 /* 进入二级页面：题库配置 */
@@ -497,7 +558,7 @@ function saveForm(){
   };
   if(editIdx<0){DATA.unshift(rec);state.page=1;toast('检查表新增成功');}
   else{rec.creator=DATA[editIdx].creator;rec.org=DATA[editIdx].org;rec.time=DATA[editIdx].time;DATA[editIdx]=rec;toast('检查表已更新');}
-  closeModal();renderTable();
+  closeModal();renderTable();saveTables();
 }
 
 /* ==========================================================
@@ -509,7 +570,8 @@ function qFiltered(){
   const {content,level}=qState.q;
   const rows=bankOf(DATA[curIdx].code);
   return rows.filter(r=>(!content||r.content.toLowerCase().includes(content))
-    &&(!level||r.level===level));
+    &&(!level||r.level===level))
+    .sort((a,b)=> a.dir1===b.dir1 ? a.dir2.localeCompare(b.dir2,'zh-Hans-CN') : a.dir1.localeCompare(b.dir1,'zh-Hans-CN'));
 }
 function doQSearch(){
   qState.q={content:$('#qq_content').value.trim().toLowerCase(),level:$('#qq_level').value};
@@ -536,21 +598,25 @@ function renderQTable(){
   if(qState.page>pages)qState.page=pages;
   const start=(qState.page-1)*size,cur=rows.slice(start,start+size);
   const bank=bankOf(DATA[curIdx].code);
-  $('#qbody').innerHTML=cur.length?cur.map((r,i)=>{
-    const idx=bank.indexOf(r);
-    return `<tr>
-      <td class="c"><input type="checkbox" ${qSel.has(idx)?'checked':''} onchange="qRowCheck(${idx},this.checked)"></td>
-      <td title="${esc(r.lv1)}">${esc(r.lv1)}</td>
-      <td title="${esc(r.lv2)}">${esc(r.lv2)}</td>
-      <td title="${esc(r.content)}">${esc(r.content)}</td>
-      <td title="${esc(r.source)}">${esc(r.source)}</td>
-      <td><span class="lv ${qCls(r.level)}">${esc(r.level)}</span></td>
-      <td title="${esc(r.desc)}">${esc(r.desc)}</td>
-      <td title="${esc(r.advice)}">${esc(r.advice)}</td>
-      <td title="${esc(r.law)}">${esc(r.law)}</td>
-      <td class="op"><a onclick="openQEdit(${idx})">编辑</a><a onclick="qDel(${idx})">删除</a></td>
-    </tr>`;
-  }).join(''):`<tr><td colspan="10" class="empty">暂无数据</td></tr>`;
+  let qhtml='';
+  if(cur.length){
+    cur.forEach(rr=>{
+      const ix=bank.indexOf(rr);
+      qhtml+=`<tr>
+        <td class="c"><input type="checkbox" ${qSel.has(ix)?'checked':''} onchange="qRowCheck(${ix},this.checked)"></td>
+        <td title="${esc(rr.dir1)}">${esc(rr.dir1)}</td>
+        <td title="${esc(rr.dir2)}">${esc(rr.dir2)}</td>
+        <td title="${esc(rr.content)}">${esc(rr.content)}</td>
+        <td title="${esc(rr.source)}">${esc(rr.source)}</td>
+        <td><span class="lv ${qCls(rr.level)}">${esc(rr.level)}</span></td>
+        <td title="${esc(rr.desc)}">${esc(rr.desc)}</td>
+        <td title="${esc(rr.advice)}">${esc(rr.advice)}</td>
+        <td title="${esc(rr.law)}">${esc(rr.law)}</td>
+        <td class="op"><a onclick="openQEdit(${ix})">编辑</a><a onclick="qDel(${ix})">删除</a></td>
+      </tr>`;
+    });
+  }
+  $('#qbody').innerHTML=qhtml||`<tr><td colspan="10" class="empty">暂无数据</td></tr>`;
   // 同步全选框状态与选中提示
   const visSel=cur.filter(r=>qSel.has(bank.indexOf(r))).length;
   const all=$('#qCheckAll');
@@ -574,7 +640,7 @@ function renderQPager(total,pages){
 }
 
 /* ===== 题库 行操作 ===== */
-function qDel(i){ bankOf(DATA[curIdx].code).splice(i,1); renderQTable(); toast('已删除该题'); }
+function qDel(i){ const b=bankOf(DATA[curIdx].code); b.splice(i,1); saveBank(DATA[curIdx].code); renderQTable(); toast('已删除该题'); }
 
 /* ===== 题库 多选 / 批量删除 ===== */
 function qRowCheck(idx,checked){ checked?qSel.add(idx):qSel.delete(idx); renderQTable(); }
@@ -589,7 +655,7 @@ function qBatchDel(){
   if(!confirm(`确认删除选中的 ${qSel.size} 道题？`))return;
   const bank=bankOf(DATA[curIdx].code);
   for(let i=bank.length-1;i>=0;i--)if(qSel.has(i))bank.splice(i,1);
-  qSel.clear();renderQTable();toast('已批量删除');
+  qSel.clear();saveBank(DATA[curIdx].code);renderQTable();toast('已批量删除');
 }
 
 /* ===== 题库 新增 / 编辑弹窗 ===== */
@@ -601,26 +667,26 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeQModal();});
 function openQAdd(){
   qEditIdx=-1;
   $('#qmTitle').textContent='新增题目';
-  ['qm_lv1','qm_lv2','qm_content','qm_source','qm_desc','qm_advice','qm_law'].forEach(id=>$('#'+id).value='');
+  ['qm_dir1','qm_dir2','qm_content','qm_source','qm_desc','qm_advice','qm_law'].forEach(id=>$('#'+id).value='');
   $('#qm_level').value='';
-  $('#qMask').classList.add('show');$('#qm_lv1').focus();
+  $('#qMask').classList.add('show');$('#qm_dir1').focus();
 }
 function openQEdit(i){
   const r=bankOf(DATA[curIdx].code)[i];qEditIdx=i;
   $('#qmTitle').textContent='编辑题目';
-  $('#qm_lv1').value=r.lv1;$('#qm_lv2').value=r.lv2;$('#qm_content').value=r.content;
+  $('#qm_dir1').value=r.dir1;$('#qm_dir2').value=r.dir2;$('#qm_content').value=r.content;
   $('#qm_source').value=r.source;$('#qm_level').value=r.level;$('#qm_desc').value=r.desc;
   $('#qm_advice').value=r.advice;$('#qm_law').value=r.law;
   $('#qMask').classList.add('show');
 }
 function saveQForm(){
-  const lv1=$('#qm_lv1').value.trim(), lv2=$('#qm_lv2').value.trim(), content=$('#qm_content').value.trim();
-  if(!lv1){toast('请输入检查对象一级目录');return;}
-  if(!lv2){toast('请输入检查对象二级目录');return;}
+  const dir1=$('#qm_dir1').value.trim(), dir2=$('#qm_dir2').value.trim(), content=$('#qm_content').value.trim();
+  if(!dir1){toast('请输入检查对象一级目录');return;}
+  if(!dir2){toast('请输入检查对象二级目录');return;}
   if(!content){toast('请输入检查内容');return;}
   if(!$('#qm_level').value){toast('请选择隐患等级');return;}
   const rec={
-    lv1:lv1, lv2:lv2, content:content,
+    dir1:dir1, dir2:dir2, content:content,
     source:$('#qm_source').value.trim(),
     level:$('#qm_level').value, desc:$('#qm_desc').value.trim(),
     advice:$('#qm_advice').value.trim(), law:$('#qm_law').value.trim()
@@ -628,7 +694,7 @@ function saveQForm(){
   const bank=bankOf(DATA[curIdx].code);
   if(qEditIdx<0){bank.unshift(rec);toast('题目新增成功');}
   else{bank[qEditIdx]=rec;toast('题目已更新');}
-  closeQModal();renderQTable();
+  saveBank(DATA[curIdx].code); closeQModal();renderQTable();
 }
 
 /* ===== 题库 批量导入 ===== */
@@ -656,7 +722,7 @@ function onImpFile(input){
 }
 function downloadTpl(){
   const header='检查对象一级目录,检查对象二级目录,检查内容,依据来源,隐患等级,隐患描述,整改建议,法律原文\n';
-  const sample='安全管理,安全生产责任制,是否建立全员安全生产责任制,《安全生产法》第二十一条,重大隐患,未签订责任书,分解签订并公示,生产经营单位应建立全员责任制\n';
+  const sample='房屋市政工程,资质与许可,是否取得安全生产许可证、资质,《房屋市政工程生产安全重大事故隐患判定标准（2024版）》第四条（一）,重大隐患,未取得安全生产许可证擅自承揽工程,依法取得资质并在许可范围内承揽工程\n';
   const blob=new Blob(['﻿'+header+sample],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
@@ -669,10 +735,11 @@ function parseImport(text){
   lines.forEach(line=>{
     const delim=line.includes('\t')?'\t':',';
     const c=line.split(delim).map(s=>s.trim());
-    const [lv1,lv2,content,source,level,desc,advice,law]=c;
+    const [dir1,dir2,content,source,level,desc,advice,law]=c;
     if(!content){skip++;return;}
     rows.push({
-      lv1:lv1||'',lv2:lv2||'',content,
+      dir1:dir1||DIR1,dir2:dir2||'',
+      content,
       source:source||'',
       level:LEVELS.includes(level)?level:'',
       desc:desc||'',advice:advice||'',law:law||''
@@ -686,6 +753,7 @@ function doImport(){
   if(!rows.length){toast('未解析到有效数据');return;}
   const bank=bankOf(DATA[curIdx].code);
   bank.unshift(...rows);
+  saveBank(DATA[curIdx].code);
   closeImp();
   renderQTable();
   toast(`成功导入 ${rows.length} 条${skip?`，跳过 ${skip} 条无效/缺检查内容`:''}`);

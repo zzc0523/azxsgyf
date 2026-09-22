@@ -3,7 +3,7 @@
 
 const ACCIDENT = ['物体打击','厂（场）内车辆致害','道路（轨道）车辆致害','机械致害','起重致害','触电','淹溺','灼烫','火灾','高处坠落','跌落','坍塌','水害','容器爆炸','管道爆炸','可燃气体爆炸','可燃液体蒸气爆炸','粉尘爆炸','民用爆炸物品爆炸','烟花爆竹爆炸','其他可燃固体爆炸','高温熔融物爆炸','中毒','窒息','滑坡','泄漏','其他'];
 
-let orderNo, project, OVERDUE, PLACE, COMPANY, LITE=false, ENTRY='', RISK=false, HAZARD=false, PATROL=false, SCORE=false;
+let orderNo, project, OVERDUE, PLACE, COMPANY, COMPANY_INDUSTRY='', LITE=false, ENTRY='', RISK=false, HAZARD=false, PATROL=false, SCORE=false;
 
 /* ===== 六大项目字段 schema（来自功能清单.md） ===== */
 const SCHEMA = {
@@ -289,7 +289,7 @@ function listCard(kind){
       <div class="right"><span class="pstat ${r.done?'ok':'gray'}">${r.done?'已完成':'未完成'}</span><span class="go">›</span></div>
     </div>`).join('');
   return `<div class="sec">${meta.sec}</div><div class="card">
-    <div class="phead"><div class="ptitle">${meta.title}</div><span class="plus" onclick="${kind==='score'?'scoreAdd()':'listAdd(\'patrol\')'}">＋</span></div>
+    <div class="phead"><div class="ptitle">${meta.title}</div><span class="plus" onclick="${kind==='score'?'scoreAdd()':(kind==='patrol'?'patrolAdd()':'listAdd(\'patrol\')')}">＋</span></div>
     ${rows}</div>`;
 }
 function listAdd(kind){
@@ -314,7 +314,9 @@ function listOpen(kind,i){
                  + '&project=' + encodeURIComponent(project)
                  + '&name=' + encodeURIComponent(r.name);
   } else {
-    toast('打开排查表：'+r.name);
+    location.href = '现场排查表.html?no=' + encodeURIComponent(orderNo)
+                 + '&project=' + encodeURIComponent(project)
+                 + '&name=' + encodeURIComponent(r.name);
   }
 }
 
@@ -358,6 +360,65 @@ function scorePick(id){
   toast('已添加：' + t.name);
 }
 function closeScoreSheet(){ const b = document.getElementById('scoreSheet'); if(b) b.classList.remove('show'); }
+
+/* 现场排查表：从保险机构端「检查表管理」中选取状态为“启用”、且「适用行业」与企业行业一致的检查表添加 */
+function patrolTables(){
+  try{ const s = localStorage.getItem('ins_patrol_tables'); const a = s ? JSON.parse(s) : []; return Array.isArray(a) ? a : []; }catch(e){ return []; }
+}
+/* 企业行业：优先取 URL 参数 industry，其次按企业名称匹配「服务计划管理」数据，最后用演示映射兜底 */
+const DEMO_COMPANY_INDUSTRY = { '福州无比欢信息科技有限公司':'建筑施工', '福建厦发信息有限公司':'建筑施工' };
+function enterpriseIndustry(){
+  const u = (new URLSearchParams(location.search).get('industry') || '').trim();
+  if(u) return u;
+  try{
+    const s = localStorage.getItem('ins_plans');
+    const arr = s ? JSON.parse(s) : [];
+    const hit = (Array.isArray(arr) ? arr : []).find(p => p && p.company === COMPANY);
+    if(hit && hit.industry) return hit.industry;
+  }catch(e){}
+  return DEMO_COMPANY_INDUSTRY[COMPANY] || '其他';
+}
+let PATROL_AVAIL = [];   // 当前弹层可选的（机构端启用、适用行业一致、且未添加）检查表
+function patrolAdd(){
+  const enabled = patrolTables().filter(t => t.status === '启用');
+  const used = listLoad('patrol').map(r => r.tableId || null).filter(Boolean);
+  // 按企业行业过滤：只显示适用行业相同的检查表
+  PATROL_AVAIL = enabled.filter(t => (t.industry || '') === COMPANY_INDUSTRY && used.indexOf(t.code) < 0);
+  const box = document.getElementById('patrolSheet');
+  if(!enabled.length){ toast('机构端暂无可选（启用）的检查表'); return; }
+  if(!box){ toast('暂不支持选择'); return; }
+  const qEl = document.getElementById('patrolSheetQ'); if(qEl) qEl.value = '';
+  renderPatrolSheet('');
+  box.classList.add('show');
+}
+function renderPatrolSheet(kw){
+  kw = (kw || '').trim().toLowerCase();
+  const list = PATROL_AVAIL.filter(t =>
+    !kw || String(t.name||'').toLowerCase().indexOf(kw) >= 0
+        || String(t.code||'').toLowerCase().indexOf(kw) >= 0
+        || String(t.industry||'').toLowerCase().indexOf(kw) >= 0);
+  const empty = kw ? '未找到匹配的检查表'
+    : (COMPANY_INDUSTRY ? `暂无适用「${esc(COMPANY_INDUSTRY)}」行业的检查表` : '暂无可用检查表');
+  document.getElementById('patrolSheetList').innerHTML = list.length ? list.map(t =>
+    `<div class="as-item" onclick="patrolPick('${esc(t.code)}')">
+       <div style="flex:1;min-width:0">
+         <div class="ai-name">${esc(t.name)}</div>
+         <div class="ai-code">编号 ${esc(t.code)}</div>
+       </div>
+     </div>`).join('') : `<div class="as-empty">${empty}</div>`;
+}
+function patrolFilter(){ const q = document.getElementById('patrolSheetQ'); renderPatrolSheet(q ? q.value : ''); }
+function patrolPick(code){
+  const t = patrolTables().find(x => x.code === code); if(!t){ closePatrolSheet(); return; }
+  const list = listLoad('patrol');
+  if(list.some(r => (r.tableId || '') === code)){ toast('该检查表已添加'); closePatrolSheet(); return; }
+  list.push({name:t.name, done:false, tableId:t.code, code:t.code, org:t.org, industry:t.industry});
+  listSave('patrol', list);
+  closePatrolSheet();
+  renderBody();
+  toast('已添加：' + t.name);
+}
+function closePatrolSheet(){ const b = document.getElementById('patrolSheet'); if(b) b.classList.remove('show'); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }function projectCard(){
   const secs = SCHEMA[project] || [];
   return secs.map(s=>`<div class="sec">${s.title}</div><div class="card">${s.rows.map(fieldHTML).join('')}</div>`).join('');
@@ -433,6 +494,7 @@ function init(projectName, lite, entry, risk, hazard, patrol, score){
   SCORE    = !!score;
   PLACE    = '福州马尾区海峡广场A座';
   COMPANY  = '福州无比欢信息科技有限公司';
+  COMPANY_INDUSTRY = enterpriseIndustry();
   renderBody();
 }
 function renderBody(){

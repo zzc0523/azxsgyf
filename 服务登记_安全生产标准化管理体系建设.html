@@ -137,23 +137,13 @@
     <button class="btn-main" onclick="toast('服务登记已提交')">提交服务登记</button>
   </div>
 
-  <!-- 评分表选择弹层 -->
-  <div class="as-mask" id="scoreSheet" onclick="closeScoreSheet()">
-    <div class="as-panel" onclick="event.stopPropagation()">
-      <div class="as-head">选择评分表</div>
-      <div class="as-search"><input id="scoreSheetQ" placeholder="搜索评分表名称 / 编号" oninput="scoreFilter()"></div>
-      <div class="as-list" id="scoreSheetList"></div>
-      <div class="as-cancel" onclick="closeScoreSheet()">取消</div>
-    </div>
-  </div>
-
   <div class="toast" id="toast"></div>
 </div>
 
 <script src="service-form.js"></script>
 <script>
-  /* 安全生产标准化管理体系建设 专用服务登记页（基本信息 + 现场照片 + 现场评分） */
-  init('安全生产标准化管理体系建设', true, null, false, false, false, true);
+  /* 安全生产标准化管理体系建设 专用服务登记页（基本信息 + 现场照片） */
+  init('安全生产标准化管理体系建设', true, null, false, false, false, false);
 </script>
 </body>
 </html>

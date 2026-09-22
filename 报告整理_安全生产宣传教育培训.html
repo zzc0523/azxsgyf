@@ -72,9 +72,11 @@
   .up-btn svg{display:block}
   .fname{color:#6b7280;font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-  .footer{flex:none;padding:10px 16px 24px;background:var(--bg)}
-  .btn-main{width:100%;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
+  .footer{flex:none;padding:10px 16px 24px;background:var(--bg);display:flex;gap:10px}
+  .btn-main{flex:1;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
   .btn-main:active{background:var(--blue-d)}
+  .btn-draft{flex:none;height:46px;padding:0 22px;border-radius:10px;background:#fff;border:1px solid var(--blue);color:var(--blue);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn-draft:active{background:#eef2fc}
 
   /* 报告预览 */
   .preview{position:absolute;inset:0;background:#f4f6fb;z-index:70;display:none;flex-direction:column}
@@ -139,7 +141,7 @@
 
   <div class="body" id="body"></div>
 
-  <div class="footer"><button class="btn-main" onclick="generateReport()">生成报告</button></div>
+  <div class="footer"><button class="btn-draft" onclick="saveDraft()">存为草稿</button><button class="btn-main" onclick="generateReport()">生成报告</button></div>
 
   <!-- 照片来源弹层 -->
   <div class="mask" id="mask" onclick="closeSheet()"></div>
@@ -412,6 +414,13 @@ function closePreview(){
   document.getElementById('preview').classList.remove('show');
 }
 
+function saveDraft(){
+  const no = document.getElementById('ctxNo').textContent;
+  const status = JSON.parse(localStorage.getItem('sg_report_status') || '{}');
+  status[no] = '草稿';
+  localStorage.setItem('sg_report_status', JSON.stringify(status));
+  toast('已存为草稿');
+}
 function doSubmit(){
   const no = document.getElementById('ctxNo').textContent;
   const status = JSON.parse(localStorage.getItem('sg_report_status') || '{}');

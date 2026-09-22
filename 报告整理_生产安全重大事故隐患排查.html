@@ -62,6 +62,8 @@
   .footer{flex:none;padding:10px 16px 24px;background:var(--bg);display:flex;gap:10px}
   .btn-main{flex:1;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
   .btn-main:active{background:var(--blue-d)}
+  .btn-draft{flex:none;height:46px;padding:0 22px;border-radius:10px;background:#fff;border:1px solid var(--blue);color:var(--blue);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn-draft:active{background:#eef2fc}
 
   /* 报告预览（PDF） */
   .preview{position:absolute;inset:0;background:#f4f6fb;z-index:70;display:none;flex-direction:column}
@@ -92,6 +94,24 @@
 
   .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:80;display:none;max-width:74%;text-align:center;line-height:1.6}
   .toast.show{display:block}
+
+  /* 检查表选择弹层（从机构端检查表管理选用“启用”的表，并按企业行业过滤） */
+  .as-mask{position:absolute;inset:0;z-index:60;display:none;background:rgba(15,22,36,.4);align-items:flex-end}
+  .as-mask.show{display:flex}
+  .as-panel{width:100%;background:#fff;border-radius:16px 16px 0 0;overflow:hidden;animation:asUp .2s ease}
+  @keyframes asUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .as-head{position:relative;padding:15px 16px;font-size:15px;font-weight:700;color:var(--text);text-align:center;border-bottom:1px solid var(--line)}
+  .as-search{padding:10px 16px;border-bottom:1px solid var(--line)}
+  .as-search input{width:100%;height:36px;border:none;border-radius:8px;background:#f4f6fb;padding:0 12px;font-size:13.5px;color:var(--val);outline:none}
+  .as-search input::placeholder{color:#c2c8d4}
+  .as-list{max-height:320px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .as-list::-webkit-scrollbar{display:none}
+  .as-item{padding:13px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);cursor:pointer}
+  .as-item:active{background:#f7f9fd}
+  .as-item .ai-name{font-size:14px;color:var(--text);font-weight:500;line-height:1.4}
+  .as-item .ai-code{font-size:12px;color:var(--sub);margin-top:3px}
+  .as-empty{padding:28px 16px;text-align:center;color:var(--sub);font-size:13px}
+  .as-cancel{height:50px;display:flex;align-items:center;justify-content:center;color:#5b6472;font-size:15px;font-weight:600;cursor:pointer}
 </style>
 </head>
 <body>
@@ -111,7 +131,7 @@
 
   <div class="body" id="body"></div>
 
-  <div class="footer"><button class="btn-main" onclick="generateReport()">生成报告</button></div>
+  <div class="footer"><button class="btn-draft" onclick="saveDraft()">存为草稿</button><button class="btn-main" onclick="generateReport()">生成报告</button></div>
 
   <div class="preview" id="preview">
     <div class="preview-head">
@@ -128,6 +148,16 @@
   <div id="reportHost"><div id="reportDoc" class="rpt"></div></div>
   <div class="home-ind"></div>
   <div class="toast" id="toast"></div>
+
+  <!-- 检查表选择 弹层 -->
+  <div class="as-mask" id="patrolSheet" onclick="if(event.target===this)closePatrolSheet()">
+    <div class="as-panel">
+      <div class="as-head">选择检查表</div>
+      <div class="as-search"><input id="patrolSheetQ" placeholder="搜索检查表名称 / 编号 / 行业" oninput="patrolFilter()"></div>
+      <div class="as-list" id="patrolSheetList"></div>
+      <div class="as-cancel" onclick="closePatrolSheet()">取消</div>
+    </div>
+  </div>
 </div>
 
 <script src="libs/html2canvas.min.js"></script>
@@ -241,12 +271,60 @@ function renderPatrol(){ document.getElementById('patrolWrap').innerHTML = patro
 
 /* ===== 交互 ===== */
 function goPhoto(name,max){ location.href = '照片采集.html?title=' + name + '&max=' + max; }
-function patrolAdd(){
-  const list = patrolLoad(), used = list.map(r=>r.name);
-  const next = PATROL_TYPES.find(t=>used.indexOf(t)<0);
-  if(!next){ toast('已无可添加的排查表'); return; }
-  list.push({name:next, done:true}); patrolSave(list); renderPatrol();
+function patrolTables(){
+  try{ const s = localStorage.getItem('ins_patrol_tables'); const a = s ? JSON.parse(s) : []; return Array.isArray(a) ? a : []; }catch(e){ return []; }
 }
+const DEMO_COMPANY_INDUSTRY = { '福州无比欢信息科技有限公司':'建筑施工', '福建厦发信息有限公司':'建筑施工' };
+function enterpriseIndustry(){
+  const u = (new URLSearchParams(location.search).get('industry') || '').trim();
+  if(u) return u;
+  try{
+    const s = localStorage.getItem('ins_plans');
+    const arr = s ? JSON.parse(s) : [];
+    const hit = (Array.isArray(arr) ? arr : []).find(p => p && p.company === COMPANY);
+    if(hit && hit.industry) return hit.industry;
+  }catch(e){}
+  return DEMO_COMPANY_INDUSTRY[COMPANY] || '其他';
+}
+let PATROL_AVAIL = [];
+function patrolAdd(){
+  const enabled = patrolTables().filter(t => t.status === '启用');
+  const used = patrolLoad().map(r => r.tableId || r.name).filter(Boolean);
+  // 按企业行业过滤：只显示适用行业相同的检查表
+  PATROL_AVAIL = enabled.filter(t => (t.industry || '') === enterpriseIndustry() && used.indexOf(t.code) < 0);
+  const box = document.getElementById('patrolSheet');
+  if(!enabled.length){ toast('机构端暂无可选（启用）的检查表'); return; }
+  if(!box){ toast('暂不支持选择'); return; }
+  const qEl = document.getElementById('patrolSheetQ'); if(qEl) qEl.value = '';
+  renderPatrolSheet('');
+  box.classList.add('show');
+}
+function renderPatrolSheet(kw){
+  kw = (kw || '').trim().toLowerCase();
+  const list = PATROL_AVAIL.filter(t =>
+    !kw || String(t.name||'').toLowerCase().indexOf(kw) >= 0
+        || String(t.code||'').toLowerCase().indexOf(kw) >= 0
+        || String(t.industry||'').toLowerCase().indexOf(kw) >= 0);
+  const empty = kw ? '未找到匹配的检查表'
+    : `暂无适用「${esc(enterpriseIndustry())}」行业的检查表`;
+  document.getElementById('patrolSheetList').innerHTML = list.length ? list.map(t =>
+    `<div class="as-item" onclick="patrolPick('${esc(t.code)}')">
+       <div style="flex:1;min-width:0">
+         <div class="ai-name">${esc(t.name)}</div>
+         <div class="ai-code">编号 ${esc(t.code)}</div>
+       </div>
+     </div>`).join('') : `<div class="as-empty">${empty}</div>`;
+}
+function patrolFilter(){ const q = document.getElementById('patrolSheetQ'); renderPatrolSheet(q ? q.value : ''); }
+function patrolPick(code){
+  const t = patrolTables().find(x => x.code === code); if(!t){ closePatrolSheet(); return; }
+  const list = patrolLoad();
+  if(list.some(r => (r.tableId || r.name) === code)){ toast('该检查表已添加'); closePatrolSheet(); return; }
+  list.push({name:t.name, done:true, tableId:t.code, code:t.code, org:t.org, industry:t.industry});
+  patrolSave(list); closePatrolSheet(); renderPatrol();
+  toast('已添加：' + t.name);
+}
+function closePatrolSheet(){ const b = document.getElementById('patrolSheet'); if(b) b.classList.remove('show'); }
 function patrolRemove(i){ const list = patrolLoad(); list.splice(i,1); patrolSave(list); renderPatrol(); }
 function patrolOpen(i){ const r = patrolLoad()[i]; if(!r) return; toast('打开排查表：'+r.name); }
 
@@ -304,6 +382,17 @@ async function generateReport(){
   }catch(e){ console.error(e); toast('PDF 生成失败'); }
 }
 function closePreview(){ document.getElementById('preview').classList.remove('show'); }
+function saveDraft(){
+  try{
+    localStorage.setItem('hazardlist_'+project, JSON.stringify(loadHazards()));
+    localStorage.setItem('patrol_'+project, JSON.stringify(patrolLoad()));
+    const status = JSON.parse(localStorage.getItem('sg_report_status') || '{}');
+    status[orderNo] = '草稿';
+    localStorage.setItem('sg_report_status', JSON.stringify(status));
+    localStorage.setItem('report_draft_'+orderNo, JSON.stringify({time: Date.now()}));
+  }catch(e){}
+  toast('已存为草稿');
+}
 function doSubmit(){
   try{
     localStorage.setItem('hazardlist_'+project, JSON.stringify(loadHazards()));

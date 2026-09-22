@@ -161,7 +161,7 @@ const LEC_C = [
 
 const SECTIONS = [
   { title:'安全风险辨识、评估、评价 · 新增风险', fields:[
-    {type:'photo', name:'风险点图片', max:1, sources:['拍照','引用照片库'], req:true},
+    {type:'photo', name:'风险点图片', max:1, sources:['拍照','引用现场检查照片'], req:true},
     {type:'text', name:'风险点名称', max:20, ph:'请填写风险点名称（20字以内）', req:true},
     {type:'single', name:'风险点种类', opts:['设备设施','场所区域','作业活动'], def:'设备设施', req:true},
     {type:'single', name:'风险位置', opts:['生产区域','辅助生产区域','非生产区域'], def:'生产区域', req:true},
@@ -188,7 +188,7 @@ const SECTIONS = [
 
 const SRC_STYLE = {
   '拍照':       {tag:'拍', bg:'linear-gradient(135deg,#5b86f5,#3f6ef2)'},
-  '引用照片库': {tag:'库', bg:'linear-gradient(135deg,#9b6bef,#6b46e0)'},
+  '引用现场检查照片': {tag:'库', bg:'linear-gradient(135deg,#9b6bef,#6b46e0)'},
 };
 
 const q = new URLSearchParams(location.search);

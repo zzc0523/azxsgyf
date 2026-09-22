@@ -211,8 +211,8 @@
       </div>
 
       <div class="field">
-        <div class="flbl"><span class="req">*</span>整改责任人</div>
-        <input class="inp" id="f_owner" type="text" maxlength="20" placeholder="请填写整改责任人">
+        <div class="flbl">整改责任人</div>
+        <input class="inp" id="f_owner" type="text" maxlength="20" placeholder="请填写整改责任人（非必填）">
       </div>
 
       <div class="field">
@@ -221,7 +221,7 @@
       </div>
 
       <div class="field">
-        <div class="flbl"><span class="req">*</span>整改状态</div>
+        <div class="flbl">整改状态</div>
         <div class="chips" data-key="status" data-type="single">
           <span class="chip on" data-v="未整改">未整改</span>
           <span class="chip" data-v="整改中">整改中</span>
@@ -270,7 +270,7 @@ function val(id){ return (document.getElementById(id).value||'').trim(); }
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1400); }
 
 /* ===== 照片来源弹层 ===== */
-const SRC = ['拍照','引用照片库'];
+const SRC = ['拍照','引用现场检查照片'];
 function openSheetFor(el){
   const ph = el.closest('.photos');
   const max = +ph.dataset.max || 1;
@@ -368,8 +368,6 @@ function submitForm(){
   const advice=val('f_advice'); if(!advice)  miss.push('整改建议');
   if(!selKey('industry'))  miss.push('行业类别');
   if(!selKey('level'))     miss.push('隐患等级');
-  if(!selKey('status'))    miss.push('整改状态');
-  if(!val('f_owner'))      miss.push('整改责任人');
   const acc = [...document.querySelectorAll('#accidentChips .chip.on')].map(c=>c.dataset.v);
   if(!acc.length) miss.push('事故种类');
   if(miss.length){ toast('请完善：'+miss.join('、')); return; }

@@ -55,6 +55,8 @@
   .footer{flex:none;padding:10px 16px 24px;background:var(--bg);display:flex;gap:10px}
   .btn-main{flex:1;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
   .btn-main:active{background:var(--blue-d)}
+  .btn-draft{flex:none;height:46px;padding:0 22px;border-radius:10px;background:#fff;border:1px solid var(--blue);color:var(--blue);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn-draft:active{background:#eef2fc}
 
   /* 报告预览（PDF） */
   .preview{position:absolute;inset:0;background:#f4f6fb;z-index:70;display:none;flex-direction:column}
@@ -104,7 +106,7 @@
 
   <div class="body" id="body"></div>
 
-  <div class="footer"><button class="btn-main" onclick="generateReport()">生成报告</button></div>
+  <div class="footer"><button class="btn-draft" onclick="saveDraft()">存为草稿</button><button class="btn-main" onclick="generateReport()">生成报告</button></div>
 
   <!-- 报告预览（PDF） -->
   <div class="preview" id="preview">
@@ -259,6 +261,16 @@ async function generateReport(){
   }catch(e){ console.error(e); toast('PDF 生成失败'); }
 }
 function closePreview(){ document.getElementById('preview').classList.remove('show'); }
+function saveDraft(){
+  try{
+    localStorage.setItem('risklist_'+project, JSON.stringify(loadRisks()));
+    const status = JSON.parse(localStorage.getItem('sg_report_status') || '{}');
+    status[orderNo] = '草稿';
+    localStorage.setItem('sg_report_status', JSON.stringify(status));
+    localStorage.setItem('report_draft_'+orderNo, JSON.stringify({time: Date.now()}));
+  }catch(e){}
+  toast('已存为草稿');
+}
 function doSubmit(){
   try{ localStorage.setItem('risklist_'+project, JSON.stringify(loadRisks())); }catch(e){}
   const status = JSON.parse(localStorage.getItem('sg_report_status') || '{}');

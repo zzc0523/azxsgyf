@@ -73,6 +73,28 @@
   .footer{flex:none;padding:10px 16px 24px;background:var(--bg);display:flex;gap:10px}
   .btn-main{flex:1;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
   .btn-main:active{background:var(--blue-d)}
+  .btn-draft{flex:none;height:46px;padding:0 22px;border-radius:10px;background:#fff;border:1px solid var(--blue);color:var(--blue);font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn-draft:active{background:#eef2fc}
+
+  /* 报告预览 */
+  .preview{position:absolute;inset:0;background:#f4f6fb;z-index:70;display:none;flex-direction:column}
+  .preview.show{display:flex}
+  .preview-head{flex:none;padding:30px 16px 14px;background:linear-gradient(180deg,#3f6ef2,#5b86f5);color:#fff}
+  .preview-title{font-size:17px;font-weight:700}
+  .preview-sub{font-size:12px;opacity:.92;margin-top:5px;word-break:break-word}
+  .preview-body{flex:1;overflow-y:auto;padding:16px}
+  .preview-body::-webkit-scrollbar{display:none}
+  .pv-card{background:#fff;border-radius:14px;padding:6px 16px 14px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .pv-sec{font-size:16px;font-weight:700;color:var(--blue);margin:0 0 10px}
+  .pv-row{padding:10px 0;border-bottom:1px dashed #e6e9f0;font-size:13.5px;line-height:1.7}
+  .pv-row:last-child{border-bottom:none}
+  .pv-k{color:#8b91a0;font-size:12.5px;margin-bottom:3px}
+  .pv-v{color:#1f2329;word-break:break-word}
+  .preview-foot{flex:none;display:flex;gap:12px;padding:10px 16px 24px;background:var(--bg)}
+  .preview-foot button{flex:1 1 0;min-width:0;height:46px;margin:0;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit}
+  .preview-foot .btn-main{box-shadow:0 6px 16px rgba(43,92,230,.28)}
+  .preview-foot .btn-ghost{border:1px solid var(--blue);background:#fff;color:var(--blue)}
+  .preview-foot .btn-ghost:active{background:#eef2fc}
 
   .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:80;display:none;max-width:74%;text-align:center;line-height:1.6}
   .toast.show{display:block}
@@ -95,7 +117,20 @@
 
   <div class="body" id="body"></div>
 
-  <div class="footer"><button class="btn-main" onclick="submitReport()">提交报告</button></div>
+  <!-- 报告预览 -->
+  <div class="preview" id="preview">
+    <div class="preview-head">
+      <div class="preview-title">报告预览</div>
+      <div class="preview-sub" id="previewSub"></div>
+    </div>
+    <div class="preview-body"><div class="pv-card" id="previewBody"></div></div>
+    <div class="preview-foot">
+      <button class="btn-ghost" onclick="closePreview()">重新整理</button>
+      <button class="btn-main" onclick="submitReport()">提交报告</button>
+    </div>
+  </div>
+
+  <div class="footer"><button class="btn-draft" onclick="saveDraft()">存为草稿</button><button class="btn-main" onclick="generateReport()">生成报告</button></div>
   <div class="home-ind"></div>
   <div class="toast" id="toast"></div>
 </div>
@@ -266,6 +301,33 @@ function saveText(key){
   toast('编辑结果已保存');
 }
 
+function saveDraft(){
+  const status = JSON.parse(localStorage.getItem('sg_report_status') || '{}');
+  status[orderNo] = '草稿';
+  localStorage.setItem('sg_report_status', JSON.stringify(status));
+  toast('已存为草稿');
+}
+function closePreview(){ document.getElementById('preview').classList.remove('show'); }
+function generateReport(){
+  const sub = k=>{
+    const st = STATE[k];
+    if(!st || !st.type) return '<span style="color:#e5484d">未整理</span>';
+    if(st.type==='pdf') return '已上传 PDF：'+esc(st.file||'');
+    if(st.type==='ai')  return '大模型生成并编辑（'+(st.text||'').length+' 字）';
+    if(st.type==='doc') return '已上传文档：'+esc(st.file||'');
+    return '已整理';
+  };
+  document.getElementById('previewBody').innerHTML =
+    '<div class="pv-sec">安全生产标准化管理体系建设 · 报告整理</div>'+
+    '<div class="pv-row"><div class="pv-k">预防服务工单</div><div class="pv-v">'+esc(orderNo)+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">企业名称</div><div class="pv-v">'+esc(COMPANY)+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">服务项目</div><div class="pv-v">'+esc(project)+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">评审报告</div><div class="pv-v">'+sub('review')+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">改进建议</div><div class="pv-v">'+sub('advice')+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">其他报告</div><div class="pv-v">'+sub('other')+'</div></div>';
+  document.getElementById('previewSub').textContent = '工单号 '+orderNo+' · '+project;
+  document.getElementById('preview').classList.add('show');
+}
 function submitReport(){
   const none = ['review','advice','other'].filter(k=>!(STATE[k] && STATE[k].type));
   if(none.length){ toast('请先完成：' + none.map(k=>BLOCKS[k].sec).join('、')); return; }

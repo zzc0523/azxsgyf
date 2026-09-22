@@ -28,14 +28,24 @@ const TECH_USER  = '张工';
 /* ===== 菜单路由：已实现页面在此登记（未登记则提示未开放） ===== */
 const TEC_ROUTES = {
   '事故预防服务管理': '事故预防服务管理.html',
+  '服务报告审核': '服务报告审核_服务机构端.html',
 };
 
 /* ===== 侧栏菜单数据：后续统一在此新增/调整 ===== */
 const MENUS = [
-  { k:'cert', t:'个人认证',
-    d:'<circle cx="8" cy="5.2" r="2.6"/><path d="M3 13.9c0-2.7 2.2-4.4 5-4.4s5 1.7 5 4.4"/>' },
+  { k:'home', t:'首页',
+    d:'<path d="M2.4 6.9 8 2.6l5.6 4.3V13a.7.7 0 0 1-.7.7H3.1a.7.7 0 0 1-.7-.7z"/>' },
+  { k:'cert', t:'企业认证',
+    d:'<path d="M8 1.7 13 3.5v4c0 3-2.1 5.5-5 6.6C5.1 12.9 3 10.5 3 7.5v-4z"/><path d="m5.9 7.9 1.5 1.5 2.7-2.8"/>' },
+  { k:'tech', t:'技术人员管理',
+    d:'<rect x="4.6" y="4.6" width="6.8" height="6.8" rx="1.2"/><path d="M6.4 2v2.4M9.6 2v2.4M6.4 11.6V14M9.6 11.6V14M2 6.4h2.4M2 9.6h2.4M11.6 6.4H14M11.6 9.6H14"/>' },
   { k:'svc', t:'事故预防服务管理',
-    d:'<path d="M8 14.4s4.3-4.3 4.3-7.4A4.3 4.3 0 0 0 3.7 7c0 3.1 4.3 7.4 4.3 7.4z"/><circle cx="8" cy="7" r="1.4"/>' },
+    d:'<path d="M8 1.8a4.2 4.2 0 0 0-2.5 7.6c.4.3.6.7.6 1.1v.5h3.8v-.5c0-.4.2-.8.6-1.1A4.2 4.2 0 0 0 8 1.8z"/><path d="M6.4 12.6h3.2M6.9 14.2h2.2"/>',
+    children:['事故预防服务管理','服务报告审核'] },
+  { k:'check', t:'检查表管理',
+    d:'<rect x="2" y="2" width="12" height="12" rx="2"/><path d="m5.4 8.2 1.8 1.8 3.5-3.6"/>' },
+  { k:'qbank', t:'题库管理',
+    d:'<circle cx="8" cy="8" r="6.2"/><path d="M6.3 6.1a1.75 1.75 0 1 1 2.55 1.7c-.5.28-.85.63-.85 1.2v.35"/><circle cx="8" cy="11.3" r=".75" fill="currentColor" stroke="none"/>' },
 ];
 
 /* ===== 侧栏渲染 ===== */
@@ -65,8 +75,9 @@ function toggleGroup(k){
 }
 function onMenu(t){
   const u = TEC_ROUTES[t];
-  if(u && !location.pathname.split('/').pop().endsWith(u)){ location.href = u; return; }
-  toast('「' + t + '」模块暂未开放');
+  if(!u){ toast('「' + t + '」模块暂未开放'); return; }
+  if(location.pathname.split('/').pop().endsWith(u)) return;   // 已在该页面
+  location.href = u;
 }
 
 /* ===== 侧栏收起/展开 ===== */
@@ -104,8 +115,9 @@ function renderTabs(tabs, activeTab){
 }
 function onTab(t){
   const u = TEC_ROUTES[t];
-  if(u && !location.pathname.split('/').pop().endsWith(u)){ location.href = u; return; }
-  toast('「' + t + '」页签（演示）');
+  if(!u){ toast('「' + t + '」页签（演示）'); return; }
+  if(location.pathname.split('/').pop().endsWith(u)) return;   // 已在该页面
+  location.href = u;
 }
 
 /* ===== 页面初始化入口 ===== */
