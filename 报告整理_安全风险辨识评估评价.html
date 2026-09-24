@@ -224,7 +224,7 @@ function buildReportDOM(meta, data){
   const photoRow = `<div class="rpt-row"><div class="rpt-k">现场照片</div><div class="rpt-v">${esc(data.photo)}</div></div>`;
   const riskBlocks = data.list.map((r,i)=>
     `<div class="rpt-risk"><div class="rt">风险 ${i+1}　[${esc(r.level)}]</div>
-      <div class="rr">风险点名称：${esc(r.name)||'—'}<br>可能导致的事故种类：${esc(r.effect)||'—'}<br>管控措施：${esc(r.advice)||'—'}</div></div>`).join('');
+      <div class="rr">风险点名称：${esc(r.name)||'—'}<br>可能导致的事故种类：${esc(r.accType||r.effect)||'—'}<br>管控措施：${esc(r.advice)||'—'}</div></div>`).join('');
   document.getElementById('reportDoc').innerHTML =
     `<div class="rpt-h">${esc(meta.proj)} · 服务报告</div>`+
     `<div class="rpt-sub">工单号：${esc(meta.no)}　|　生成时间：${esc(meta.time)}</div>`+

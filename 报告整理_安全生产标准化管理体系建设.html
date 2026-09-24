@@ -98,6 +98,19 @@
 
   .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:80;display:none;max-width:74%;text-align:center;line-height:1.6}
   .toast.show{display:block}
+  /* 现场照片模块（自包含，避免与各页已有 .card/.frow 等类名冲突） */
+  .phsec{font-size:15px;font-weight:700;color:#1f2329;padding:18px 16px 8px;display:flex;align-items:center}
+  .phsec::before{content:"";width:3px;height:15px;background:#2b5ce6;border-radius:2px;margin-right:8px}
+  .phcard{background:#fff;border-radius:14px;margin:0 16px;padding:4px 16px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .phlrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;cursor:pointer;border-radius:8px;transition:background .12s}
+  .phlrow:active{background:#f7f9fd}
+  .phlrow .phltxt{color:#1f2329;font-size:13.5px;font-weight:500;line-height:1.4;flex:1;min-width:0;word-break:break-word}
+  .phright{display:flex;align-items:center;gap:8px;justify-content:flex-end;flex:none}
+  .phgo{color:#bcc3d0;font-size:16px}
+  .phstat{font-size:13px;font-weight:600}
+  .phstat.phok{color:#2f9e6b}
+  .phstat.phno{color:#e5484d}
+  .phcap{color:#9aa0ad;font-size:12.5px}
 </style>
 </head>
 <body>
@@ -231,9 +244,35 @@ function blockHTML(key){
     </div>`;
 }
 
+/* ===== 现场照片（回显采集状态；点击跳转 照片采集.html） ===== */
+const PHOTO_DEFAULT = {'企业（项目）门牌照':2, '技术人员现场服务照片':2, '现场检查照片':0};
+function photoCount(n){
+  try{ const v = localStorage.getItem('photo_'+n); if(v != null) return Math.max(0, +v||0); }catch(e){}
+  return PHOTO_DEFAULT[n] || 0;
+}
+const PHOTOS = [
+  {name:'企业（项目）门牌照', max:2, need:true},
+  {name:'技术人员现场服务照片', max:2, need:true},
+  {name:'现场检查照片', max:50},
+];
+function photoCard(){
+  const html = PHOTOS.map(r=>{
+    const right = r.need
+      ? (photoCount(r.name) >= r.max ? `<span class="phstat phok">已完成</span>` : `<span class="phstat phno">未完成</span>`)
+      : `<span class="phcap">${r.max}张</span>`;
+    return `<div class="phlrow" onclick="goPhoto('${encodeURIComponent(r.name)}',${r.max})">
+      <div class="phltxt">${r.name}</div>
+      <div class="phright">${right}<span class="phgo">›</span></div>
+    </div>`;
+  }).join('');
+  return `<div class="phsec">现场照片</div><div class="phcard">${html}</div>`;
+}
+function goPhoto(name,max){ location.href = '照片采集.html?title=' + name + '&max=' + max; }
+
 function render(){
   document.getElementById('body').innerHTML =
     infoCard() +
+    photoCard() +
     blockHTML('review') +
     blockHTML('advice') +
     blockHTML('other');
@@ -324,7 +363,8 @@ function generateReport(){
     '<div class="pv-row"><div class="pv-k">服务项目</div><div class="pv-v">'+esc(project)+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">评审报告</div><div class="pv-v">'+sub('review')+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">改进建议</div><div class="pv-v">'+sub('advice')+'</div></div>'+
-    '<div class="pv-row"><div class="pv-k">其他报告</div><div class="pv-v">'+sub('other')+'</div></div>';
+    '<div class="pv-row"><div class="pv-k">其他报告</div><div class="pv-v">'+sub('other')+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">现场照片</div><div class="pv-v">'+esc(PHOTOS.map(p=>p.name+' '+photoCount(p.name)+'张').join('、'))+'</div></div>';
   document.getElementById('previewSub').textContent = '工单号 '+orderNo+' · '+project;
   document.getElementById('preview').classList.add('show');
 }

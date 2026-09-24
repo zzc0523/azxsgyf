@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>报告整理 · 服务机构端</title>
+<link rel="stylesheet" href="tech-common.css">
+<style>
+  #grid{table-layout:fixed}
+  #grid td{overflow:hidden;text-overflow:ellipsis}
+
+  /* 查询卡片 */
+  .qcard{padding:16px 18px;margin-bottom:14px}
+  .qline{display:flex;align-items:center;gap:22px}
+  .qline+.qline{margin-top:14px}
+  .qfi{flex:1;min-width:0;display:flex;align-items:center}
+  .qfi label{flex:0 0 auto;padding-right:10px;color:#5d6879;white-space:nowrap}
+  .qfi input,.qfi select{flex:1;min-width:0;height:34px;border:1px solid #dfe4ed;border-radius:5px;padding:0 10px;font-size:13px;color:var(--txt);background:#fff;outline:none}
+  .qfi input:focus,.qfi select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(43,92,230,.12)}
+  .qacts{margin-left:auto;display:flex;align-items:center;gap:10px;flex:0 0 auto}
+
+  /* 工具栏 */
+  .tbar{display:flex;align-items:center;gap:12px;margin:0 0 14px}
+  .tbar .tip{margin-left:auto;color:#9aa3b2;font-size:12.5px}
+
+  /* 状态 */
+  .ust{display:inline-block;padding:2px 10px;border-radius:3px;font-size:12px;line-height:1.6}
+  .ust.blue{color:#2b6ce8;background:rgba(43,108,232,.12)}
+  .ust.orange{color:#e08a1e;background:rgba(224,138,30,.12)}
+  .ust.green{color:#2fa96b;background:rgba(47,169,107,.12)}
+
+  /* 详情弹窗 */
+  .modal.doc{width:min(1080px,96vw);height:min(820px,94vh);max-height:94vh}
+  .rhead{display:flex;gap:20px;background:#f7f9fc;border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin-bottom:14px}
+  .rinfo{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:2px 24px}
+  .rrow{display:flex;gap:12px;padding:7px 0;border-bottom:1px dashed #eef1f6;font-size:13px}
+  .rrow .rk{flex:0 0 110px;color:#8b91a0}
+  .rrow .rv{flex:1;color:#2b3242;word-break:break-word}
+  .rmeta{flex:0 0 180px;border-left:1px dashed #e2e7f0;padding-left:18px;display:flex;flex-direction:column;justify-content:center;gap:12px}
+  .rmrow{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#8b91a0}
+  .rmrow b{font-size:14px;color:#2b3242;font-weight:600}
+
+  .rsec{font-size:14px;font-weight:600;color:var(--brand);margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+  .rsec::before{content:"";width:3px;height:14px;background:var(--brand);border-radius:2px}
+  .rsec:first-of-type{margin-top:4px}
+
+  /* 整理表单 */
+  .form{display:grid;grid-template-columns:1fr;gap:14px}
+  .fitem{display:flex;flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:0}
+  .fitem label{flex:0 0 150px;width:150px;text-align:right;padding-right:12px;font-size:13px;font-weight:400;color:#3a4354;line-height:32px}
+  .fitem input,.fitem select,.fitem textarea{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;font-family:inherit}
+  .fitem textarea{height:72px;min-height:0;padding:8px 10px;line-height:1.6;resize:vertical}
+  .fitem input:focus,.fitem select:focus,.fitem textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12)}
+  input:disabled{background:#f5f7fa;border-color:#eef1f6;color:#2b3242;-webkit-text-fill-color:#2b3242;cursor:default}
+
+  /* 报告块（标准化 / 应急预案） */
+  .bcard{border:1px solid var(--line);border-radius:6px;padding:14px;margin-bottom:4px;background:#fff}
+  .bhint{font-size:12px;color:#8b91a0;margin-bottom:10px}
+  .bacts{display:flex;gap:8px;margin-bottom:8px}
+  .bfile{display:flex;align-items:center;gap:8px;font-size:13px;color:#1f2329;margin-bottom:6px}
+  .bfile .ok{color:#2fa96b;font-weight:700}
+  .beditor{margin-top:6px}
+  .barea{width:100%;min-height:90px;border:1px solid #dfe4ed;border-radius:6px;padding:8px;font-size:13px;font-family:inherit;line-height:1.6;resize:vertical}
+  .bstat{font-size:13px;margin-top:6px}
+
+  /* 多选 / 照片状态 */
+  .chkgrp{display:flex;flex:1;min-width:0;flex-wrap:wrap;gap:10px 12px;padding:2px 0;align-content:flex-start}
+  .chk{display:inline-flex;align-items:center;gap:8px;height:34px;min-width:132px;padding:0 14px 0 12px;font-size:13px;color:#2b3242;background:#fff;border:1px solid #dfe4ed;border-radius:6px;cursor:pointer;user-select:none;transition:border-color .15s,background .15s,color .15s}
+  .chk::before{content:"";flex:0 0 auto;width:16px;height:16px;border:1.5px solid #c7cede;border-radius:4px;background:#fff center/11px 11px no-repeat;transition:border-color .15s,background-color .15s}
+  .chk:hover{border-color:#9db2e6;background:#fafcff}
+  .chk input{display:none}
+  .chk:has(input:checked){border-color:var(--brand);background:#eef4ff;color:var(--brand);font-weight:600}
+  .chk:has(input:checked)::before{border-color:var(--brand);background-color:var(--brand);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E")}
+  .fhint{font-size:11px;font-weight:400;color:#8b93a3;background:#f3f5f9;border:1px solid #e7ebf2;border-radius:3px;padding:0 5px;margin-left:6px;line-height:17px;display:inline-block;vertical-align:1px}
+  .fitem .chk-other{height:34px;min-width:160px;flex:1;border:1px solid #dfe4ed;border-radius:6px;padding:0 12px;font-size:13px;font-family:inherit}
+  .muted{color:#9aa3b2;font-size:13px;word-break:break-word}
+  .req{color:#e5484d;font-style:normal;font-weight:400;margin-left:2px}
+  .phstat{font-size:13px;font-weight:600}
+  .phstat.ok{color:#2fa96b}
+  .phstat.no{color:#e5484d}
+  .btn.sm{height:30px;padding:0 12px;font-size:12px;border-radius:5px}
+  .btn.sm.ai{background:linear-gradient(90deg,#6f4ff0,#9b6cf0);border-color:transparent;color:#fff}
+
+  /* 隐患 / 风险 清单（读取自小程序端，可编辑） */
+  .haz-meta{font-size:13px;color:#5d6879;margin:10px 0 8px}
+  .haz-meta b{color:var(--brand);font-size:15px;margin:0 2px}
+  .haz-wrap{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+  .haz-head,.haz-row{display:grid;gap:10px;align-items:center;padding:8px 12px;min-width:0}
+  .haz-hz .haz-head,.haz-hz .haz-row{grid-template-columns:40px minmax(170px,2.4fr) 120px 110px 140px 120px 56px}
+  .haz-rk .haz-head,.haz-rk .haz-row{grid-template-columns:34px minmax(130px,1.5fr) 90px 110px 140px 90px minmax(140px,2fr) 64px}
+  .haz-rk .haz-head span{white-space:normal;line-height:1.25}
+  .hz-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:#1f2329}
+  .haz-act{gap:14px}
+  .haz-edit{cursor:pointer;color:#3b7cff;font-size:15px;line-height:1;transition:color .15s}
+  .haz-edit:hover{color:#2b6ce8}
+  .rk-imgpick{display:flex;align-items:center;gap:12px}
+  .rk-imgpick .box{width:108px;height:78px;flex:0 0 108px;border:1px dashed #dfe4ed;border-radius:8px;background:#fbfcfe;display:flex;align-items:center;justify-content:center;color:#9aa3b2;font-size:12px;cursor:pointer;overflow:hidden;transition:.15s}
+  .rk-imgpick .box:hover{border-color:#9db2e6;background:#f7faff}
+  .rk-imgpick .box img{width:100%;height:100%;object-fit:cover;display:block}
+  .rk-imgpick .ops{display:flex;flex-direction:column;gap:6px}
+  .rk-imgpick .lnk{font-size:12px;color:var(--brand);cursor:pointer}
+  .rk-imgpick .lnk:hover{text-decoration:underline}
+  .rk-imgpick .lnk.del{color:#e5484d}
+  .rk-imgpick .tip{font-size:12px;color:#9aa3b2;cursor:pointer}
+  /* 风险图片选择时，照片库弹层需盖在风险编辑弹窗之上 */
+  #reflib{z-index:70}
+  /* 风险编辑 · 单选/多选 chips 与 大模型生成 */
+  .efield label.with{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .echips{display:flex;flex-wrap:wrap;gap:8px}
+  .echips.scroll{max-height:168px;overflow:auto;padding:6px 8px;border:1px solid #eef1f6;border-radius:6px;background:#fbfcfe}
+  .echip{padding:5px 12px;border:1px solid #dfe4ed;border-radius:15px;font-size:12.5px;line-height:1.5;color:#3a4354;background:#fff;cursor:pointer;user-select:none;transition:.12s}
+  .echip:hover{border-color:#9db2e6}
+  .echip.on{background:rgba(43,92,230,.10);border-color:var(--brand);color:var(--brand);font-weight:600}
+  .aibtn{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 10px;border:none;background:linear-gradient(135deg,#7b5bef,#5b3ef2);color:#fff;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+  .aibtn:hover{opacity:.92}
+  .efield .cnt{font-size:12px;color:#b9bfcc;text-align:right;margin-top:-2px}
+  /* 风险等级自动计算 · 徽标与算式 */
+  .level-row{display:flex;align-items:center;gap:10px}
+  .risk-badge{display:inline-flex;align-items:center;justify-content:center;min-width:84px;padding:5px 12px;border-radius:14px;font-size:13px;font-weight:600;color:#fff;background:#9aa0ad}
+  .risk-badge.blue{background:#2b8cf0}
+  .risk-badge.yellow{background:#e6a23c}
+  .risk-badge.orange{background:#f5791f}
+  .risk-badge.red{background:#e5484d}
+  .calc-text{margin-top:6px;font-size:12.5px;color:#6b7280;line-height:1.5}
+  /* 风险编辑弹窗 */
+  .emask{position:fixed;inset:0;background:rgba(17,24,39,.45);display:none;align-items:center;justify-content:center;z-index:60}
+  .emask.show{display:flex}
+  .emodal{width:min(600px,94vw);max-height:90vh;overflow:auto;background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  .emhead{font-size:15px;font-weight:700;color:#1f2329;padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+  .emhead .x{cursor:pointer;color:#9aa3b2;font-size:18px;line-height:1}
+  .embody{padding:16px 18px;display:grid;gap:13px}
+  .efield{display:flex;flex-direction:column;gap:6px}
+  .efield label{font-size:13px;color:#3a4354}
+  .efield input,.efield select,.efield textarea{width:100%;border:1px solid #dfe4ed;border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;color:#1f2329;background:#fff;outline:none}
+  .efield textarea{min-height:64px;resize:vertical;line-height:1.5}
+  .efield input:focus,.efield select:focus,.efield textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(43,92,230,.12)}
+  .efoot{display:flex;justify-content:flex-end;gap:10px;padding:14px 18px;border-top:1px solid var(--line)}
+  .haz-head{background:#f6f8fc;border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:#5b6472}
+  .haz-head span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .haz-head .haz-op{text-align:center}
+  .haz-row{border-bottom:1px solid #f0f3f8}
+  .haz-row:last-child{border-bottom:0}
+  .haz-row:nth-child(even){background:#fbfcfe}
+  .haz-idx{color:#9aa3b2;font-size:12px;text-align:center}
+  .haz-row input,.haz-row select,.haz-row textarea{width:100%;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:6px;padding:0 9px;font-size:13px;color:#1f2329;background:#fff;outline:none;font-family:inherit}
+  .haz-row textarea{height:32px;padding:6px 9px;line-height:1.35;resize:vertical}
+  .haz-row input:focus,.haz-row select:focus,.haz-row textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(43,92,230,.12)}
+  .haz-act{display:flex;justify-content:center;align-items:center}
+  .haz-del{cursor:pointer;color:#c9ced9;font-size:15px;line-height:1;transition:color .15s}
+  .haz-del:hover{color:#e5484d}
+  .haz-ops{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px}
+
+  /* 底部操作区 */
+  .revbox{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
+  .rev-actions{display:flex;gap:12px;justify-content:flex-end}
+
+  /* 报告 PDF 生成源（离屏） */
+  .pdfsrc{position:fixed;left:-10000px;top:0;width:794px;background:#fff;color:#1f2329;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  .pdfsrc .doc{padding:50px 56px 40px}
+  .pdfsrc .head{text-align:center;border-bottom:2px solid #1f2329;padding-bottom:14px}
+  .pdfsrc .head .k{font-size:12px;color:#8a909c;letter-spacing:3px}
+  .pdfsrc .head .h{font-size:22px;font-weight:800;margin-top:8px}
+  .pdfsrc table.meta{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}
+  .pdfsrc table.meta td{padding:7px 10px;border:1px solid #e6e9ef;vertical-align:top;white-space:normal}
+  .pdfsrc table.meta td.k{width:118px;color:#8a909c;background:#f7f9fc;font-weight:600}
+  .pdfsrc h3{font-size:15px;margin:20px 0 8px;padding-left:9px;border-left:3px solid var(--brand)}
+  .pdfsrc table.kv{width:100%;border-collapse:collapse;font-size:13px}
+  .pdfsrc table.kv td{padding:7px 10px;border:1px solid #eef1f6;vertical-align:top;white-space:normal}
+  .pdfsrc table.kv td.k{width:180px;color:#8a909c;font-weight:600}
+  .pdfsrc .sign{display:flex;justify-content:space-between;margin-top:28px;font-size:12px;color:#8a909c}
+  .pdfload{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#5d6879;font-size:14px}
+  #pdfframe{width:100%;height:100%;border:0}
+
+  @media (max-width:1024px){
+    .qline{flex-wrap:wrap}
+    .qfi{flex:1 1 100%}
+    .qacts{margin-left:0}
+    .rhead{flex-direction:column}
+    .rmeta{flex:0 0 auto;border-left:none;border-top:1px dashed #e2e7f0;padding-left:0;padding-top:12px;flex-direction:row}
+  }
+  /* 现场照片（PC 端：预览 / 增改删） */
+  .fctl{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+  .pthumbs{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .pthumb{position:relative;width:84px;height:84px;border-radius:6px;overflow:hidden;border:1px solid #e6e9ef;background:#f4f6fb;cursor:pointer}
+  .pthumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .pthumb .pth-del{position:absolute;top:2px;right:2px;width:20px;height:20px;border:none;border-radius:50%;background:rgba(20,28,46,.6);color:#fff;font-size:12px;line-height:20px;text-align:center;padding:0;opacity:0;transition:.12s}
+  .pthumb:hover .pth-del{opacity:1}
+  .phtip{font-size:12px;color:#9aa3b2}
+  /* 照片来源选择弹层（拍照 / 引用现场检查照片 / 手机相册） */
+  .psheet{width:min(560px,92vw);max-height:86vh;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);display:flex;flex-direction:column}
+  .psheet-head{padding:14px 18px;border-bottom:1px solid var(--line);font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+  .psheet-x{border:none;background:#f1f3f7;width:26px;height:26px;border-radius:6px;cursor:pointer;color:#5d6879;font-size:13px}
+  .psheet-body{padding:14px 18px;overflow:auto}
+  .psheet-foot{padding:12px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+  .sheet-opt{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;margin-bottom:10px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font-size:13px;color:#1f2329;font-family:inherit;text-align:left;transition:.15s}
+  .sheet-opt:last-child{margin-bottom:0}
+  .sheet-opt:hover{border-color:var(--brand);background:#f5f8ff}
+  .so-tag{flex:none;width:24px;height:24px;border-radius:6px;color:#fff;font-size:12px;line-height:24px;text-align:center;font-weight:600}
+  .refgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+  .refitem{position:relative;border:2px solid transparent;border-radius:8px;overflow:hidden;cursor:pointer;background:#f4f6fb;aspect-ratio:1/1}
+  .refitem img{width:100%;height:100%;object-fit:cover;display:block}
+  .refitem input{position:absolute;top:6px;left:6px;width:18px;height:18px;margin:0;cursor:pointer}
+  .refitem:has(input:checked){border-color:var(--brand);box-shadow:0 0 0 3px rgba(43,92,230,.12)}
+  /* 照片预览灯箱 */
+  .pvbox{width:min(880px,92vw);background:#fff;border-radius:8px;overflow:hidden;display:flex;flex-direction:column}
+  .pv-top{flex:none;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #eef1f6;font-size:13px;color:#5d6879}
+  .pv-x{border:none;background:#f1f3f7;width:26px;height:26px;border-radius:6px;cursor:pointer;color:#5d6879;font-size:13px}
+  .pv-x:hover{background:#e6e9ef}
+  .pv-img{width:100%;max-height:72vh;object-fit:contain;background:#0f1115}
+  .pv-acts{flex:none;display:flex;gap:10px;justify-content:center;padding:12px}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="side">
+    <div class="brand"><i class="logo"><i></i><b></b></i><span>安全服务端</span></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-toggle" onclick="toggleSide()" title="收起/展开菜单"><i>«</i></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar" id="topbar"></header>
+
+    <div class="page">
+      <!-- 查询 -->
+      <div class="card qcard">
+        <div class="qline">
+          <div class="qfi"><label>企业名称：</label>
+            <input id="q_company" placeholder="请输入企业名称" onkeydown="if(event.key==='Enter')doSearch()"></div>
+          <div class="qfi"><label>服务项目：</label>
+            <select id="q_project">
+              <option value="">全部</option>
+              <option>安全生产标准化管理体系建设</option>
+              <option>生产安全重大事故隐患排查</option>
+              <option>安全风险辨识、评估、评价</option>
+              <option>安全生产宣传教育培训</option>
+              <option>安全生产应急救援演练</option>
+              <option>安全生产应急预案编制</option>
+            </select></div>
+          <div class="qacts">
+            <button class="btn primary" onclick="doSearch()">查询</button>
+            <button class="btn" onclick="doReset()">重置</button>
+          </div>
+        </div>
+        <div class="qline">
+          <div class="qfi"><label>整理状态：</label>
+            <select id="q_status">
+              <option value="">全部</option>
+              <option>待整理</option><option>整理中</option><option>已提交审核</option>
+            </select></div>
+          <div class="qfi"></div>
+          <div class="qacts"></div>
+        </div>
+      </div>
+
+      <!-- 工具栏 -->
+      <div class="tbar">
+        <span class="tip">整理内容（模块与字段）与小程序端完全一致；整理完成后「生成报告 / 提交审核」，提交后自动进入「服务报告审核」待初审。</span>
+      </div>
+
+      <!-- 列表 -->
+      <div class="card table-wrap">
+        <table id="grid">
+          <colgroup>
+            <col style="width:150px"><col style="width:185px"><col style="width:185px"><col style="width:130px">
+            <col style="width:120px"><col style="width:160px"><col style="width:160px"><col style="width:110px"><col style="width:110px">
+          </colgroup>
+          <thead><tr>
+            <th>预防服务工单</th><th>企业名称</th><th>服务项目</th><th>计划服务日期</th>
+            <th>服务技术人员</th><th>服务开始时间</th><th>服务结束时间</th><th>整理状态</th><th>操作</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="pager" id="pager"></div>
+    </div>
+  </main>
+</div>
+
+<!-- 整理 / 详情弹窗 -->
+<div class="mask" id="mask">
+  <div class="modal doc">
+    <div class="mhead">
+      <div class="mtitle" id="mtitle">报告整理</div>
+      <div class="mclose" onclick="closeModal()">✕</div>
+    </div>
+    <div class="mbody" id="mbody"></div>
+  </div>
+</div>
+
+<!-- 风险编辑弹窗 -->
+<div class="emask" id="riskEditMask">
+  <div class="emodal">
+    <div class="emhead"><span>编辑风险信息</span><span class="x" onclick="closeRiskEdit()">✕</span></div>
+    <div class="embody" id="riskEditBody"></div>
+    <div class="efoot">
+      <button class="btn sm" type="button" onclick="closeRiskEdit()">取消</button>
+      <button class="btn sm primary" type="button" onclick="saveRiskEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新建整理任务弹窗 -->
+<div class="mask" id="newmask">
+  <div class="modal" style="width:min(560px,94vw)">
+    <div class="mhead">
+      <div class="mtitle">新建整理任务</div>
+      <div class="mclose" onclick="closeNew()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="form">
+        <div class="fitem"><label>企业名称</label><input id="n_company" placeholder="请输入企业名称"></div>
+        <div class="fitem"><label>服务项目</label>
+          <select id="n_project">
+            <option>安全生产标准化管理体系建设</option>
+            <option>生产安全重大事故隐患排查</option>
+            <option>安全风险辨识、评估、评价</option>
+            <option>安全生产宣传教育培训</option>
+            <option>安全生产应急救援演练</option>
+            <option>安全生产应急预案编制</option>
+          </select></div>
+        <div class="fitem"><label>计划服务日期</label><input id="n_date" placeholder="如 2025.01.01-2025.01.05"></div>
+        <div class="fitem"><label>服务地点</label><input id="n_place" placeholder="如 福州马尾区海峡广场A座"></div>
+        <div class="fitem"><label>联系人</label><input id="n_contact" placeholder="如 张三"></div>
+        <div class="fitem"><label>联系电话</label><input id="n_phone" placeholder="如 18000000000"></div>
+      </div>
+    </div>
+    <div class="mfoot" style="flex:0 0 60px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 26px;border-top:1px solid var(--line)">
+      <button class="btn" onclick="closeNew()">取消</button>
+      <button class="btn primary" onclick="doNew()">创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- 报告 PDF 预览弹窗 -->
+<div class="mask" id="pdfmask">
+  <div class="modal doc">
+    <div class="mhead">
+      <div class="mtitle">报告 PDF 预览</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn" id="pdfDl" style="display:none" onclick="downloadPDF()">下载 PDF</button>
+        <div class="mclose" onclick="closePdfModal()">✕</div>
+      </div>
+    </div>
+    <div class="mbody" style="padding:0;position:relative">
+      <iframe id="pdfframe" style="display:none"></iframe>
+      <div id="pdfload" class="pdfload">正在生成报告 PDF…</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<!-- 报告 PDF 生成源（离屏） -->
+<div id="pdfSrc" class="pdfsrc"></div>
+
+<script src="tech-common.js"></script>
+<script src="html2canvas.min.js"></script>
+<script src="jspdf.umd.min.js"></script>
+<script>
+/* ===== 工具 ===== */
+function val(id){return $('#'+id).value.trim();}
+function nowStr(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;}
+function stCls(s){ if(s==='待整理')return 'blue'; if(s==='整理中')return 'orange'; return 'green'; }
+
+/* ===== 与小程序端一致的共享数据（同源 localStorage） ===== */
+const PHOTO_DEFAULT={'企业（项目）门牌照':2,'技术人员现场服务照片':2,'现场检查照片':0};
+function IMG_KEY(n){return 'photo_imgs_'+n;}
+function photoImgs(n){ try{const v=localStorage.getItem(IMG_KEY(n)); if(v!=null)return JSON.parse(v)||[];}catch(e){} return null; }
+function photoCount(n){ const a=photoImgs(n); if(a)return a.length; try{const v=localStorage.getItem('photo_'+n); if(v!=null)return Math.max(0,+v||0);}catch(e){} return PHOTO_DEFAULT[n]||0; }
+function setPhotoImgs(n,arr){ try{ if(!Array.isArray(arr))arr=[]; localStorage.setItem(IMG_KEY(n),JSON.stringify(arr)); localStorage.setItem('photo_'+n,String(arr.length)); }catch(e){} }
+const PHOTOS=[{name:'企业（项目）门牌照',max:2,need:true},{name:'技术人员现场服务照片',max:2,need:true},{name:'现场检查照片',max:20,noBtn:true,need:true}];
+/* 照片占位图（与小程序端「照片采集」一致的风景图标）；有计数但无真实图片时用它生成可预览/可编辑的缩略图 */
+const PHOTO_ICON='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 60"><rect width="90" height="60" fill="#eef2f8"/><circle cx="68" cy="14" r="7" fill="#f6d27a"/><path d="M0 60 28 30 44 46 60 28 90 52 90 60Z" fill="#8fa0c8" opacity=".85"/></svg>';
+function photoPlaceholder(){ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(PHOTO_ICON); }
+/* 生成现场检查的示例照片（带序号的彩色卡片占位图），供「现场检查照片」一键生成 */
+function genInspectionPhotos(n){
+  n=n||20; const arr=[];
+  for(let i=1;i<=n;i++){
+    const h=(i*47)%360;
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${h},55%,74%)"/><stop offset="1" stop-color="hsl(${(h+45)%360},55%,52%)"/></linearGradient></defs><rect width="400" height="300" fill="url(#g)"/><circle cx="326" cy="58" r="26" fill="rgba(255,255,255,.9)"/><path d="M0 300 120 170 200 222 280 150 400 238 400 300Z" fill="rgba(0,0,0,.16)"/><text x="22" y="54" font-family="sans-serif" font-size="24" font-weight="700" fill="#fff">现场检查照片</text><text x="22" y="86" font-family="sans-serif" font-size="17" fill="rgba(255,255,255,.92)">第 ${i} 张 / 共 ${n} 张</text></svg>`;
+    arr.push('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg));
+  }
+  return arr;
+}
+function allPhotoNames(){
+  const names=PHOTOS.map(p=>p.name);
+  Object.keys(PROJECT_DEF).forEach(k=>{const d=PROJECT_DEF[k];if(d&&d.type==='sections')d.sections.forEach(s=>s.fields.forEach(f=>{if(f.type==='photo')names.push(f.name);}));});
+  return Array.from(new Set(names));
+}
+/* 照片占位图：无真实图片但小程序端已有计数时，仅用于本端可视化展示（不写入存储，避免覆盖真实图片） */
+function patrolKey(project){return 'patrol_'+project;}
+function patrolLoad(project){ let list=null; try{const s=localStorage.getItem(patrolKey(project)); if(s!=null)list=JSON.parse(s);}catch(e){} if(!Array.isArray(list)||!list.length)list=[{name:'现场用电类排查表'},{name:'安全管理类排查表'}]; return list.map(r=>({name:(r&&r.name)?r.name:String(r),done:true})); }
+function patrolSave(project,list){ try{localStorage.setItem(patrolKey(project),JSON.stringify(list));}catch(e){} }
+function loadHazards(project){ try{const s=localStorage.getItem('hazardlist_'+project); if(s)return JSON.parse(s);}catch(e){} return [{name:'消防通道被杂物堵塞，影响应急疏散',category:'消防安全类',owner:'张伟',deadline:'2026-09-30',status:'整改中',level:'重大隐患'},{name:'配电箱未上锁且缺少安全警示标识',category:'现场用电类',owner:'李强',deadline:'2026-10-15',status:'未整改',level:'一般隐患'},{name:'临时用电线缆拖地敷设未做防护',category:'现场用电类',owner:'王芳',deadline:'2026-09-28',status:'已整改',level:'一般隐患'},{name:'起重机限位装置失效，存在超限风险',category:'特种设备类',owner:'赵磊',deadline:'2026-10-08',status:'未整改',level:'重大隐患'}]; }
+function loadRisks(project){ try{const s=localStorage.getItem('risklist_'+project); if(s)return JSON.parse(s);}catch(e){} return [{name:'土堆塌方风险',img:'',kind:'场所区域',loc:'生产区域',accType:'坍塌、滑坡',method:'作业条件危险性评价法(D=LEC)',identify:'LEC',level:'重大风险',cause:'边坡未支护、土体失稳',advice:'加强工地巡逻'},{name:'土堆塌方风险',img:'',kind:'场所区域',loc:'生产区域',accType:'滑坡',method:'风险判定矩阵法（R=LS）',identify:'LS',level:'较大风险',cause:'降雨浸泡、坡度过大',advice:'加强工地巡逻'},{name:'土堆塌方风险',img:'',kind:'作业活动',loc:'辅助生产区域',accType:'高处坠落',method:'作业条件危险性评价法(D=LEC)',identify:'LEC',level:'一般风险',cause:'临边无防护栏杆',advice:'加强工地巡逻'},{name:'土堆塌方风险',img:'',kind:'设备设施',loc:'非生产区域',accType:'物体打击',method:'作业条件危险性评价法(D=LEC)',identify:'LEC',level:'低风险',cause:'物料堆放不稳固',advice:'加强工地巡逻'}]; }
+/* 读取小程序端「服务登记」填写的内容（按字段名），供报告整理预填/修改 */
+function loadSvcForm(no,project){ try{const s=localStorage.getItem('svcform_'+no+'_'+project); if(s)return JSON.parse(s)||{};}catch(e){} return {}; }
+
+/* ===== 与小程序端一致的整理内容定义（六大项目，内容各不相同） ===== */
+const PROJECT_DEF = {
+  '安全生产标准化管理体系建设':{type:'blocks',blocks:[
+    {sec:'评审报告',mode:'pdf|ai',tag:'报告'},
+    {sec:'改进建议',mode:'pdf|ai',tag:'报告'},
+    {sec:'其他报告',mode:'doc',tag:'文档'},
+  ]},
+  '生产安全重大事故隐患排查':{type:'cards',cards:[
+    {title:'现场排查表',kind:'patrol'},
+    {title:'隐患',kind:'link',store:'hazard',label:'隐患总数'},
+  ]},
+  '安全风险辨识、评估、评价':{type:'cards',cards:[
+    {title:'风险',kind:'link',store:'risk',label:'风险总数'},
+  ]},
+  '安全生产宣传教育培训':{type:'sections',sections:[
+    {title:'报告整理',fields:[
+      {name:'培训形式',type:'single',opts:['线上培训','线下培训'],def:'线上培训',req:true},
+      {name:'培训通知',type:'photo',req:true},
+      {name:'培训照片',type:'photo',max:20,req:true},
+      {name:'签到表',type:'photo',max:10,req:true},
+      {name:'培训课件1',type:'pdf',note:'支持 PDF 上传',req:true},
+      {name:'培训主题',type:'text',max:50,ph:'请填写培训主题',req:true},
+      {name:'培训对象',type:'multi',opts:['全体人员','管理人员','作业人员','特种作业人员'],req:true},
+      {name:'培训大纲',type:'area',max:200,ph:'请填写培训大纲（200字以内）',req:true},
+      {name:'培训纪要',type:'photo',max:9,note:'培训课件部分内容',req:true},
+      {name:'参与人数',type:'number',ph:'请输入参与人数',req:true},
+      {name:'是否有考试',type:'single',opts:['否','是'],def:'否',key:'exam',req:true},
+      {name:'成绩汇总单',type:'photo',max:10,sources:['拍照','引用现场检查照片'],showIf:'exam=是',req:true},
+      {name:'培训效果评估',type:'single',opts:['实操','理论','满意度调查','无评估'],def:'实操',req:true},
+      {name:'培训效果反馈表',type:'photo',max:10,req:true},
+    ]},
+  ]},
+  '安全生产应急救援演练':{type:'sections',sections:[
+    {title:'报告整理',fields:[
+      {name:'演练目的',type:'multi',opts:['检验预案','完善准备','锻炼队伍','磨合机制','科普宣教'],req:true},
+      {name:'演练类型',type:'single',opts:['综合应急演练','专项应急演练'],def:'综合应急演练',req:true},
+      {name:'演练地点',type:'text',max:30,ph:'请填写演练地点（30字以内）',req:true},
+      {name:'演练方式',type:'single',opts:['桌面推演','实战演练'],def:'实战演练',req:true},
+      {name:'演练名称',type:'text',max:50,ph:'请填写演练名称（50字以内）',req:true},
+      {name:'总指挥',type:'text',max:50,ph:'请填写总指挥（50字以内）',req:true},
+      {name:'应急组织架构',type:'multi-other',opts:['指挥部','抢险救援组','警戒疏散组','医疗救护组','通讯联络组','后勤保障组'],req:true},
+      {name:'演练流程',type:'area',max:500,ph:'请填写演练流程（500字以内）',req:true},
+      {name:'演练场景',type:'area',max:500,ph:'请填写演练场景（500字以内）',req:true},
+      {name:'演练物资',type:'area',max:500,ph:'请填写演练物资（500字以内）',req:true},
+      {name:'演练方案',type:'pdf',note:'PDF 上传 / 大模型生成 Word',ai:'word',req:true},
+      {name:'签到表',type:'photo',max:9,req:true},
+      {name:'演练物资',type:'photo',max:9,req:true},
+      {name:'现场演练照片',type:'photo',max:9,req:true},
+    ]},
+    {title:'演练评估',fields:[
+      {name:'演练人数',type:'number',ph:'请输入演练人数',req:true},
+      {name:'方案编制',type:'single',opts:['符合','基本符合','不符合'],def:'符合',req:true},
+      {name:'人员分工',type:'single',opts:['符合','基本符合','不符合'],def:'符合',req:true},
+      {name:'组织协调',type:'single',opts:['符合','基本符合','不符合'],def:'符合',req:true},
+      {name:'事故报告',type:'single',opts:['符合','基本符合','不符合'],def:'符合',req:true},
+      {name:'人员配合',type:'single',opts:['符合','基本符合','不符合'],def:'符合',req:true},
+      {name:'应急处置',type:'single',opts:['符合','基本符合','不符合'],def:'符合',req:true},
+      {name:'医疗救护',type:'single',opts:['符合','基本符合','不符合'],def:'符合',req:true},
+      {name:'效果评价',type:'single',opts:['达到既定目标','基本达到既定目标','未达到既定目标'],def:'达到既定目标',req:true},
+      {name:'演练总结',type:'area',max:500,ph:'请填写演练总结（500字以内），或点击「AI 生成」',ai:'summary',req:true},
+    ]},
+  ]},
+  '安全生产应急预案编制':{type:'blocks',blocks:[
+    {sec:'应急资源调查报告',mode:'pdf|gen',tag:'报告'},
+    {sec:'生产安全事故风险评估报告',mode:'pdf|gen',tag:'报告'},
+    {sec:'应急预案',mode:'pdf|gen',tag:'报告'},
+    {sec:'其他文档',mode:'doc',tag:'文档'},
+  ]},
+};
+function idk(s){return String(s).replace(/[^\w一-龥]/g,'_');}
+
+/* ===== 数据 ===== */
+const STORE_KEY='org_report_organize_v2';
+let REPORTS=[],curNo='',curReport=null;
+
+function seedReports(){
+  const base=[
+    {no:'YF20260011',company:'福州无比欢信息科技有限公司',project:'安全生产标准化管理体系建设',date:'2025.01.01-2025.01.05',place:'福州马尾区海峡广场A座',contact:'张三',phone:'18000000000',staff:'王磊',start:'2025.01.01 09:00:00',end:'2025.01.05 17:30:00',status:'待整理'},
+    {no:'YF20260012',company:'福建蓝海石化有限公司',project:'安全风险辨识、评估、评价',date:'2025.02.10-2025.02.12',place:'泉州泉港区石化园区',contact:'陈敏',phone:'18100000001',staff:'李娜',start:'2025.02.10 08:30:00',end:'2025.02.12 18:00:00',status:'整理中'},
+    {no:'YF20260013',company:'厦门云途物流有限公司',project:'安全生产宣传教育培训',date:'2025.03.01-2025.03.01',place:'厦门集美区物流园',contact:'林涛',phone:'18200000002',staff:'陈伟',start:'2025.03.01 09:30:00',end:'2025.03.01 16:00:00',status:'待整理'},
+    {no:'YF20260014',company:'龙岩恒基机械制造有限公司',project:'安全生产应急救援演练',date:'2025.03.15-2025.03.15',place:'龙岩新罗区经开区',contact:'黄蕾',phone:'18300000003',staff:'赵强',start:'2025.03.15 09:00:00',end:'2025.03.15 15:30:00',status:'整理中'},
+    {no:'YF20260015',company:'漳州绿源食品有限公司',project:'安全生产应急预案编制',date:'2025.04.02-2025.04.03',place:'漳州龙海区',contact:'吴静',phone:'18400000004',staff:'孙敏',start:'2025.04.02 10:00:00',end:'2025.04.03 16:30:00',status:'待整理'},
+    {no:'YF20260016',company:'莆田宏远纺织有限公司',project:'生产安全重大事故隐患排查',date:'2025.04.20-2025.04.22',place:'莆田秀屿区',contact:'郑凯',phone:'18500000005',staff:'周斌',start:'2025.04.20 09:00:00',end:'2025.04.22 17:00:00',status:'已提交审核'},
+  ];
+  return base.map(r=>{ r.form={}; return r; });
+}
+function loadReports(){
+  try{const s=localStorage.getItem(STORE_KEY);if(s){const a=JSON.parse(s);if(Array.isArray(a)&&a.length)return backfillReports(a);}}catch(e){}
+  const seed=seedReports();saveReports(seed);return seed;
+}
+function saveReports(arr){try{localStorage.setItem(STORE_KEY,JSON.stringify(arr||REPORTS));}catch(e){}}
+/* 老数据回填：补齐 服务技术人员 / 服务开始时间 / 服务结束时间 */
+const DEFAULT_STAFF=['王磊','李娜','陈伟','赵强','孙敏','周斌','刘洋','杨帆','徐静','何斌'];
+const TIME_RE=/ \d{2}:\d{2}:\d{2}$/;
+function backfillReports(arr){
+  const seed=seedReports(); let changed=false;
+  arr.forEach((r,i)=>{
+    const sd=seed.find(x=>x.no===r.no)||{};
+    const m=String(r.date||'').split('-');
+    if(r.staff==null){ r.staff=sd.staff||DEFAULT_STAFF[i%DEFAULT_STAFF.length]; changed=true; }
+    if(!r.start){ r.start=sd.start||(m[0]?m[0]+' 09:00:00':''); changed=true; }
+    else if(!TIME_RE.test(r.start)){ r.start=sd.start||(r.start+' 09:00:00'); changed=true; }
+    if(!r.end){ r.end=sd.end||((m[1]||m[0])?(m[1]||m[0])+' 17:30:00':''); changed=true; }
+    else if(!TIME_RE.test(r.end)){ r.end=sd.end||(r.end+' 17:30:00'); changed=true; }
+  });
+  if(changed) saveReports(arr);
+  return arr;
+}
+function getReport(no){return REPORTS.find(r=>r.no===no);}
+function nextNo(){ return 'YF'+(Date.now()).toString().slice(-9); }
+
+/* ===== 查询与分页 ===== */
+const state={page:1,size:10,q:{company:'',project:'',status:''}};
+function doSearch(){
+  state.q.company=val('q_company');state.q.project=val('q_project');state.q.status=val('q_status');
+  state.page=1;renderTable();
+}
+function doReset(){
+  ['q_company','q_project','q_status'].forEach(id=>$('#'+id).value='');
+  state.q={company:'',project:'',status:''};state.page=1;renderTable();
+}
+function filtered(){
+  return REPORTS.filter(r=>
+    (!state.q.company||r.company.includes(state.q.company)) &&
+    (!state.q.project||r.project===state.q.project) &&
+    (!state.q.status||r.status===state.q.status)
+  );
+}
+function renderTable(){
+  const list=filtered();
+  const total=list.length,pages=Math.max(1,Math.ceil(total/state.size));
+  if(state.page>pages)state.page=pages;
+  const start=(state.page-1)*state.size;
+  const cur=list.slice(start,start+state.size);
+  $('#tbody').innerHTML=cur.length?cur.map(r=>`
+    <tr>
+      <td title="${esc(r.no)}">${esc(r.no)}</td>
+      <td title="${esc(r.company)}">${esc(r.company)}</td>
+      <td title="${esc(r.project)}">${esc(r.project)}</td>
+      <td>${esc(r.date)}</td>
+      <td title="${esc(r.staff||'')}">${esc(r.staff||'—')}</td>
+      <td>${esc(r.start||'—')}</td>
+      <td>${esc(r.end||'—')}</td>
+      <td><span class="ust ${stCls(r.status)}">${esc(r.status)}</span></td>
+      <td class="op"><span class="link" onclick="openDetail('${r.no}')">${r.status==='已提交审核'?'查看':'整理'}</span></td>
+    </tr>`).join(''):`<tr><td colspan="9" class="empty">暂无符合条件的整理任务</td></tr>`;
+  renderPager(total,pages);
+}
+function renderPager(total,pages){
+  let pg='';const wS=Math.max(1,state.page-2),wE=Math.min(pages,state.page+2);
+  for(let i=wS;i<=wE;i++)pg+=`<button class="pgbtn ${i===state.page?'on':''}" onclick="gotoPage(${i})">${i}</button>`;
+  $('#pager').innerHTML=
+    `<span class="total">共 <b>${total}</b> 条</span>
+     <div class="right">
+       <select onchange="setSize(this.value)">${[10,20,50].map(n=>`<option ${n===state.size?'selected':''}>${n}条/页</option>`).join('')}</select>
+       <span style="display:flex;gap:6px">
+         <button class="pgbtn" onclick="gotoPage(${Math.max(1,state.page-1)})" ${state.page===1?'disabled':''}>‹</button>${pg}
+         <button class="pgbtn" onclick="gotoPage(${Math.min(pages,state.page+1)})" ${state.page===pages?'disabled':''}>›</button>
+       </span>
+       <span class="jump">前往 <input type="number" min="1" max="${pages}" value="${state.page}" onchange="gotoPage(Math.min(${pages},Math.max(1,+this.value||1)))"> 页</span>
+     </div>`;
+}
+function gotoPage(p){state.page=Math.max(1,p|0);renderTable();}
+function setSize(n){state.size=+n;state.page=1;renderTable();}
+
+/* ===== 整理 / 详情 ===== */
+function closeModal(){$('#mask').classList.remove('show');}
+$('#mask').addEventListener('click',e=>{if(e.target===$('#mask'))closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closePdfModal();closeNew();closePrev();closePhotoSheet();closeRefLib();}});
+document.getElementById('mbody').addEventListener('change',applyShowIf);
+
+/* ===== 照片预览 / 增改删（存储真实图片，与 photo_<name> 计数同步） ===== */
+function thumbHTML(name,s,i,noDel){
+  const del=noDel?'':`<button class="pth-del" type="button" title="删除" onclick="event.stopPropagation();delPhoto('${esc(name)}',${i})">✕</button>`;
+  return `<div class="pthumb" onclick="openPrev('${esc(name)}',${i})"><img src="${esc(s)}" alt="">${del}</div>`;
+}
+function photoGroupHTML(name,max,need,sources,noBtn){
+  max=max||50;
+  const a=photoImgs(name), imgs=a||[];
+  const c=imgs.length||photoCount(name);
+  const ok=max&&c>=max, done=need&&ok;
+  const cls=c>0?(need&&!ok?'no':'ok'):'no';
+  let stt=c>0?('已采集 '+c+' 张'):'未采集'; if(need&&c>0)stt+=ok?'（已完成）':'（未完成）';
+  const full=max&&imgs.length>=max;
+  const srcs=(sources&&sources.length)?sources.slice():[];
+  let addBtn='';
+  if(!noBtn){
+    addBtn=full?`<span class="phtip">已达上限 ${max} 张</span>`
+      :(srcs.length
+        ? `<button class="btn sm" type="button" onclick="openPhotoSheet(this)">${imgs.length?'继续添加':'+ 添加照片'}</button>`
+        : `<button class="btn sm" type="button" onclick="upPhoto('${esc(name)}')">${imgs.length?'继续上传':'上传照片'}</button><button class="btn sm" type="button" onclick="openRefLib(this)">从现场检查照片添加</button>`);
+  }
+  const fileInp=noBtn?'':`<input type="file" id="pf_${idk(name)}" accept="image/*" multiple hidden onchange="onUpPhoto('${esc(name)}',this,${max})">`;
+  const capInp=(!noBtn&&srcs.length)?`<input type="file" id="pc_${idk(name)}" accept="image/*" capture="environment" hidden onchange="onUpPhoto('${esc(name)}',this,${max})">`:'';
+  const thumbs = imgs.length ? imgs.map((s,i)=>thumbHTML(name,s,i,noBtn)).join('')
+    : (c>0 ? Array.from({length:c},()=>`<div class="pthumb"><img src="${photoPlaceholder()}" alt="" style="opacity:.5"></div>`).join('') : '');
+  return `<span class="fctl" data-pname="${esc(name)}" data-pmax="${max}" data-srcs="${esc(srcs.join('|'))}"><span class="phstat ${cls}">${stt}</span>${addBtn}${fileInp}${capInp}</span><div class="pthumbs" id="pth_${idk(name)}">${thumbs}</div>`;
+}
+function fileToDataURL(file,cb,maxPx){
+  const fr=new FileReader();
+  fr.onload=()=>{const img=new Image();img.onload=()=>{
+    const MAX=maxPx||1000; let w=img.width,h=img.height; const m=Math.max(w,h);
+    if(m>MAX){const r=MAX/m;w=Math.round(w*r);h=Math.round(h*r);}
+    const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+    cv.getContext('2d').drawImage(img,0,0,w,h);
+    cb(cv.toDataURL('image/jpeg',0.82));
+  };img.onerror=()=>cb('');img.src=fr.result;};
+  fr.readAsDataURL(file);
+}
+let photoReplaceIdx=null;
+/* 照片操作后详情会重渲染，先收集当前表单值，避免未保存的编辑（如「是否有考试=是」）被重置 */
+function collectKept(){ try{ collectAll(); }catch(e){} }
+function onUpPhoto(name,inp,max){
+  max=max||50;const files=inp.files?Array.from(inp.files):[];if(!files.length){photoReplaceIdx=null;return;}
+  collectKept();
+  let imgs=photoImgs(name)||[];
+  if(photoReplaceIdx!=null){ const idx=photoReplaceIdx; photoReplaceIdx=null;
+    fileToDataURL(files[0],d=>{ if(d){ if(idx<imgs.length)imgs[idx]=d; else imgs.push(d);} setPhotoImgs(name,imgs.slice(0,max)); if(prevState.name===name){prevState.list=imgs;renderPrev();} if(curNo)openDetail(curNo); toast('已替换 1 张照片'); });
+    return;
+  }
+  let i=0;
+  (function step(){
+    if(i>=files.length){try{inp.value='';}catch(e){} setPhotoImgs(name,imgs.slice(0,max)); if(curNo)openDetail(curNo); toast('已保存 '+imgs.length+' 张照片'); return;}
+    fileToDataURL(files[i],d=>{if(d&&imgs.length<max)imgs.push(d);i++;step();});
+  })();
+}
+let prevState={name:'',i:0,list:[]};
+function prevReplace(){ const o=prevState; if(!o.name)return; photoReplaceIdx=o.i; upPhoto(o.name); }
+function openPrev(name,idx){
+  const list=photoImgs(name)||[]; if(!list.length)return;
+  prevState={name,i:idx,list}; renderPrev(); $('#pv').classList.add('show');
+}
+function renderPrev(){ const o=prevState; const im=$('#pvImg'); if(im)im.src=o.list[o.i]||''; const ix=$('#pvIdx'); if(ix)ix.textContent=(o.i+1)+' / '+o.list.length; }
+function prevNav(d){ const o=prevState; o.i=(o.i+d+o.list.length)%o.list.length; renderPrev(); }
+function prevDel(){ const o=prevState; delPhoto(o.name,o.i); }
+function closePrev(){ $('#pv').classList.remove('show'); }
+function delPhoto(name,idx){
+  const arr=photoImgs(name)||[]; if(idx<0||idx>=arr.length)return false;
+  collectKept();
+  arr.splice(idx,1); setPhotoImgs(name,arr);
+  if(prevState.name===name){ prevState.list=arr; if(arr.length){ if(prevState.i>=arr.length)prevState.i=arr.length-1; renderPrev(); } else { closePrev(); } }
+  if(curNo)openDetail(curNo); toast('已删除 1 张照片'); return true;
+}
+/* ===== 照片来源（拍照 / 引用现场检查照片 / 手机相册） ===== */
+const PHOTO_SRC_STYLE={
+  '拍照':{tag:'拍',bg:'linear-gradient(135deg,#5b86f5,#3f6ef2)'},
+  '引用现场检查照片':{tag:'引',bg:'linear-gradient(135deg,#f0a44a,#e0852a)'},
+  '手机相册':{tag:'册',bg:'linear-gradient(135deg,#34c3a0,#1f9e7e)'},
+};
+let psCtx={name:'',max:10,srcs:[]};
+function openPhotoSheet(btn){
+  const box=btn.closest('.fctl'); if(!box)return;
+  psCtx={name:box.dataset.pname||'',max:+box.dataset.pmax||10,srcs:(box.dataset.srcs||'').split('|').filter(Boolean)};
+  if(!psCtx.srcs.length)psCtx.srcs=['手机相册'];
+  renderSheetOpts();
+  $('#psheet').classList.add('show');
+}
+function closePhotoSheet(){ const m=$('#psheet'); if(m)m.classList.remove('show'); }
+function renderSheetOpts(){
+  const t=$('#psheetTitle'),o=$('#psheetOpts'),r=$('#psheetRefs'),f=$('#psheetFoot');
+  if(!o)return;
+  if(t)t.textContent='选择照片来源（最多 '+psCtx.max+' 张）';
+  o.style.display=''; r.style.display='none'; r.innerHTML='';
+  f.innerHTML='<button class="btn sm" type="button" onclick="closePhotoSheet()">取消</button>';
+  o.innerHTML=psCtx.srcs.map(s=>{
+    const st=PHOTO_SRC_STYLE[s]||{tag:'照',bg:'#9aa0ad'};
+    return `<button class="sheet-opt" type="button" onclick="pickPhotoSrc('${esc(s)}')"><span class="so-tag" style="background:${st.bg}">${st.tag}</span>${esc(s)}</button>`;
+  }).join('');
+}
+function pickPhotoSrc(s){
+  if(s==='引用现场检查照片'){ renderRefPick(); return; }
+  closePhotoSheet();
+  const a=(s==='手机相册')?'pf_':'pc_', b=(s==='手机相册')?'pc_':'pf_';
+  const el=document.getElementById(a+idk(psCtx.name))||document.getElementById(b+idk(psCtx.name));
+  if(el)el.click(); else toast('当前字段不支持该来源');
+}
+function refSourceImgs(){
+  const real=photoImgs('现场检查照片');
+  if(real&&real.length)return real;
+  const c=photoCount('现场检查照片');
+  return c>0?Array.from({length:c},()=>photoPlaceholder()):[];
+}
+function renderRefPick(){
+  const list=refSourceImgs();
+  const cur=(photoImgs(psCtx.name)||[]).length;
+  const t=$('#psheetTitle'),o=$('#psheetOpts'),r=$('#psheetRefs'),f=$('#psheetFoot');
+  if(t)t.textContent='引用现场检查照片（可再引用 '+Math.max(0,psCtx.max-cur)+' 张）';
+  o.style.display='none'; r.style.display='';
+  if(!list.length){
+    r.innerHTML='<div class="muted" style="padding:4px 2px">暂无现场检查照片可引用，请先前往「现场照片 · 现场检查照片」采集。</div>';
+    f.innerHTML='<button class="btn sm" type="button" onclick="renderSheetOpts()">返回</button><button class="btn sm" type="button" onclick="closePhotoSheet()">关闭</button>';
+    return;
+  }
+  r.innerHTML='<div class="refgrid">'+list.map((s,i)=>`<label class="refitem"><img src="${esc(s)}" alt=""><input type="checkbox" value="${i}"></label>`).join('')+'</div>';
+  f.innerHTML='<button class="btn sm" type="button" onclick="renderSheetOpts()">返回</button><button class="btn sm primary" type="button" onclick="confirmRefPick()">确定引用</button>';
+}
+function confirmRefPick(){
+  const picks=[...document.querySelectorAll('#psheetRefs .refgrid input:checked')].map(x=>+x.value);
+  if(!picks.length)return toast('请先勾选要引用的照片');
+  collectKept();
+  const src=refSourceImgs();
+  let imgs=photoImgs(psCtx.name)||[], n=0;
+  picks.forEach(i=>{ if(imgs.length<psCtx.max&&src[i]){imgs.push(src[i]);n++;} });
+  setPhotoImgs(psCtx.name,imgs.slice(0,psCtx.max));
+  closePhotoSheet();
+  if(curNo)openDetail(curNo);
+  toast('已引用 '+n+' 张照片');
+}
+/* ===== 从现场检查照片库添加 ===== */
+let refCtx={mode:'photo',name:'',max:10};
+function openRefLib(btn){
+  const box=btn.closest('.fctl'); if(!box)return;
+  refCtx={mode:'photo',name:box.dataset.pname||'',max:+box.dataset.pmax||10};
+  const list=refSourceImgs();
+  const cur=(photoImgs(refCtx.name)||[]).length;
+  $('#reflibTitle').textContent='现场检查照片库（可再添加 '+Math.max(0,refCtx.max-cur)+' 张）';
+  const body=$('#reflibBody');
+  if(!list.length){ body.innerHTML='<div class="muted" style="padding:8px 2px">暂无现场检查照片，请先在「现场照片」中采集。</div>'; }
+  else { body.innerHTML='<div class="refgrid">'+list.map((s,i)=>`<label class="refitem"><img src="${esc(s)}" alt=""><input type="checkbox" value="${i}"></label>`).join('')+'</div>'; }
+  $('#reflib').classList.add('show');
+}
+function closeRefLib(){ const m=$('#reflib'); if(m)m.classList.remove('show'); }
+function confirmRefLib(){
+  if(refCtx.mode==='risk'){
+    const pick=document.querySelector('#reflibBody .refgrid input:checked');
+    const src=refSourceImgs();
+    closeRefLib();
+    if(!pick)return;
+    const d=src[+pick.value]; if(!d)return;
+    applyRiskImg(d);
+    return;
+  }
+  const picks=[...document.querySelectorAll('#reflibBody .refgrid input:checked')].map(x=>+x.value);
+  if(!picks.length){ closeRefLib(); return; }
+  collectKept();
+  const src=refSourceImgs();
+  let imgs=photoImgs(refCtx.name)||[], n=0;
+  picks.forEach(i=>{ if(imgs.length<refCtx.max&&src[i]){imgs.push(src[i]);n++;} });
+  setPhotoImgs(refCtx.name,imgs.slice(0,refCtx.max));
+  closeRefLib();
+  if(curNo)openDetail(curNo);
+  toast('已添加 '+n+' 张照片');
+}
+function photoBlockHTML(project){
+  const rows=PHOTOS.map(p=>`<div class="fitem"><label>${esc(p.name)}</label>${photoGroupHTML(p.name,p.max,p.need,null,p.noBtn)}</div>`).join('');
+  return `<div class="rsec">现场照片</div><div class="form">${rows}</div>`;
+}
+function fieldHTML(f,form){
+  const v=form[f.name]; const val=(v!=null)?v:(f.def!=null?f.def:'');
+  /* data-k 用于取值；data-key 供 showIf 条件联动按业务 key 定位控件 */
+  const kAt=f.key?` data-key="${esc(f.key)}"`:'';
+  let ctrl='';
+  if(f.type==='single'){
+    ctrl=`<select data-k="${esc(f.name)}"${kAt}>${f.opts.map(o=>`<option ${o===val?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
+  } else if(f.type==='multi'||f.type==='multi-other'){
+    const sel=(val?String(val).split('、'):[]);
+    let chk=f.opts.map(o=>`<label class="chk"><input type="checkbox" value="${esc(o)}" ${sel.includes(o)?'checked':''}>${esc(o)}</label>`).join('');
+    if(f.type==='multi-other') chk+=`<input class="chk-other" data-k="${esc(f.name)}__other" placeholder="其他" value="${esc(form[f.name+'__other']||'')}">`;
+    ctrl=`<div class="chkgrp" data-k="${esc(f.name)}"${kAt}>${chk}</div>`;
+  } else if(f.type==='text'||f.type==='number'){
+    ctrl=`<input type="${f.type==='number'?'number':'text'}" data-k="${esc(f.name)}"${kAt} value="${esc(val)}" placeholder="${esc(f.ph||'')}">`;
+  } else if(f.type==='area'){
+    ctrl=`<textarea data-k="${esc(f.name)}"${kAt} placeholder="${esc(f.ph||'')}">${esc(val)}</textarea>`;
+  } else if(f.type==='photo'){
+    ctrl=photoGroupHTML(f.name,f.max||20,false,f.sources);
+  } else if(f.type==='pdf'){
+    const st=(form[f.name])||{};
+    ctrl=`<span class="phstat ${st.mode?'ok':'no'}">${st.mode?(st.mode==='pdf'?('已上传 '+(st.name||'')):'已生成内容'):'未上传'}</span>`;
+    if(st.mode==='pdf'){
+      ctrl+=`<button class="btn sm" type="button" onclick="previewFile('${esc(st.data||'')}','${esc(st.name||'文件.pdf')}')">预览</button><button class="btn sm" type="button" onclick="upField('${esc(f.name)}')">替换</button>`;
+    } else {
+      ctrl+=`<button class="btn sm" type="button" onclick="upField('${esc(f.name)}')">上传 PDF</button>`;
+    }
+    if(f.ai) ctrl+=`<button class="btn sm ai" type="button" onclick="genField('${esc(f.name)}')">大模型生成</button>`;
+    ctrl+=`<input type="file" id="ff_${idk(f.name)}" accept="application/pdf" hidden onchange="onUpField('${esc(f.name)}',this)">`;
+  }
+  const hint=(f.type==='multi'||f.type==='multi-other')?'<span class="fhint">可多选</span>':'';
+  return `<div class="fitem" ${f.showIf?('data-showif="'+esc(f.showIf)+'"'):''}><label>${esc(f.name)}${f.req?' <i class="req">*</i>':''}${hint}</label>${ctrl}</div>`;
+}
+function blockHTML(b,form){
+  const st=(form.blocks&&form.blocks[b.sec])||{};
+  const hasAI=b.mode.indexOf('ai')>=0||b.mode.indexOf('gen')>=0;
+  const isDoc=b.mode==='doc';
+  const fileShown=st.mode==='pdf'?'':'display:none';
+  const areaShown=(st.mode==='gen'||st.mode==='ai')?'':'display:none';
+  const statusTxt=st.mode?(st.mode==='pdf'?('已上传 PDF：'+(st.name||'')):(st.mode==='gen'?'已生成并编辑（'+(st.text||'').length+' 字）':'已编辑')):'未整理';
+  const kid=idk(b.sec);
+  return `<div class="rsec">${esc(b.sec)}</div>
+   <div class="bcard">
+     <div class="bhint">${b.tag==='文档'?'文档上传（PDF / Word）':'PDF 上传 或 大模型生成'}</div>
+     <div class="bacts">
+       ${st.mode==='pdf'?`<button class="btn sm" type="button" onclick="previewFile('${esc(st.data||'')}','${esc(st.name||'文件.pdf')}')">预览</button><button class="btn sm" type="button" onclick="upBlock('${esc(b.sec)}')">替换</button>`:`<button class="btn sm" type="button" onclick="upBlock('${esc(b.sec)}')">PDF 上传</button>`}
+       ${hasAI?`<button class="btn sm ai" type="button" onclick="genBlock('${esc(b.sec)}')">大模型生成</button>`:''}
+     </div>
+     <input type="file" id="bf_${kid}" ${isDoc?'accept=".pdf,.doc,.docx"':'accept="application/pdf"'} hidden onchange="onUpBlock('${esc(b.sec)}',this)">
+     <div class="bfile" id="bfile_${kid}" style="${fileShown}"><span class="ok">✓</span><span class="fname">${esc(st.name||'')}</span></div>
+     ${hasAI?`<div class="beditor" id="beditor_${kid}" style="${areaShown}"><textarea class="barea" id="barea_${kid}">${esc(st.text||'')}</textarea><button class="btn sm" type="button" onclick="saveBlock('${esc(b.sec)}')">保存编辑</button></div>`:''}
+     <div class="bstat">状态：<span class="${st.mode?'ok':'no'}">${esc(statusTxt)}</span></div>
+   </div>`;
+}
+/* ===== 读取并编辑小程序端：现场排查表逐项明细 / 隐患·风险清单 ===== */
+function inspectKey(no,name){ return 'inspect_'+encodeURIComponent(no+'_'+name); }
+function loadInspect(no,name){ try{const s=localStorage.getItem(inspectKey(no,name)); if(s){const a=JSON.parse(s); if(Array.isArray(a))return a;}}catch(e){} return []; }
+function saveInspect(no,name,items){ try{localStorage.setItem(inspectKey(no,name),JSON.stringify(items));}catch(e){} }
+function saveHazards(project,list){ try{localStorage.setItem('hazardlist_'+project,JSON.stringify(list));}catch(e){} }
+function saveRisks(project,list){ try{localStorage.setItem('risklist_'+project,JSON.stringify(list));}catch(e){} }
+
+function cardHTML(c,project){
+  if(c.kind==='patrol'){
+    const list=patrolLoad(project);
+    const blocks=list.map(r=>patrolDetailHTML(curNo,r.name)).join('');
+    return `<div class="rsec">${esc(c.title)}</div><div class="form">
+      ${list.map(r=>`<div class="fitem"><label>${esc(r.name)}</label><span class="phstat ok">已完成</span></div>`).join('')}
+      ${blocks}
+      <div class="fitem"><label>添加排查表</label><span style="display:flex;gap:8px;flex:1"><input id="patrolAdd" placeholder="输入排查表名称"><button class="btn sm" type="button" onclick="addPatrol('${esc(project)}')">添加</button></span></div>
+    </div>`;
+  }
+  if(c.kind==='link'){
+    const store=c.store, isH=store==='hazard';
+    const list=isH?loadHazards(project):loadRisks(project);
+    const head=isH
+      ? `<div class="haz-head"><span class="haz-idx">#</span><span>隐患名称</span><span>隐患等级</span><span>责任人</span><span>整改期限</span><span>整改状态</span><span class="haz-op">操作</span></div>`
+      : `<div class="haz-head"><span class="haz-idx">#</span><span>风险点名称</span><span>风险点种类</span><span>风险位置</span><span>可能导致的事故种类</span><span>风险等级</span><span>管控措施</span><span class="haz-op">操作</span></div>`;
+    const rows=list.map((x,i)=> isH?hazardRowHTML(x,i,project):riskRowHTML(x,i,project)).join('')
+      || `<div class="haz-row"><span class="haz-idx">—</span><span class="muted" style="grid-column:2/-1">暂无数据，可点击下方按钮添加</span></div>`;
+    return `<div class="rsec">${esc(c.title)}</div>
+      <div class="haz-meta">${isH?'隐患':'风险'}总数 <b>${list.length}</b> 条 <span class="muted">· 读取自小程序端，可在此修改</span></div>
+      <div class="haz-wrap ${isH?'haz-hz':'haz-rk'}">${head}${rows}</div>
+      <div class="haz-ops">
+        <button class="btn sm" type="button" onclick="addListItem('${esc(store)}','${esc(project)}')">+ 添加${isH?'隐患':'风险'}</button>
+        ${isH?`<button class="btn sm" type="button" onclick="saveList('${esc(store)}','${esc(project)}')">保存${isH?'隐患':'风险'}修改</button>`:''}
+      </div>`;
+  }
+  return '';
+}
+function patrolDetailHTML(no,name){
+  const items=loadInspect(no,name);
+  if(!items.length) return `<div class="fitem"><label>${esc(name)} · 逐项明细</label><span class="muted">小程序端尚未填写逐项排查</span></div>`;
+  const body=items.map((s,i)=>`
+    <div class="pitem" style="border:1px solid #eef0f5;border-radius:8px;padding:8px 10px;margin:8px 0" data-tb="${esc(name)}" data-i="${i}">
+      <div style="font-weight:600;margin-bottom:6px">${esc(s.content||('第'+(i+1)+'项'))}</div>
+      <div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span style="width:72px;color:#9aa0ad">排查状态</span><select data-f="status" style="flex:1">${['符合','不符合','不涉及'].map(o=>`<option ${s.status===o?'selected':''}>${o}</option>`).join('')}</select></div>
+      <div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span style="width:72px;color:#9aa0ad">隐患描述</span><textarea data-f="hazardDesc" style="flex:1;min-height:38px">${esc(s.hazardDesc||'')}</textarea></div>
+      <div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span style="width:72px;color:#9aa0ad">排查依据</span><textarea data-f="basis" style="flex:1;min-height:38px">${esc(s.basis||'')}</textarea></div>
+      <div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span style="width:72px;color:#9aa0ad">整改建议</span><textarea data-f="advice" style="flex:1;min-height:38px">${esc(s.advice||'')}</textarea></div>
+    </div>`).join('');
+  return `<div class="fitem"><label>${esc(name)} · 逐项明细（${items.length}）</label></div>${body}
+    <button class="btn sm" type="button" onclick="savePatrolItems('${esc(no)}','${esc(name)}')">保存${esc(name)}明细</button>`;
+}
+function savePatrolItems(no,name){
+  const items=loadInspect(no,name);
+  document.querySelectorAll('.pitem').forEach(el=>{
+    if(el.dataset.tb!==name) return;
+    const i=+el.dataset.i; if(!items[i])return;
+    el.querySelectorAll('[data-f]').forEach(f=>{ items[i][f.dataset.f]=f.value; });
+  });
+  saveInspect(no,name,items); toast('已保存逐项排查明细');
+}
+function hazardRowHTML(x,i,project){
+  return `<div class="haz-row" data-hi="${i}">
+    <span class="haz-idx">${i+1}</span>
+    <input data-f="name" value="${esc(x.name||'')}" placeholder="隐患名称">
+    <select data-f="level"><option ${x.level==='重大隐患'?'selected':''}>重大隐患</option><option ${x.level==='一般隐患'?'selected':''}>一般隐患</option></select>
+    <input data-f="owner" value="${esc(x.owner||'')}" placeholder="责任人">
+    <input data-f="deadline" value="${esc(x.deadline||'')}" placeholder="如 2026-09-30">
+    <select data-f="status"><option ${x.status==='整改中'?'selected':''}>整改中</option><option ${x.status==='未整改'?'selected':''}>未整改</option><option ${x.status==='已整改'?'selected':''}>已整改</option></select>
+    <span class="haz-act"><span class="haz-del" title="删除该行" onclick="delListItem('hazard','${esc(project)}',${i})">✕</span></span>
+  </div>`;
+}
+function riskRowHTML(x,i,project){
+  return `<div class="haz-row" data-hi="${i}">
+    <span class="haz-idx">${i+1}</span>
+    <span class="hz-t" title="${esc(x.name||'')}">${esc(x.name||'')}</span>
+    <span class="hz-t" title="${esc(x.kind||'')}">${esc(x.kind||'')}</span>
+    <span class="hz-t" title="${esc(x.loc||'')}">${esc(x.loc||'')}</span>
+    <span class="hz-t" title="${esc(x.accType||x.effect||'')}">${esc(x.accType||x.effect||'')}</span>
+    <span class="hz-t">${esc(x.level||'')}</span>
+    <span class="hz-t" title="${esc(x.advice||'')}">${esc(x.advice||'')}</span>
+    <span class="haz-act">
+      <span class="haz-edit" title="编辑该条风险" onclick="openRiskEdit('${esc(project)}',${i})">&#9998;</span>
+      <span class="haz-del" title="删除该行" onclick="delListItem('risk','${esc(project)}',${i})">✕</span>
+    </span>
+  </div>`;
+}
+function onRiskImg(inp){
+  const row=inp.closest('.haz-row'); if(!row)return;
+  const f=inp.files&&inp.files[0]; if(!f)return;
+  fileToDataURL(f,d=>{
+    if(!d){ toast('图片读取失败，请换一张'); return; }
+    const hid=row.querySelector('[data-f="img"]'); if(hid)hid.value=d;
+    const lab=row.querySelector('.rk-img'); let img=lab.querySelector('img');
+    if(!img){ img=document.createElement('img'); img.alt=''; lab.insertBefore(img,lab.firstChild); const ph=lab.querySelector('.ph'); if(ph)ph.remove(); }
+    img.src=d;
+  },480);
+}
+/* ===== 风险编辑弹窗：字段选项（GB 6441 规定的 27 类事故种类） ===== */
+const ACCIDENT_TYPES=['物体打击','厂（场）内车辆致害','道路（轨道）车辆致害','机械致害','起重致害','触电','淹溺','灼烫','火灾','高处坠落','跌落','坍塌','水害','容器爆炸','管道爆炸','可燃气体爆炸','可燃液体蒸气爆炸','粉尘爆炸','民用爆炸物品爆炸','烟花爆竹爆炸','其他可燃固体爆炸','高温熔融物爆炸','中毒','窒息','滑坡','泄漏','其他'];
+const RISK_KINDS=['设备设施','场所区域','作业活动'];
+const RISK_LOCS=['生产区域','辅助生产区域','非生产区域'];
+const RISK_METHODS=['风险判定矩阵法（R=LS）','作业条件危险性评价法(D=LEC)'];
+/* 兼容仅存 identify(LS/LEC) 的历史数据 */
+function methodText(x){ if(x&&x.method)return x.method; if(!x||!x.identify)return ''; return x.identify==='LEC'?RISK_METHODS[1]:RISK_METHODS[0]; }
+
+function chipsHTML(id,opts,sel,multi){
+  const set=String(sel||'').split('、').map(s=>s.trim()).filter(Boolean);
+  return `<div class="echips${multi?' scroll':''}" id="${id}" data-multi="${multi?1:0}">`+
+    opts.map(o=>`<span class="echip${set.indexOf(o)>=0?' on':''}" onclick="pickChip(this)">${esc(o)}</span>`).join('')+`</div>`;
+}
+function pickChip(el){
+  const box=el.closest('.echips'); if(!box)return;
+  if(box.dataset.multi==='1') el.classList.toggle('on');
+  else { box.querySelectorAll('.echip').forEach(c=>c.classList.remove('on')); el.classList.add('on'); }
+  if(box.id&&box.id.indexOf('re_')===0) onRiskChip(box.id);
+}
+function chipVal(id){
+  const box=document.getElementById(id); if(!box)return '';
+  const out=[]; box.querySelectorAll('.echip.on').forEach(c=>out.push(c.textContent));
+  return out.join('、');
+}
+function updRiskCnt(el){
+  const max=+el.getAttribute('maxlength')||0;
+  const c=el.parentElement.querySelector('.cnt'); if(c&&max)c.textContent=el.value.length+'/'+max;
+}
+function stripLv(s){ return String(s||'').replace(/（.*/,'').trim()||'待评定风险'; }
+function fillRiskArea(id,text){
+  const ta=document.getElementById(id); if(!ta)return;
+  ta.value=text.length>100?text.slice(0,100):text;
+  updRiskCnt(ta); toast('已根据前项内容生成');
+}
+function genRiskCause(){
+  const name=($('#re_name').value||'').trim()||'该风险点';
+  const kind=chipVal('re_kind')||'作业';
+  const loc=chipVal('re_loc')||'相关区域';
+  const acc=chipVal('re_acc')||'相关事故';
+  const lv=stripLv($('#re_level').value);
+  fillRiskArea('re_cause',`因${loc}内${kind}环节的「${name}」，受${acc}因素影响，易引发${acc}事故；当前评定为${lv}，需重点辨识诱因并落实管控。`);
+}
+function genRiskMeasure(){
+  const kind=chipVal('re_kind')||'该';
+  const acc=chipVal('re_acc')||'相关事故';
+  const lv=stripLv($('#re_level').value);
+  fillRiskArea('re_advice',`针对评定为${lv}的「${acc}」风险，建议：落实${kind}风险分级管控，设置警示标识、配齐防护装备，加强日常巡检与应急演练，明确责任人并定期复核措施有效性。`);
+}
+
+/* ===== 风险等级自动计算：矩阵法(R=LS) 与 作业条件危险性评价法(D=LEC) ===== */
+const MATRIX_L=[{v:1,t:'1 极不可能'},{v:2,t:'2 不可能'},{v:3,t:'3 可能'},{v:4,t:'4 很可能'},{v:5,t:'5 极易发生'}];
+const MATRIX_S=[{v:1,t:'1 轻微可忽略'},{v:2,t:'2 较轻'},{v:3,t:'3 较重'},{v:4,t:'4 严重'},{v:5,t:'5 灾难性'}];
+const LEC_L=[{v:10,t:'10 完全会被预料到'},{v:6,t:'6 相当可能'},{v:3,t:'3 可能，但不经常'},{v:1,t:'1 完全意外，很少可能'},{v:0.5,t:'0.5 可以设想，很不可能'},{v:0.2,t:'0.2 极不可能'},{v:0.1,t:'0.1 实际上不可能'}];
+const LEC_E=[{v:10,t:'10 连续暴露于潜在危险环境'},{v:6,t:'6 逐日在工作时间内暴露'},{v:3,t:'3 每周一次或偶然暴露'},{v:2,t:'2 每月暴露一次'},{v:1,t:'1 每年几次出现在潜在危险环境'},{v:0.5,t:'0.5 非常罕见地暴露'}];
+const LEC_C=[{v:100,t:'100 大灾难，许多人死亡'},{v:40,t:'40 灾难，数人死亡'},{v:15,t:'15 非常严重，一人死亡'},{v:7,t:'7 严重，严重伤害'},{v:3,t:'3 重大，致残'},{v:1,t:'1 引人注目，需要救护'}];
+function matrixLevel(R){ if(R<=8) return '低风险'; if(R<=12) return '一般风险'; if(R<=16) return '较大风险'; return '重大风险'; }
+function lecLevel(R){ if(R<=70) return '低风险'; if(R<=160) return '一般风险'; if(R<=320) return '较大风险'; return '重大风险'; }
+function setRiskBadge(el,lvName){ const c={低风险:'blue',一般风险:'yellow',较大风险:'orange',重大风险:'red'}[lvName]||''; el.textContent=lvName; el.className='risk-badge'+(c?' '+c:''); el.dataset.level=lvName; }
+/* 带数值(value)的选项：用于 L/S/L/E/C 评分 */
+function vchipsHTML(id,opts,selV,multi){
+  return `<div class="echips${multi?' scroll':''}" id="${id}" data-multi="${multi?1:0}">`+
+    opts.map(o=>`<span class="echip${String(o.v)===String(selV)?' on':''}" data-v="${o.v}" onclick="pickV(this)">${esc(o.t)}</span>`).join('')+`</div>`;
+}
+function pickV(el){
+  const box=el.closest('.echips'); if(!box)return;
+  if(box.dataset.multi==='1') el.classList.toggle('on');
+  else { box.querySelectorAll('.echip').forEach(c=>c.classList.remove('on')); el.classList.add('on'); }
+  if(box.id&&box.id.indexOf('re_')===0) onRiskChip(box.id);
+}
+function chipV(id){ const box=document.getElementById(id); if(!box)return ''; const on=box.querySelector('.echip.on'); return on?on.dataset.v:''; }
+function onRiskChip(boxId){
+  const key=boxId.indexOf('re_')===0?boxId.slice(3):boxId;
+  if(['Lm','Sm','Ll','El','Cl'].indexOf(key)>=0) curRiskParams[key]=chipV(boxId);
+  if(boxId==='re_method') renderCalcBox();
+  refreshRiskCalc();
+}
+function renderCalcBox(){
+  const box=document.getElementById('re_calcBox'); if(!box)return;
+  const m=chipVal('re_method');
+  if(m===RISK_METHODS[0]){
+    box.style.display='';
+    box.innerHTML=
+      `<div class="efield"><label>事故发生的可能性(L)</label>${vchipsHTML('re_Lm',MATRIX_L,curRiskParams.Lm,false)}</div>`+
+      `<div class="efield"><label>危害事件发生的严重程度(S)</label>${vchipsHTML('re_Sm',MATRIX_S,curRiskParams.Sm,false)}</div>`;
+  } else if(m===RISK_METHODS[1]){
+    box.style.display='';
+    box.innerHTML=
+      `<div class="efield"><label>事故发生的可能性(L)</label>${vchipsHTML('re_Ll',LEC_L,curRiskParams.Ll,false)}</div>`+
+      `<div class="efield"><label>人员暴露于危险环境的频繁程度(E)</label>${vchipsHTML('re_El',LEC_E,curRiskParams.El,false)}</div>`+
+      `<div class="efield"><label>发生事故可能造成的后果(C)</label>${vchipsHTML('re_Cl',LEC_C,curRiskParams.Cl,false)}</div>`;
+  } else { box.style.display='none'; box.innerHTML=''; }
+}
+function refreshRiskCalc(){
+  const m=chipVal('re_method');
+  const badge=document.getElementById('re_levelBadge'), calc=document.getElementById('re_calcText'), hid=document.getElementById('re_level');
+  if(!badge||!calc||!hid)return;
+  let R=null, lvName='';
+  if(m===RISK_METHODS[0]){
+    const L=parseFloat(curRiskParams.Lm), S=parseFloat(curRiskParams.Sm);
+    if(L&&S){ R=L*S; lvName=matrixLevel(R); calc.textContent='R = L×S = '+L+'×'+S+' = '+R+'（'+lvName+'）'; }
+    else calc.textContent='请选择 可能性(L) 与 严重程度(S)';
+  } else if(m===RISK_METHODS[1]){
+    const L=parseFloat(curRiskParams.Ll), E=parseFloat(curRiskParams.El), C=parseFloat(curRiskParams.Cl);
+    if(L&&E&&C){ R=L*E*C; lvName=lecLevel(R); calc.textContent='R = L×E×C = '+L+'×'+E+'×'+C+' = '+R+'（'+lvName+'）'; }
+    else calc.textContent='请选择 L、E、C';
+  } else calc.textContent='请先选择评价方法';
+  if(R!=null) setRiskBadge(badge,lvName);
+  else if(curRiskLevel) setRiskBadge(badge,curRiskLevel);
+  else { badge.textContent='待计算'; badge.className='risk-badge'; badge.dataset.level=''; }
+  hid.value=badge.dataset.level||'';
+}
+let curRiskLevel='',curRiskParams={};
+let curEditProject=null,curEditIdx=-1;
+function buildRiskEditForm(x){
+  curRiskLevel=x.level||'';
+  curRiskParams={Lm:x.Lm||'',Sm:x.Sm||'',Ll:x.Ll||'',El:x.El||'',Cl:x.Cl||''};
+  const imgBox=`<div class="rk-imgpick">
+      <div class="box" id="re_imgBox" title="从现场检查照片库选择" onclick="openRiskPhotoLib()">${x.img?`<img src="${esc(x.img)}" alt="">`:'<span>+ 选择</span>'}</div>
+      <div class="ops">
+        <span class="lnk" onclick="openRiskPhotoLib()">从现场检查照片库选择</span>
+        <span class="lnk del" id="re_imgRm" style="${x.img?'':'display:none'}" onclick="clearRiskImg()">移除图片</span>
+        <span class="tip" onclick="upRiskImg()">或上传本地图片</span>
+      </div>
+    </div>
+    <input type="hidden" id="re_img" value="${esc(x.img||'')}">
+    <input type="file" id="re_imgFile" accept="image/*" hidden onchange="onRiskEditImg(this)">`;
+  const accSel=x.accType||x.effect||'';
+  const mSel=methodText(x);
+  const cause=x.cause||'', advice=x.advice||'';
+  return `
+    <div class="efield"><label>风险图片</label>${imgBox}</div>
+    <div class="efield"><label>风险点名称</label><input id="re_name" maxlength="20" value="${esc(x.name||'')}" placeholder="请填写风险点名称（20字以内）"></div>
+    <div class="efield"><label>风险点种类</label>${chipsHTML('re_kind',RISK_KINDS,x.kind||'',false)}</div>
+    <div class="efield"><label>风险位置</label>${chipsHTML('re_loc',RISK_LOCS,x.loc||'',false)}</div>
+    <div class="efield"><label>可能导致的事故种类</label>${chipsHTML('re_acc',ACCIDENT_TYPES,accSel,true)}</div>
+    <div class="efield"><label>选用评价方法</label>${chipsHTML('re_method',RISK_METHODS,mSel,false)}</div>
+    <div class="efield" id="re_calcBox"></div>
+    <div class="efield"><label>风险等级（自动计算）</label><div class="level-row"><span id="re_levelBadge" class="risk-badge"></span></div><div id="re_calcText" class="calc-text"></div><input type="hidden" id="re_level" value=""></div>
+    <div class="efield"><label class="with"><span>事故诱因</span><button type="button" class="aibtn" onclick="genRiskCause()">✦ 大模型生成</button></label>
+      <textarea id="re_cause" maxlength="100" oninput="updRiskCnt(this)" placeholder="请填写事故诱因（100字以内），或点击「大模型生成」">${esc(cause)}</textarea><div class="cnt">${cause.length}/100</div></div>
+    <div class="efield"><label class="with"><span>管控措施</span><button type="button" class="aibtn" onclick="genRiskMeasure()">✦ 大模型生成</button></label>
+      <textarea id="re_advice" maxlength="100" oninput="updRiskCnt(this)" placeholder="请填写管控措施（100字以内），或点击「大模型生成」">${esc(advice)}</textarea><div class="cnt">${advice.length}/100</div></div>`;
+}
+function openRiskEdit(project,idx){
+  const list=loadRisks(project); const x=list[idx]; if(!x)return;
+  curEditProject=project; curEditIdx=idx;
+  $('#riskEditBody').innerHTML=buildRiskEditForm(x);
+  renderCalcBox(); refreshRiskCalc();
+  $('#riskEditMask').classList.add('show');
+}
+function onRiskEditImg(inp){
+  const f=inp.files&&inp.files[0]; if(!f)return;
+  fileToDataURL(f,d=>{ if(!d){ toast('图片读取失败，请换一张'); return; } applyRiskImg(d); },480);
+}
+function upRiskImg(){ const el=document.getElementById('re_imgFile'); if(el)el.click(); }
+function applyRiskImg(d){
+  const hid=document.getElementById('re_img'); if(hid)hid.value=d;
+  refreshRiskImg();
+  toast('已选择风险图片');
+}
+function clearRiskImg(){
+  const hid=document.getElementById('re_img'); if(hid)hid.value='';
+  refreshRiskImg();
+}
+function refreshRiskImg(){
+  const hid=document.getElementById('re_img'); const d=hid?hid.value:'';
+  const box=document.getElementById('re_imgBox');
+  if(box)box.innerHTML=d?`<img src="${esc(d)}" alt="">`:'<span>+ 选择</span>';
+  const rm=document.getElementById('re_imgRm'); if(rm)rm.style.display=d?'':'none';
+}
+/* 从现场检查照片库中选择 1 张作为风险图片 */
+function openRiskPhotoLib(){
+  refCtx={mode:'risk',name:'',max:1};
+  const list=refSourceImgs();
+  const hid=document.getElementById('re_img'); const cur=hid?hid.value:'';
+  $('#reflibTitle').textContent='现场检查照片库（选择 1 张作为风险图片）';
+  const body=$('#reflibBody');
+  if(!list.length){ body.innerHTML='<div class="muted" style="padding:8px 2px">暂无现场检查照片，请先在「现场照片 · 现场检查照片」中采集。</div>'; }
+  else { body.innerHTML='<div class="refgrid">'+list.map((s,i)=>`<label class="refitem"><img src="${esc(s)}" alt=""><input type="radio" name="refpick" value="${i}" ${cur&&cur===s?'checked':''}></label>`).join('')+'</div>'; }
+  $('#reflib').classList.add('show');
+}
+function saveRiskEdit(){
+  if(curEditIdx<0)return;
+  const list=loadRisks(curEditProject); const x=list[curEditIdx]; if(!x)return;
+  x.name=$('#re_name').value.trim();
+  x.img=document.getElementById('re_img').value;
+  x.kind=chipVal('re_kind');
+  x.loc=chipVal('re_loc');
+  x.accType=chipVal('re_acc');
+  x.method=chipVal('re_method');
+  x.identify=x.method===RISK_METHODS[1]?'LEC':(x.method?'LS':'');
+  x.Lm=curRiskParams.Lm; x.Sm=curRiskParams.Sm; x.Ll=curRiskParams.Ll; x.El=curRiskParams.El; x.Cl=curRiskParams.Cl;
+  x.level=$('#re_level').value;
+  x.cause=$('#re_cause').value.trim();
+  x.advice=$('#re_advice').value.trim();
+  saveRisks(curEditProject,list);
+  closeRiskEdit();
+  openDetail(curNo);
+  toast('已保存风险信息');
+}
+function closeRiskEdit(){ const m=$('#riskEditMask'); if(m)m.classList.remove('show'); }
+function addListItem(store,project){
+  const isH=store==='hazard';
+  const list=isH?loadHazards(project):loadRisks(project);
+  // 先把当前已编辑的内容存下，避免新增时丢失未保存改动
+  document.querySelectorAll('.haz-row').forEach(el=>{ const i=+el.dataset.hi; if(!list[i])return; el.querySelectorAll('[data-f]').forEach(f=>{ list[i][f.dataset.f]=f.value; }); });
+  if(isH) list.push({name:'', level:'一般隐患', owner:'', deadline:'', status:'未整改'});
+  else    list.push({name:'', img:'', kind:'', loc:'', accType:'', method:'', identify:'', level:'一般风险', cause:'', advice:''});
+  if(isH) saveHazards(project,list); else saveRisks(project,list);
+  openDetail(curNo);
+}
+function delListItem(store,project,i){ const list=store==='hazard'?loadHazards(project):loadRisks(project); list.splice(i,1); if(store==='hazard')saveHazards(project,list); else saveRisks(project,list); openDetail(curNo); }
+function saveList(store,project){
+  const list=store==='hazard'?loadHazards(project):loadRisks(project);
+  document.querySelectorAll('.haz-row').forEach(el=>{ const i=+el.dataset.hi; if(!list[i])return; el.querySelectorAll('[data-f]').forEach(f=>{ list[i][f.dataset.f]=f.value; }); });
+  if(store==='hazard')saveHazards(project,list); else saveRisks(project,list);
+  toast('已保存'+(store==='hazard'?'隐患':'风险')+'修改'); openDetail(curNo);
+}
+function contentHtml(project,form){
+  const def=PROJECT_DEF[project];
+  if(def.type==='blocks') return def.blocks.map(b=>blockHTML(b,form)).join('');
+  if(def.type==='sections') return def.sections.map(sec=>`<div class="rsec">${esc(sec.title)}</div><div class="form">`+sec.fields.map(f=>fieldHTML(f,form)).join('')+`</div>`).join('');
+  if(def.type==='cards') return def.cards.map(c=>cardHTML(c,project)).join('');
+  return '';
+}
+function applyShowIf(){
+  document.querySelectorAll('#mbody [data-showif]').forEach(el=>{
+    const s=el.getAttribute('data-showif'); const i=s.indexOf('='); const k=s.slice(0,i), v=s.slice(i+1);
+    const src=document.querySelector('#mbody [data-key="'+k+'"]')||document.querySelector('#mbody [data-k="'+k+'"]');
+    const cur=src?(src.value||''):'';
+    el.style.display=(cur===v)?'':'none';
+  });
+}
+function openDetail(no){
+  const r=getReport(no);if(!r)return;
+  curNo=no;curReport=r;
+  /* 读取小程序端「服务登记」填写的内容，预填到可编辑表单（不覆盖已保存的修改） */
+  const pd=PROJECT_DEF[r.project];
+  if(pd&&pd.type==='sections'){ const mini=loadSvcForm(no,r.project); Object.keys(mini).forEach(k=>{ if(r.form[k]==null) r.form[k]=mini[k]; }); }
+  if(r.status==='待整理'){ r.status='整理中'; saveReports(); }
+  const infoRows=[['预防服务工单',r.no],['企业名称',r.company],['服务项目',r.project],['计划服务日期',r.date],['服务技术人员',r.staff||'—'],['服务开始时间',r.start||'—'],['服务结束时间',r.end||'—'],['计划服务地点',r.place],['联系人',r.contact],['联系电话',r.phone]];
+  $('#mtitle').textContent='报告整理 · '+r.project;
+  $('#mbody').innerHTML=
+    `<div class="rhead">
+       <div class="rinfo">${infoRows.map(([k,v])=>`<div class="rrow"><span class="rk">${k}</span><span class="rv">${esc(v)}</span></div>`).join('')}</div>
+       <div class="rmeta">
+         <div class="rmrow"><span>当前状态</span><b class="ust ${stCls(r.status)}">${esc(r.status)}</b></div>
+         <div class="rmrow"><span>服务项目</span><b>${esc(r.project)}</b></div>
+       </div>
+     </div>
+     ${photoBlockHTML(r.project)}
+     ${contentHtml(r.project,r.form)}
+     <div class="revbox">
+       <div class="rev-actions">
+         <button class="btn" onclick="saveOrganize()">保存整理</button>
+         <button class="btn" onclick="previewPDF()">生成报告 / 预览</button>
+         <button class="btn primary" onclick="submitAudit()">提交审核</button>
+       </div>
+     </div>`;
+  applyShowIf();
+  $('#mask').classList.add('show');
+}
+
+/* 收集（写入 form） */
+function collectAll(){
+  if(!curReport)return;
+  const def=PROJECT_DEF[curReport.project];
+  if(def.type==='sections') collectSections(curReport.form,curReport.project);
+}
+function collectSections(form,project){
+  const def=PROJECT_DEF[project];
+  def.sections.forEach(sec=>sec.fields.forEach(f=>{
+    if(f.type==='multi'||f.type==='multi-other'){
+      const grp=document.querySelector('#mbody .chkgrp[data-k="'+f.name+'"]');
+      let arr=[]; if(grp)grp.querySelectorAll('input[type=checkbox]:checked').forEach(c=>arr.push(c.value));
+      if(f.type==='multi-other'){const o=document.querySelector('#mbody [data-k="'+f.name+'__other"]'); if(o&&o.value.trim())arr.push('其他：'+o.value.trim());}
+      form[f.name]=arr.join('、');
+    } else if(f.type==='photo'||f.type==='pdf'){ /* 状态由各自上传/生成处理器写入 */ }
+    else { const el=document.querySelector('#mbody [data-k="'+f.name+'"]'); if(el)form[f.name]=el.value; }
+  }));
+}
+
+/* 上传 / 生成 处理器 */
+function upPhoto(name){const el=document.getElementById('pf_'+idk(name)); if(el)el.click();}
+function upField(name){const el=document.getElementById('ff_'+idk(name)); if(el)el.click();}
+function readFileDataURL(file,cb){const fr=new FileReader();fr.onload=()=>cb(fr.result);fr.onerror=()=>cb('');fr.readAsDataURL(file);}
+function onUpField(name,inp){const f=inp.files&&inp.files[0]; if(!f)return; readFileDataURL(f,d=>{curReport.form[name]={mode:'pdf',name:f.name,data:d}; saveReports(); openDetail(curNo); toast('已上传文件');});}
+function previewFile(dataURL,name){ if(!dataURL){toast('暂无可预览的文件');return;} openPdfModal(); const f=$('#pdfframe'); f.src=dataURL; f.style.display='block'; $('#pdfload').style.display='none'; const dl=$('#pdfDl'); dl.style.display=''; dl.onclick=()=>downloadDataURL(dataURL,name||'文件.pdf'); $('#pdfmask')._fileMode=true; }
+function downloadDataURL(dataURL,name){ try{const a=document.createElement('a');a.href=dataURL;a.download=name;document.body.appendChild(a);a.click();a.remove();}catch(e){toast('下载失败');} }
+function genField(name){curReport.form[name]={mode:'gen',text:(name==='演练方案'?'已根据演练信息生成演练方案大纲，请人工补充完善。':'已根据前项内容生成，请人工编辑完善。')}; saveReports(); openDetail(curNo); toast('已生成，可人工编辑');}
+function upBlock(sec){const el=document.getElementById('bf_'+idk(sec)); if(el)el.click();}
+function onUpBlock(sec,inp){const f=inp.files&&inp.files[0]; if(!f)return; readFileDataURL(f,d=>{curReport.form.blocks=curReport.form.blocks||{}; curReport.form.blocks[sec]={mode:'pdf',name:f.name,data:d}; saveReports(); openDetail(curNo); toast('已上传文件');});}
+function genBlock(sec){curReport.form.blocks=curReport.form.blocks||{}; curReport.form.blocks[sec]={mode:'gen',text:genBlockText(sec)}; saveReports(); openDetail(curNo); toast('已生成，可人工编辑');}
+function genBlockText(sec){
+  if(sec==='应急资源调查报告')return '已根据企业基本情况生成应急资源调查报告，请人工补充完善。';
+  if(sec==='生产安全事故风险评估报告')return '已根据风险辨识评估结果生成风险评估报告，请人工补充完善。';
+  if(sec==='应急预案')return '已根据应急资源与风险评估生成应急预案，请人工补充完善。';
+  return '已根据前项内容生成，请人工编辑完善。';
+}
+function saveBlock(sec){const t=document.getElementById('barea_'+idk(sec)).value; curReport.form.blocks=curReport.form.blocks||{}; curReport.form.blocks[sec]={mode:'gen',text:t}; saveReports(); openDetail(curNo); toast('已保存编辑');}
+function addPatrol(project){const inp=document.getElementById('patrolAdd'); const v=inp&&inp.value.trim(); if(!v)return toast('请输入排查表名称'); const list=patrolLoad(project); list.push({name:v,done:true}); patrolSave(project,list); openDetail(curNo); toast('已添加排查表');}
+
+/* 保存 / 提交 */
+function saveOrganize(){ collectAll(); if(curReport.status==='待整理')curReport.status='整理中'; saveReports();renderTable(); toast('已保存整理内容'); }
+function submitAudit(){
+  const r=curReport;if(!r)return;
+  collectAll(); r.status='已提交审核'; saveReports(); pushToReview(r); renderTable(); closeModal();
+  toast('已提交审核，进入「服务报告审核」待初审');
+}
+function pushToReview(r){
+  let arr=[];
+  try{const s=localStorage.getItem('org_review_reports');if(s){const a=JSON.parse(s);if(Array.isArray(a))arr=a;}}catch(e){}
+  if(arr.find(x=>x.no===r.no))return;
+  arr.unshift({no:r.no,company:r.company,project:r.project,date:r.date,place:r.place,contact:r.contact,phone:r.phone,
+    submitTime:nowStr(),status:'待初审',content:{sections:reportSectionsForReview(r),hazards:[]},reviews:{}});
+  try{localStorage.setItem('org_review_reports',JSON.stringify(arr));}catch(e){}
+}
+function reportSectionsForReview(r){
+  const form=r.form||{}; const def=PROJECT_DEF[r.project]; const out=[];
+  if(def.type==='blocks'){ def.blocks.forEach(b=>{const st=(form.blocks&&form.blocks[b.sec])||{}; const s=st.mode?(st.mode==='pdf'?('已上传PDF：'+(st.name||'')):'大模型生成并编辑'):'未整理'; out.push({title:esc(b.sec),rows:[['整理状态',s]]});}); }
+  else if(def.type==='sections'){ def.sections.forEach(sec=>{const rows=sec.fields.filter(f=>f.type!=='photo').map(f=>[f.name, form[f.name]!=null?form[f.name]:(f.def!=null?f.def:'—')]); out.push({title:esc(sec.title),rows});}); }
+  else if(def.type==='cards'){ def.cards.forEach(c=>{ if(c.kind==='patrol'){const list=patrolLoad(r.project); out.push({title:esc(c.title),rows:list.map((x,i)=>[(i+1)+'', x.name+'（已完成）'])});} else {const list=c.store==='hazard'?loadHazards(r.project):loadRisks(r.project); out.push({title:esc(c.title),rows:list.map((x,i)=>[(i+1)+'', c.store==='hazard'?((x.name||'')+' · '+(x.level||'')):((x.name||'')+' · '+(x.accType||x.effect||'')+' · '+(x.level||''))])});} }); }
+  return out;
+}
+
+/* ===== 新建 ===== */
+function openNew(){ $('#newmask').classList.add('show'); }
+function closeNew(){ $('#newmask').classList.remove('show'); }
+$('#newmask').addEventListener('click',e=>{if(e.target===$('#newmask'))closeNew();});
+function doNew(){
+  const company=val('n_company'),project=val('n_project');
+  if(!company)return toast('请填写企业名称');
+  const r={no:nextNo(),company,project,date:val('n_date')||'—',place:val('n_place')||'—',contact:val('n_contact')||'—',phone:val('n_phone')||'—',status:'待整理',form:{}};
+  REPORTS.unshift(r);saveReports();renderTable();closeNew();
+  toast('已创建整理任务：'+company+' / '+project);
+}
+
+/* ===== 报告 PDF 生成与预览 ===== */
+let lastPdf=null,lastName='',lastNo='';
+function buildPdfHtml(r){
+  const form=r.form||{};
+  const info=[['预防服务工单',r.no],['企业名称',r.company],['服务项目',r.project],['计划服务日期',r.date],['计划服务地点',r.place],['联系人',r.contact],['联系电话',r.phone]];
+  const meta=info.map(([k,v])=>`<tr><td class="k">${esc(k)}</td><td>${esc(v)}</td></tr>`).join('');
+  const photoRow=PHOTOS.map(p=>`<tr><td class="k">${esc(p.name)}</td><td>已采集 ${photoCount(p.name)} 张</td></tr>`).join('');
+  const def=PROJECT_DEF[r.project];
+  let body='';
+  if(def.type==='blocks'){
+    body=def.blocks.map(b=>{const st=(form.blocks&&form.blocks[b.sec])||{}; const s=st.mode?(st.mode==='pdf'?('已上传 PDF：'+(st.name||'')):'大模型生成并编辑（'+(st.text||'').length+' 字）'):'未整理'; return `<h3>${esc(b.sec)}</h3><table class="kv"><tr><td class="k">整理状态</td><td>${esc(s)}</td></tr></table>`;}).join('');
+  } else if(def.type==='sections'){
+    body=def.sections.map(sec=>`<h3>${esc(sec.title)}</h3><table class="kv">`+sec.fields.filter(f=>f.type!=='photo').map(f=>{let v=form[f.name]; if(v==null)v=(f.def!=null?f.def:'—'); if(!v)v='—'; return `<tr><td class="k">${esc(f.name)}</td><td>${esc(v)}</td></tr>`;}).join('')+`</table>`).join('');
+  } else if(def.type==='cards'){
+    body=def.cards.map(c=>{
+      if(c.kind==='patrol'){const list=patrolLoad(r.project); return `<h3>${esc(c.title)}</h3><table class="kv">`+list.map((x,i)=>`<tr><td class="k">${i+1}</td><td>${esc(x.name)}（已完成）</td></tr>`).join('')+`</table>`;}
+      if(c.kind==='link'){const list=c.store==='hazard'?loadHazards(r.project):loadRisks(r.project); const rows=list.map((x,i)=>{ if(c.store==='hazard') return `<tr><td class="k">${i+1} [${esc(x.level)}]</td><td>${esc(x.name)} · 责任：${esc(x.owner||'')} · ${esc(x.status||'')}</td></tr>`; const pic=x.img?`<img src="${esc(x.img)}" style="width:64px;height:44px;object-fit:cover;border-radius:3px;margin-right:8px;vertical-align:top">`:''; return `<tr><td class="k">${i+1} [${esc(x.level)}]</td><td>${pic}${esc(x.name)} · 风险点种类：${esc(x.kind||'')} · 风险位置：${esc(x.loc||'')} · 可能导致的事故种类：${esc(x.accType||x.effect||'')} · 选用评价方法：${esc(methodText(x))} · 风险等级：${esc(x.level||'')} · 事故诱因：${esc(x.cause||'')} · 管控措施：${esc(x.advice||'')}</td></tr>`; }).join(''); return `<h3>${esc(c.title)}（共 ${list.length} 条）</h3><table class="kv">${rows}</table>`;}
+      return '';
+    }).join('');
+  }
+  return `<div class="doc"><div class="head"><div class="k">事故预防服务 · 服务报告</div><div class="h">${esc(r.project)}服务报告</div></div>`+
+    `<table class="meta">${meta}</table><h3>现场照片</h3><table class="kv">${photoRow}</table>`+body+
+    `<div class="sign"><span>编制：服务专员</span><span>审核：技术负责人</span><span>生成日期：${nowStr()}</span></div></div>`;
+}
+async function makePdf(no){
+  const r=getReport(no);if(!r)throw new Error('报告不存在');
+  const src=document.getElementById('pdfSrc');
+  src.innerHTML=buildPdfHtml(r);
+  await new Promise(requestAnimationFrame);
+  const canvas=await html2canvas(src,{scale:2,backgroundColor:'#ffffff',logging:false});
+  const img=canvas.toDataURL('image/jpeg',0.92);
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF('p','mm','a4');
+  const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight();
+  const iw=pw,ih=canvas.height*iw/canvas.width;
+  let pos=0,left=ih;
+  pdf.addImage(img,'JPEG',0,pos,iw,ih);left-=ph;
+  while(left>0){pos=left-ih;pdf.addPage();pdf.addImage(img,'JPEG',0,pos,iw,ih);left-=ph;}
+  return {pdf,filename:`${r.no}_${r.project}服务报告.pdf`};
+}
+async function ensurePdf(){
+  if(lastNo!==curNo||!lastPdf){const {pdf,filename}=await makePdf(curNo);lastPdf=pdf;lastName=filename;lastNo=curNo;}
+  return {pdf:lastPdf,filename:lastName};
+}
+function openPdfModal(){
+  $('#pdfmask').classList.add('show');
+  $('#pdfframe').style.display='none';
+  $('#pdfload').style.display='flex';
+  $('#pdfDl').style.display='none';
+  if($('#pdfmask')._url){URL.revokeObjectURL($('#pdfmask')._url);$('#pdfmask')._url=null;}
+}
+function closePdfModal(){
+  $('#pdfmask').classList.remove('show');
+  const f=$('#pdfframe');if(f)f.src='';
+  if($('#pdfmask')._url){URL.revokeObjectURL($('#pdfmask')._url);$('#pdfmask')._url=null;}
+  const dl=$('#pdfDl'); if(dl)dl.onclick=downloadPDF; $('#pdfmask')._fileMode=false;
+}
+$('#pdfmask').addEventListener('click',e=>{if(e.target===$('#pdfmask'))closePdfModal();});
+async function previewPDF(){
+  if(!curReport)return;
+  collectAll();saveReports();
+  openPdfModal();
+  try{
+    const {pdf}=await ensurePdf();
+    const url=URL.createObjectURL(pdf.output('blob'));
+    $('#pdfmask')._url=url;
+    const f=$('#pdfframe');f.src=url;f.style.display='block';
+    $('#pdfload').style.display='none';$('#pdfDl').style.display='';$('#pdfDl').onclick=downloadPDF;
+    toast('报告已生成');
+  }catch(e){$('#pdfload').textContent='PDF 生成失败：'+(e&&e.message||e);}
+}
+async function downloadPDF(){
+  try{const {pdf,filename}=await ensurePdf();pdf.save(filename);toast('报告 PDF 已下载');}
+  catch(e){toast('PDF 生成失败');}
+}
+
+/* ===== 初始化 ===== */
+initTech({bread:['事故预防服务管理','报告整理'],active:'报告整理'});
+REPORTS=loadReports();
+/* 现场照片默认无图时，自动生成 20 张现场检查照片示例图 */
+(function seedInspection(){
+  const a=photoImgs('现场检查照片');
+  if(!a||!a.length){ setPhotoImgs('现场检查照片', genInspectionPhotos(20)); }
+})();
+renderTable();
+</script>
+<!-- 照片预览灯箱 -->
+<div class="mask" id="pv" onclick="if(event.target===this)closePrev()">
+  <div class="pvbox">
+    <div class="pv-top"><span id="pvIdx"></span><button class="pv-x" onclick="closePrev()">✕</button></div>
+    <img class="pv-img" id="pvImg" alt="照片预览">
+    <div class="pv-acts">
+      <button class="btn sm" onclick="prevNav(-1)">‹ 上一张</button>
+      <button class="btn sm" onclick="prevReplace()">替换</button>
+      <button class="btn sm" onclick="prevDel()">删除</button>
+      <button class="btn sm" onclick="prevNav(1)">下一张 ›</button>
+    </div>
+  </div>
+</div>
+<!-- 照片来源选择（拍照 / 引用现场检查照片 / 手机相册） -->
+<div class="mask" id="psheet" onclick="if(event.target===this)closePhotoSheet()">
+  <div class="psheet">
+    <div class="psheet-head"><span id="psheetTitle">选择照片来源</span><button class="psheet-x" type="button" onclick="closePhotoSheet()">✕</button></div>
+    <div class="psheet-body"><div id="psheetOpts"></div><div id="psheetRefs" style="display:none"></div></div>
+    <div class="psheet-foot" id="psheetFoot"></div>
+  </div>
+</div>
+<!-- 从现场检查照片库添加 -->
+<div class="mask" id="reflib" onclick="if(event.target===this)closeRefLib()">
+  <div class="psheet">
+    <div class="psheet-head"><span id="reflibTitle">现场检查照片库</span><button class="psheet-x" type="button" onclick="closeRefLib()">✕</button></div>
+    <div class="psheet-body" id="reflibBody"></div>
+    <div class="psheet-foot"><button class="btn sm" type="button" onclick="closeRefLib()">取消</button><button class="btn sm primary" type="button" onclick="confirmRefLib()">确定添加</button></div>
+  </div>
+</div>
+
+</body>
+</html>

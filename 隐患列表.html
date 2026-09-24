@@ -27,7 +27,8 @@
   /* ===== 列表 ===== */
   .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:18px}
   .body::-webkit-scrollbar{display:none}
-  .card{background:#fff;border-radius:12px;margin:12px 16px 0;box-shadow:0 4px 14px rgba(30,50,110,.05);overflow:hidden}
+  .card{background:#fff;border-radius:12px;margin:12px 16px 0;box-shadow:0 4px 14px rgba(30,50,110,.05);overflow:hidden;cursor:pointer;transition:background .12s}
+  .card:active{background:#fafbfe}
   .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
   .no{font-size:13.5px;line-height:1.4;min-width:0}
   .no .k{color:var(--lbl)}
@@ -84,17 +85,35 @@ const LEVEL_CLS = {
 };
 /* ===== 隐患数据（后续可对接接口/本地存储） ===== */
 const DEMO = [
-  {name:'消防通道被杂物堵塞，影响应急疏散', category:'消防安全类', owner:'张伟', deadline:'2026-09-30', status:'整改中', level:'重大隐患'},
-  {name:'配电箱未上锁且缺少安全警示标识', category:'现场用电类', owner:'李强', deadline:'2026-10-15', status:'未整改', level:'一般隐患'},
-  {name:'临时用电线缆拖地敷设未做防护', category:'现场用电类', owner:'王芳', deadline:'2026-09-28', status:'已整改', level:'一般隐患'},
-  {name:'起重机限位装置失效，存在超限风险', category:'特种设备类', owner:'赵磊', deadline:'2026-10-08', status:'未整改', level:'重大隐患'},
+  {name:'消防通道被杂物堵塞，影响应急疏散', category:'消防安全类', owner:'张伟', deadline:'2026-09-30', status:'整改中', level:'重大隐患',
+    basis:'依据《安全生产事故隐患排查治理暂行规定》及消防安全类相关标准规范，针对「消防通道被杂物堵塞，影响应急疏散」开展现场隐患排查，确认不符合项并按期整改闭环。',
+    accident:['火灾','中毒','窒息'],
+    advice:'针对「消防通道被杂物堵塞，影响应急疏散」，建议：立即采取临时管控措施，明确整改责任人并限期闭环；完善相关安全管理制度与现场防护，整改完成后组织复查验收，防止同类隐患反复出现。', photos:[]},
+  {name:'配电箱未上锁且缺少安全警示标识', category:'现场用电类', owner:'李强', deadline:'2026-10-15', status:'未整改', level:'一般隐患',
+    basis:'依据《安全生产事故隐患排查治理暂行规定》及现场用电类相关标准规范，针对「配电箱未上锁且缺少安全警示标识」开展现场隐患排查，确认不符合项并按期整改闭环。',
+    accident:['触电','火灾','容器爆炸'],
+    advice:'针对「配电箱未上锁且缺少安全警示标识」，建议：立即采取临时管控措施，明确整改责任人并限期闭环；完善相关安全管理制度与现场防护，整改完成后组织复查验收，防止同类隐患反复出现。', photos:[]},
+  {name:'临时用电线缆拖地敷设未做防护', category:'现场用电类', owner:'王芳', deadline:'2026-09-28', status:'已整改', level:'一般隐患',
+    basis:'依据《安全生产事故隐患排查治理暂行规定》及现场用电类相关标准规范，针对「临时用电线缆拖地敷设未做防护」开展现场隐患排查，确认不符合项并按期整改闭环。',
+    accident:['触电','火灾','容器爆炸'],
+    advice:'针对「临时用电线缆拖地敷设未做防护」，建议：立即采取临时管控措施，明确整改责任人并限期闭环；完善相关安全管理制度与现场防护，整改完成后组织复查验收，防止同类隐患反复出现。', photos:[]},
+  {name:'起重机限位装置失效，存在超限风险', category:'特种设备类', owner:'赵磊', deadline:'2026-10-08', status:'未整改', level:'重大隐患',
+    basis:'依据《安全生产事故隐患排查治理暂行规定》及特种设备类相关标准规范，针对「起重机限位装置失效，存在超限风险」开展现场隐患排查，确认不符合项并按期整改闭环。',
+    accident:['起重致害','容器爆炸','机械致害'],
+    advice:'针对「起重机限位装置失效，存在超限风险」，建议：立即采取临时管控措施，明确整改责任人并限期闭环；完善相关安全管理制度与现场防护，整改完成后组织复查验收，防止同类隐患反复出现。', photos:[]},
 ];
 
 const q = new URLSearchParams(location.search);
 const orderNo = q.get('no') || 'YF2131900';
 const project = q.get('project') || '生产安全重大事故隐患排查';
+const LIST_KEY = 'hzlist_' + project;
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function loadList(){
+  try{ const s = localStorage.getItem(LIST_KEY); if(s){ const a = JSON.parse(s); if(Array.isArray(a)) return a; } }catch(e){}
+  return DEMO.slice();
+}
 
 function renderSummary(list){
   const order = ['重大隐患','一般隐患'];
@@ -111,7 +130,7 @@ function renderList(list){
   box.innerHTML = list.map((r,i)=>{
     const no = `${orderNo}_YH_${String(i+1).padStart(3,'0')}`;
     const cls = LEVEL_CLS[r.level] || 'lv-blue';
-    return `<div class="card">
+    return `<div class="card" onclick="location.href='隐患详情.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent(project)+'&i='+${i}">
       <div class="card-head">
         <div class="no"><span class="k">隐患编号：</span><span class="v">${esc(no)}</span></div>
         <span class="badge ${cls}">${esc(r.level)}</span>
@@ -127,8 +146,9 @@ function renderList(list){
   }).join('');
 }
 
-renderSummary(DEMO);
-renderList(DEMO);
+const _list = loadList();
+renderSummary(_list);
+renderList(_list);
 </script>
 </body>
 </html>

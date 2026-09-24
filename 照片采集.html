@@ -71,41 +71,56 @@
 </div>
 
 <script>
-const PHOTO_SVG = '<svg viewBox="0 0 90 60" preserveAspectRatio="none"><rect width="90" height="60" fill="transparent"/><circle cx="68" cy="14" r="7" fill="#f6d27a"/><path d="M0 60 28 30 44 46 60 28 90 52 90 60Z" fill="#8fa0c8" opacity=".85"/></svg>';
+/* 照片采集：真实保存图片字节到 photo_imgs_<名称>（与服务机构端共享，可被读取/预览/替换/删除） */
+const PLACEHOLDER = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 60"><rect width="90" height="60" fill="#eef2f8"/><circle cx="68" cy="14" r="7" fill="#f6d27a"/><path d="M0 60 28 30 44 46 60 28 90 52 90 60Z" fill="#8fa0c8" opacity=".85"/></svg>');
 const q = new URLSearchParams(location.search);
 const TITLE = q.get('title') || '企业（项目）门牌照';
 const MAX = parseInt(q.get('max') || '2', 10);
+const KEY = 'photo_imgs_'+TITLE;
+const CNTKEY = 'photo_'+TITLE;
 document.getElementById('capTitle').textContent = TITLE;
 document.getElementById('secTitle').innerHTML = `<span class="req">*</span>${TITLE}(<span id="cntNow">0</span>/${MAX}张)`;
 
-let photos = MAX >= 2 ? 2 : 1;   // 演示初始已有照片
+/* 读取已保存的真实图片；若仅有计数无字节，用占位图兜底展示 */
+function loadImages(){
+  try{ const s=localStorage.getItem(KEY); if(s){ const a=JSON.parse(s); if(Array.isArray(a)) return a; } }catch(e){}
+  try{ const c=Math.max(0,+localStorage.getItem(CNTKEY)||0); if(c>0){ const a=[]; for(let i=0;i<c;i++)a.push(PLACEHOLDER); return a; } }catch(e){}
+  return [];
+}
+let images = loadImages();
 const grid = document.getElementById('grid');
 
+/* 隐藏文件选择（模拟相机 / 相册 / 照片库） */
+const pick=document.createElement('input'); pick.type='file'; pick.accept='image/*'; pick.multiple=true; pick.hidden=true;
+pick.onchange=()=>onPick(pick); document.body.appendChild(pick);
+
 function render(){
-  document.getElementById('cntNow').textContent = photos;
-  let html = '';
-  for(let i=0;i<photos;i++){
-    html += `<div class="cell thumb">${PHOTO_SVG}<span class="del" onclick="del(${i})">−</span></div>`;
-  }
-  if(photos < MAX){
+  document.getElementById('cntNow').textContent = images.length;
+  let html='';
+  images.forEach((src,i)=>{
+    html += `<div class="cell thumb"><img src="${src}" style="width:100%;height:100%;object-fit:cover"><span class="del" onclick="del(${i})">−</span></div>`;
+  });
+  if(images.length < MAX){
     html += `<div class="cell add" onclick="add()">+</div>`;
   }
   grid.innerHTML = html;
 }
-
-function add(){
-  if(photos >= MAX){ toast('已达上限 '+MAX+' 张'); return; }
-  photos++;
-  toast('调用相机 / 相册 / 照片库');
-  render();
+function add(){ if(images.length>=MAX){ toast('已达上限 '+MAX+' 张'); return; } pick.click(); }
+function onPick(inp){
+  const files=inp.files?Array.from(inp.files):[];
+  if(!files.length){ try{inp.value='';}catch(e){} return; }
+  let n=0;
+  (function step(){
+    if(n>=files.length || images.length>=MAX){ try{inp.value='';}catch(e){} render(); return; }
+    const fr=new FileReader();
+    fr.onload=()=>{ images.push(fr.result); n++; step(); };
+    fr.onerror=()=>{ n++; step(); };
+    fr.readAsDataURL(files[n]);
+  })();
 }
-function del(i){
-  photos = Math.max(0, photos-1);
-  render();
-  toast('已删除');
-}
+function del(i){ images.splice(i,1); render(); toast('已删除'); }
 function finish(){
-  try{ localStorage.setItem('photo_'+TITLE, String(photos)); }catch(e){}
+  try{ localStorage.setItem(KEY, JSON.stringify(images)); localStorage.setItem(CNTKEY, String(images.length)); }catch(e){}
   history.back();
 }
 

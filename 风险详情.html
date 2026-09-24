@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>新增风险 · 安全风险辨识、评估、评价</title>
+<title>风险详情 · 安全风险辨识、评估、评价</title>
 <style>
   :root{--blue:#2b5ce6;--blue-d:#1f49c4;--text:#1f2329;--sub:#9aa0ad;--val:#3a4050;--bg:#f4f6fb;--line:#eef0f5;--red:#e5484d;--pur:#6b46e0;}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -24,12 +24,6 @@
   .navbar{position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:2px 16px 8px;height:46px}
   .back{width:26px;height:26px;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
   .navtitle{font-size:17px;font-weight:700;letter-spacing:.5px}
-  .capsule{margin-left:auto;display:flex;align-items:center;height:32px;padding:0 13px;border-radius:16px;
-    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-  .cap-dots{font-size:14px;letter-spacing:2px;line-height:1;padding-bottom:5px;cursor:pointer}
-  .cap-line{width:1px;height:15px;background:rgba(255,255,255,.4);margin:0 9px}
-  .cap-circ{width:17px;height:17px;border-radius:50%;border:1.6px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
-  .cap-circ i{width:6px;height:6px;border-radius:50%;background:#fff;display:block}
   .ctx{position:relative;z-index:5;padding:0 16px 12px;font-size:12px;color:rgba(255,255,255,.9)}
   .ctx b{font-weight:600}
 
@@ -43,39 +37,32 @@
   .flbl{display:flex;align-items:center;color:var(--sub);font-size:13.5px;margin-bottom:10px}
   .flbl .req{color:var(--red);margin-right:3px}
 
-  /* 子标题（评价方法分组） */
   .group-head{padding:18px 0 4px;border-top:1px dashed #d8dde8}
   .gtitle{font-size:14.5px;font-weight:700;color:var(--blue);border-left:3px solid var(--blue);padding-left:8px}
 
-  /* 选项 chips */
   .chips{display:flex;flex-wrap:wrap;gap:9px}
   .chip{padding:8px 15px;border:1px solid #d8dde8;border-radius:18px;font-size:13.5px;color:var(--val);background:#fff;cursor:pointer;user-select:none;transition:.12s}
   .chip.on{background:rgba(43,92,230,.10);border-color:var(--blue);color:var(--blue);font-weight:600}
 
-  /* 输入 */
   .inp{width:100%;height:40px;border:1px solid #e0e5ef;border-radius:9px;padding:0 12px;font-size:14px;color:var(--val);outline:none;background:#fff;font-family:inherit}
   .inp:focus{border-color:var(--blue)}
   .area{min-height:96px;height:auto;padding:10px 12px;line-height:1.6;resize:none}
   .ctr{display:flex;justify-content:flex-end;margin-top:6px;color:#b9bfcc;font-size:12px}
 
-  /* 照片 */
   .photos{display:flex;flex-wrap:wrap;gap:10px}
   .thumb{position:relative;width:78px;height:78px;border-radius:10px;overflow:hidden;flex:none;
     display:flex;align-items:flex-end;box-shadow:0 3px 9px rgba(30,50,110,.14)}
   .thumb .tag{position:absolute;left:0;top:0;background:rgba(0,0,0,.32);color:#fff;font-size:10px;padding:2px 6px;border-bottom-right-radius:8px}
   .thumb .x{position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:13px;line-height:17px;text-align:center;cursor:pointer}
-  .thumb .ic{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:26px;height:26px;opacity:.9}
   .add{width:78px;height:78px;border-radius:10px;border:1px dashed #c7cedd;background:#fafbfe;color:#9aa0ad;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font-size:24px;flex:none}
   .add span{font-size:11px;font-weight:400}
 
-  /* AI 生成按钮 */
   .ai-row{margin-top:10px;display:flex}
   .ai-btn{display:inline-flex;align-items:center;gap:5px;height:38px;padding:0 14px;border:none;
     background:linear-gradient(135deg,#7b5bef,#5b3ef2);color:#fff;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer}
   .ai-btn:active{opacity:.9}
 
-  /* 风险计算 & 等级 */
   .risk-calc{font-size:13px;color:#3a4050;background:#f6f8fc;border:1px solid #e3e8f2;border-radius:8px;padding:10px 12px;line-height:1.6}
   .risk-badge{display:inline-block;padding:6px 16px;border-radius:18px;font-size:14px;font-weight:700;background:#eef1f6;color:#9aa0ad}
   .risk-badge.blue{background:#e7f0ff;color:#2b5ce6;border:1px solid #b9d0ff}
@@ -83,11 +70,12 @@
   .risk-badge.orange{background:#fff0e0;color:#e0772a;border:1px solid #ffc89a}
   .risk-badge.red{background:#ffeaea;color:#e5484d;border:1px solid #ffb3b3}
 
-  .footer{flex:none;padding:10px 16px 24px;background:var(--bg)}
-  .btn-main{width:100%;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
+  .footer{flex:none;padding:10px 16px 24px;background:var(--bg);display:flex;gap:10px}
+  .btn-main{flex:1.6;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
   .btn-main:active{background:var(--blue-d)}
+  .btn-del{flex:1;height:46px;border:1px solid #f0c2c2;border-radius:10px;background:#fff;color:var(--red);font-size:16px;font-weight:600;cursor:pointer}
+  .btn-del:active{background:#fff5f5}
 
-  /* 照片来源弹层 */
   .mask{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:60;display:none}
   .mask.show{display:block}
   .sheet{position:absolute;left:0;right:0;bottom:0;z-index:61;background:#fff;border-radius:16px 16px 0 0;transform:translateY(100%);transition:.25s;padding:8px 0 22px}
@@ -109,21 +97,23 @@
     <div class="statusbar"><span>9:41</span>
       <span class="icons">
         <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
-        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 5.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
         <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/></svg>
       </span>
     </div>
     <div class="navbar">
       <div class="back" onclick="history.back()">‹</div>
-      <div class="navtitle">新增风险</div>
-      <div class="capsule"><span class="cap-dots" onclick="toast('更多')">•••</span><span class="cap-line"></span><span class="cap-circ" onclick="toast('设置')"><i></i></span></div>
+      <div class="navtitle">风险详情</div>
     </div>
-    <div class="ctx">工单号 <b id="ctxNo">YF2131900</b> · <span id="ctxProj">安全风险辨识、评估、评价</span></div>
+    <div class="ctx">工单号 <b id="ctxNo">—</b> · <span id="ctxProj">安全风险辨识、评估、评价</span></div>
   </div>
 
   <div class="body" id="body"></div>
 
-  <div class="footer"><button class="btn-main" onclick="submitForm()">新增风险</button></div>
+  <div class="footer">
+    <button class="btn-del" onclick="deleteRisk()">删除</button>
+    <button class="btn-main" onclick="saveDetail()">保存修改</button>
+  </div>
 
   <div class="mask" id="mask" onclick="closeSheet()"></div>
   <div class="sheet" id="sheet">
@@ -160,7 +150,7 @@ const LEC_C = [
 ];
 
 const SECTIONS = [
-  { title:'安全风险辨识、评估、评价 · 新增风险', fields:[
+  { title:'安全风险辨识、评估、评价 · 风险详情', fields:[
     {type:'photo', name:'风险点图片', max:1, sources:['拍照','引用现场检查照片'], req:true},
     {type:'text', name:'风险点名称', max:20, ph:'请填写风险点名称（20字以内）', req:true},
     {type:'single', name:'风险点种类', opts:['设备设施','场所区域','作业活动'], def:'设备设施', req:true},
@@ -191,9 +181,21 @@ const SRC_STYLE = {
   '引用现场检查照片': {tag:'库', bg:'linear-gradient(135deg,#9b6bef,#6b46e0)'},
 };
 
+const DEMO = [
+  {name:'临边土堆堆放过高（示例）', kind:'场所区域', loc:'生产区域', accType:['坍塌','滑坡'], method:'风险判定矩阵法（R=LS）', Lm:5,Sm:4,Ll:null,El:null,Cl:null, level:'重大风险', cause:'土堆堆放过高且未支护，雨季易滑坡', advice:'加强工地巡逻，对土堆进行放坡支护并设警示', photos:[]},
+  {name:'高处作业平台临边（示例）', kind:'作业活动', loc:'生产区域', accType:['高处坠落'], method:'风险判定矩阵法（R=LS）', Lm:4,Sm:4,Ll:null,El:null,Cl:null, level:'较大风险', cause:'平台临边防护缺失', advice:'设置临边防护栏杆并系挂安全带', photos:[]},
+  {name:'设备转动部位（示例）', kind:'设备设施', loc:'辅助生产区域', accType:['机械致害'], method:'风险判定矩阵法（R=LS）', Lm:3,Sm:3,Ll:null,El:null,Cl:null, level:'一般风险', cause:'防护罩缺失', advice:'加装防护罩，作业前点检', photos:[]},
+  {name:'地面油污滑倒（示例）', kind:'场所区域', loc:'非生产区域', accType:['物体打击'], method:'风险判定矩阵法（R=LS）', Lm:2,Sm:2,Ll:null,El:null,Cl:null, level:'低风险', cause:'地面有油污', advice:'及时清理地面并设置警示', photos:[]},
+];
+
 const q = new URLSearchParams(location.search);
-document.getElementById('ctxNo').textContent   = q.get('no') || 'YF2131900';
-document.getElementById('ctxProj').textContent = q.get('project') || '安全风险辨识、评估、评价';
+const orderNo = q.get('no') || 'YF2131900';
+const project = q.get('project') || '安全风险辨识、评估、评价';
+const idx = (q.get('i')!=null && q.get('i')!=='') ? +q.get('i') : -1;
+const LIST_KEY = 'fxlist_' + project;
+
+document.getElementById('ctxNo').textContent = orderNo;
+document.getElementById('ctxProj').textContent = project;
 
 function render(){
   const html = SECTIONS.map(sec=>{
@@ -254,8 +256,8 @@ document.getElementById('body').addEventListener('click', e=>{
 
 function applyShowIf(){
   document.querySelectorAll('#body .cond').forEach(el=>{
-    const si = el.dataset.showif, idx = si.indexOf('=');
-    const k = si.slice(0,idx), v = si.slice(idx+1);
+    const si = el.dataset.showif, idx2 = si.indexOf('=');
+    const k = si.slice(0,idx2), v = si.slice(idx2+1);
     const ctrl = document.querySelector(`.chips[data-key="${k}"] .chip.on`);
     el.style.display = (ctrl && ctrl.dataset.v===v) ? '' : 'none';
   });
@@ -337,6 +339,7 @@ function getFieldVal(name){
 function stripLv(s){ return (s||'').replace(/（.*）/,'').trim() || '待评定风险'; }
 
 function fillArea(btn, text){
+  text = text || '';
   text = text.length > 100 ? text.slice(0,100) : text;
   const ta = btn.closest('.field').querySelector('textarea');
   ta.value = text; updCount(ta); toast('已根据前项生成');
@@ -352,6 +355,55 @@ function genMeasure(btn){
   const kind=g('风险点种类'), acc=g('可能导致的事故种类'), lv=g('风险等级');
   const accs = acc==='—' ? '相关事故' : acc;
   fillArea(btn, `针对评定为${stripLv(lv)}的「${accs}」风险，建议：落实${kind||'该'}风险分级管控，设置警示标识、配齐防护装备，加强日常巡检与应急演练，明确责任人并定期复核措施有效性。`);
+}
+
+/* ===== 详情：加载 / 回填 / 保存 / 删除 ===== */
+function loadList(){
+  try{ const s = localStorage.getItem(LIST_KEY); if(s){ const a = JSON.parse(s); if(Array.isArray(a)) return a; } }catch(e){}
+  return DEMO.slice();
+}
+function loadOne(){
+  if(idx<0) return null;
+  const arr = loadList();
+  return (arr[idx]!=null) ? arr[idx] : null;
+}
+
+function fieldByName(name){
+  let el = null;
+  document.querySelectorAll('#body .field').forEach(f=>{
+    const flbl = f.querySelector('.flbl');
+    const lbl = flbl ? flbl.textContent.replace('*','').trim() : '';
+    if(lbl===name) el = f;
+  });
+  return el;
+}
+function setInp(name,val){ const f=fieldByName(name); if(f){ const i=f.querySelector('.inp'); if(i) i.value=val||''; } }
+function setArea(name,val){ const f=fieldByName(name); if(f){ const t=f.querySelector('textarea'); if(t){ t.value=val||''; updCount(t); } } }
+function setSingle(name,val){ const f=fieldByName(name); if(f){ f.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', c.dataset.v===val)); } }
+function setMulti(name,vals){ const f=fieldByName(name); if(f && Array.isArray(vals)){ f.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', vals.indexOf(c.dataset.v)>=0)); } }
+function setByFid(fid,val){ const box=document.querySelector('.chips[data-fid="'+fid+'"]'); if(box){ box.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', c.dataset.v===String(val))); } }
+function fillPhotos(arr){
+  const box = document.querySelector('#body .photos'); if(!box || !Array.isArray(arr)) return;
+  arr.forEach(src=>{
+    const st = SRC_STYLE[src] || {tag:'照', bg:'#9aa0ad'};
+    const d = document.createElement('div'); d.className='thumb'; d.style.background=st.bg;
+    d.innerHTML = `<span class="tag">${st.tag}</span><span class="x" onclick="removeThumb(this)">×</span>`;
+    box.insertBefore(d, box.querySelector('.add'));
+  });
+  if(box.querySelectorAll('.thumb').length >= +box.dataset.max) box.querySelector('.add').style.display='none';
+}
+function fillForm(d){
+  if(d.photos && d.photos.length) fillPhotos(d.photos);
+  setInp('风险点名称', d.name);
+  setSingle('风险点种类', d.kind);
+  setSingle('风险位置', d.loc);
+  setMulti('可能导致的事故种类', d.accType);
+  if(d.method) setSingle('选用评价方法', d.method);
+  if(d.method==='风险判定矩阵法（R=LS）'){ if(d.Lm!=null) setByFid('Lm',d.Lm); if(d.Sm!=null) setByFid('Sm',d.Sm); }
+  else { if(d.Ll!=null) setByFid('Ll',d.Ll); if(d.El!=null) setByFid('El',d.El); if(d.Cl!=null) setByFid('Cl',d.Cl); }
+  setArea('事故诱因', d.cause);
+  setArea('管控措施', d.advice);
+  applyShowIf(); computeRisk();
 }
 
 function collectRisk(){
@@ -376,37 +428,37 @@ function collectRisk(){
   };
 }
 
-function submitForm(){
-  const miss = [];
-  document.querySelectorAll('#body .field').forEach(f=>{
-    if(f.classList.contains('cond') && f.style.display==='none') return;
-    const lbl = f.querySelector('.flbl') ? f.querySelector('.flbl').textContent.replace('*','').trim() : '';
-    if(f.querySelector('.risk-badge')){ if(!f.querySelector('.risk-badge').dataset.level) miss.push(lbl||'风险等级'); return; }
-    const req = f.querySelector('.req'); if(!req) return;
-    if(f.querySelector('.chips')){ if(!f.querySelector('.chip.on')) miss.push(lbl); }
-    else if(f.querySelector('.inp')){ if(!f.querySelector('.inp').value.trim()) miss.push(lbl); }
-    else if(f.querySelector('textarea')){ if(!f.querySelector('textarea').value.trim()) miss.push(lbl); }
-    else if(f.querySelector('.photos')){ if(!f.querySelector('.thumb')) miss.push(lbl); }
-  });
-  if(miss.length){ toast('请完善：'+miss.join('、')); return; }
-  try{
-    const proj = q.get('project')||'安全风险辨识、评估、评价';
-    const key = 'fxlist_'+proj;
-    let arr = [];
-    try{ const s=localStorage.getItem(key); if(s) arr=JSON.parse(s)||[]; }catch(e){}
-    arr.push(collectRisk());
-    localStorage.setItem(key, JSON.stringify(arr));
-    const k='riskcount_'+proj; localStorage.setItem(k, Math.max(0,+localStorage.getItem(k)||0)+1);
-  }catch(e){}
-  toast('风险已新增');
-  setTimeout(()=>{ history.back(); }, 1100);
+function saveDetail(){
+  if(idx<0){ toast('参数异常，无法保存'); return; }
+  const d = collectRisk();
+  if(!d.name){ toast('请填写风险点名称'); return; }
+  if(!d.accType.length){ toast('请选择可能导致的事故种类'); return; }
+  if(!d.level){ toast('请完成评价参数选择以计算等级'); return; }
+  const arr = loadList();
+  const target = (arr[idx]!=null) ? idx : arr.length;
+  arr[target] = d;
+  try{ localStorage.setItem(LIST_KEY, JSON.stringify(arr)); }catch(e){}
+  try{ const k='riskcount_'+project; localStorage.setItem(k, Math.max(0,arr.length)); }catch(e){}
+  toast('已保存'); setTimeout(()=>{ history.back(); }, 900);
+}
+
+function deleteRisk(){
+  if(idx<0){ toast('参数异常，无法删除'); return; }
+  const arr = loadList();
+  if(arr[idx]==null){ toast('未找到该风险'); return; }
+  arr.splice(idx,1);
+  try{ localStorage.setItem(LIST_KEY, JSON.stringify(arr)); }catch(e){}
+  try{ const k='riskcount_'+project; localStorage.setItem(k, Math.max(0,arr.length)); }catch(e){}
+  toast('已删除'); setTimeout(()=>{ history.back(); }, 900);
 }
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
 
+/* ===== 初始化 ===== */
 render();
-applyShowIf();
-computeRisk();
+const _data = loadOne();
+if(_data){ fillForm(_data); }
+else { applyShowIf(); computeRisk(); if(idx>=0) toast('未找到该风险'); }
 </script>
 </body>
 </html>

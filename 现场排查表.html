@@ -282,7 +282,9 @@ function loadState(){
 }
 function persist(){
   const key = 'inspect_' + encodeURIComponent(ORDER + '_' + NAME);
-  try{ localStorage.setItem(key, JSON.stringify(STATE)); }catch(e){}
+  /* 同时保存检查内容文本，便于服务机构端「报告整理」读取并编辑逐项明细 */
+  const data = STATE.map((s,i)=>Object.assign({}, s, {content:ITEMS[i].content, dir1:ITEMS[i].dir1, dir2:ITEMS[i].dir2, level:ITEMS[i].level}));
+  try{ localStorage.setItem(key, JSON.stringify(data)); }catch(e){}
 }
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }

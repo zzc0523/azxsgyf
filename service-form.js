@@ -133,23 +133,23 @@ function fieldHTML(f){
       <div class="frow">
         <div class="flabel">${f.name} ${f.max?`<span class="cnt" id="${id}">0/${f.max}</span>`:''}</div>
         ${f.area
-          ? `<textarea class="ta" ${attrs} placeholder="请输入"></textarea>`
-          : `<input class="inp" ${attrs} placeholder="请输入">`}
+          ? `<textarea class="ta" data-key="${esc(f.name)}" ${attrs} placeholder="请输入"></textarea>`
+          : `<input class="inp" data-key="${esc(f.name)}" ${attrs} placeholder="请输入">`}
       </div>`;
     case 'number': return `
       <div class="frow"><div class="flabel">${f.name}</div>
-      <input class="inp" type="number" data-key="${f.key||''}" oninput="recompute()" placeholder="0"></div>`;
+      <input class="inp" type="number" data-key="${esc(f.name)}" oninput="recompute()" placeholder="0"></div>`;
     case 'single': return `
       <div class="frow"><div class="flabel">${f.name} ${f.hint?`<span class="hint">${f.hint}</span>`:''}</div>
-      <div class="chips" data-kind="single">${f.opts.map(o=>`<span class="chip">${o}</span>`).join('')}</div></div>`;
+      <div class="chips" data-kind="single" data-key="${esc(f.name)}">${f.opts.map(o=>`<span class="chip">${o}</span>`).join('')}</div></div>`;
     case 'multi': return `
       <div class="frow"><div class="flabel">${f.name} ${f.hint?`<span class="hint">${f.hint}</span>`:''}</div>
-      <div class="chips" data-kind="multi">${f.opts.map(o=>`<span class="chip">${o}</span>`).join('')}
+      <div class="chips" data-kind="multi" data-key="${esc(f.name)}">${f.opts.map(o=>`<span class="chip">${o}</span>`).join('')}
         <span class="chip other" data-other="1">其他</span></div>
-      <input class="inp" style="margin-top:8px;display:none" placeholder="其他（手动填写）"></div>`;
+      <input class="inp" style="margin-top:8px;display:none" data-key="${esc(f.name)}__other" placeholder="其他（手动填写）"></div>`;
     case 'location': return `
       <div class="frow"><div class="flabel">${f.name}</div>
-      <div class="row2"><input class="inp" placeholder="点击右侧获取定位"><button class="mini" onclick="getLoc(this)">获取定位</button></div></div>`;
+      <div class="row2"><input class="inp" data-key="${esc(f.name)}" placeholder="点击右侧获取定位"><button class="mini" onclick="getLoc(this)">获取定位</button></div></div>`;
     case 'photo': return `
       <div class="frow lrow"${f.showIf?` data-showof="${f.showIf.split('=')[0]}" data-showval="${f.showIf.split('=')[1]}" style="display:none"`:''} onclick="goPhoto('${encodeURIComponent(f.name)}',${f.max})">
         <div class="ltxt">${f.name}</div>
@@ -161,12 +161,12 @@ function fieldHTML(f){
         <input type="file" accept="${f.t==='pdf'?'application/pdf':'*'}" hidden onchange="onFile(this)"></div>`;
     case 'ai': return `
       <div class="frow"><div class="flabel">${f.name} ${f.max?`<span class="cnt" id="${id}">0/${f.max}</span>`:''} ${f.doc?`<span class="tagdoc">文档</span>`:''}</div>
-        ${f.doc?'':`<textarea class="ta" ${attrs} placeholder="由大模型生成或手动填写"></textarea>`}
+        ${f.doc?'':`<textarea class="ta" data-key="${esc(f.name)}" ${attrs} placeholder="由大模型生成或手动填写"></textarea>`}
         <button class="aibtn" onclick="aiGen('${f.ai}')">✦ 大模型${f.ai}（C5）</button></div>`;
     case 'rate': return `
       <div class="frow" ${f.showIf?`data-showof="${f.showIf.split('=')[0]}" data-showval="${f.showIf.split('=')[1]}"`:''}>
         <div class="flabel">${f.name}</div>
-        <div class="chips" data-kind="single" data-group="${f.key||''}">${f.opts.map(o=>`<span class="chip ${o===f.def?'on':''}">${o}</span>`).join('')}</div></div>`;
+        <div class="chips" data-kind="single" data-group="${f.key||''}" data-key="${esc(f.name)}">${f.opts.map(o=>`<span class="chip ${o===f.def?'on':''}">${o}</span>`).join('')}</div></div>`;
     case 'calc': return `
       <div class="frow"><div class="calc">
         <div class="chips seg" data-kind="single" id="calcMethod">
@@ -181,6 +181,27 @@ function fieldHTML(f){
       </div></div>`;
   }
   return '';
+}
+/* 收集并返回本页填写的表单内容（按字段名），供服务机构端「报告整理」读取 */
+function collectSvcForm(){
+  const o={};
+  document.querySelectorAll('#body [data-key]').forEach(el=>{
+    const k=el.getAttribute('data-key'); if(!k) return;
+    if(el.classList.contains('chips')){
+      const sel=[]; el.querySelectorAll('.chip.on').forEach(c=>sel.push(c.textContent.trim()));
+      o[k]=sel.join('、');
+    } else if(el.tagName==='TEXTAREA'||el.tagName==='INPUT'){
+      o[k]=el.value;
+    }
+  });
+  // 多选“其他”补充
+  document.querySelectorAll('#body [data-key$="__other"]').forEach(el=>{ if(el.value&&el.value.trim()){ const base=el.getAttribute('data-key').replace('__other',''); o[base]=(o[base]?o[base]+'、':'')+'其他：'+el.value.trim(); } });
+  return o;
+}
+function saveSvcForm(){
+  const o=collectSvcForm();
+  try{ localStorage.setItem('svcform_'+orderNo+'_'+project, JSON.stringify(o)); }catch(e){}
+  return o;
 }
 
 function lsHTML(){return `<div class="ci"><span>L</span><input type="number" min="1" max="5" value="3" oninput="calcRisk()"><span>S</span><input type="number" min="1" max="5" value="3" oninput="calcRisk()"></div>`;}
@@ -497,6 +518,8 @@ function recompute(){
 }
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1600);}
+/* 提交服务登记时，把填写内容写入共享键 svcform_<工单>_<项目>，供服务机构端读取 */
+document.addEventListener('click', e=>{ const b=e.target.closest('.btn-main'); if(b){ saveSvcForm(); } });
 
 /* ===== 初始化（由各 HTML 调用） ===== */
 function init(projectName, lite, entry, risk, hazard, patrol, score){

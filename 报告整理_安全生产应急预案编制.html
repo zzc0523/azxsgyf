@@ -93,6 +93,25 @@
 
   .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:80;display:none;max-width:74%;text-align:center;line-height:1.6}
   .toast.show{display:block}
+  /* 现场照片模块（自包含，避免与各页已有 .card/.frow 等类名冲突） */
+  .phsec{font-size:15px;font-weight:700;color:#1f2329;padding:18px 16px 8px;display:flex;align-items:center}
+  .phsec::before{content:"";width:3px;height:15px;background:#2b5ce6;border-radius:2px;margin-right:8px}
+  .phcard{background:#fff;border-radius:14px;margin:0 16px;padding:4px 16px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .phlrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;cursor:pointer;border-radius:8px;transition:background .12s}
+  .phlrow:active{background:#f7f9fd}
+  .phlrow .phltxt{color:#1f2329;font-size:13.5px;font-weight:500;line-height:1.4;flex:1;min-width:0;word-break:break-word}
+  .phright{display:flex;align-items:center;gap:8px;justify-content:flex-end;flex:none}
+  .phgo{color:#bcc3d0;font-size:16px}
+  .phstat{font-size:13px;font-weight:600}
+  .phstat.phok{color:#2f9e6b}
+  .phstat.phno{color:#e5484d}
+  .phcap{color:#9aa0ad;font-size:12.5px}
+  /* 基本信息模块（自包含，与 .ph* 同风格） */
+  .infosec{font-size:13px;font-weight:600;color:#8b91a0;padding:16px 16px 8px}
+  .infocard{background:#fff;border-radius:14px;margin:0 16px;padding:4px 16px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .infrow{display:flex;padding:9px 0;font-size:13.5px;line-height:1.5}
+  .infrow .ink{color:#8b91a0;flex:none}
+  .infrow .inv{color:#1f2329;font-weight:600;flex:1;min-width:0;word-break:break-word}
 </style>
 </head>
 <body>
@@ -162,6 +181,50 @@ function saveState(){
   try{ localStorage.setItem('report_应急预案编制_'+orderNo, JSON.stringify(state)); }catch(e){}
 }
 
+/* ===== 基本信息（顶部展示） ===== */
+const INFO_COMPANY = '福州无比欢信息科技有限公司';
+const INFO_PLACE   = '福州马尾区海峡广场A座';
+const INFO_DATE    = '2025.01.01-2025.01.05';
+const INFO_PIN = '<svg viewBox="0 0 12 15" width="11" height="14" style="vertical-align:-2px;margin-left:4px"><path d="M6 0a6 6 0 0 0-6 6c0 4.2 6 9 6 9s6-4.8 6-9A6 6 0 0 0 6 0Zm0 8.2A2.2 2.2 0 1 1 6 3.8a2.2 2.2 0 0 1 0 4.4Z" fill="#2b5ce6"/></svg>';
+function infoCard(){
+  const row=(k,v,ic)=>`<div class="infrow"><span class="ink">${k}：</span><span class="inv">${v}${ic||''}</span></div>`;
+  return `<div class="infosec">基本信息</div>
+  <div class="infocard">
+    ${row('预防服务工单', orderNo)}
+    ${row('企业名称', INFO_COMPANY)}
+    ${row('服务项目', PROJECT)}
+    ${row('计划服务日期', INFO_DATE)}
+    ${row('计划服务地点', INFO_PLACE, INFO_PIN)}
+    ${row('联系人', '张三')}
+    ${row('联系电话', '18000000000')}
+  </div>`;
+}
+
+/* ===== 现场照片（回显采集状态；点击跳转 照片采集.html） ===== */
+const PHOTO_DEFAULT = {'企业（项目）门牌照':2, '技术人员现场服务照片':2, '现场检查照片':0};
+function photoCount(n){
+  try{ const v = localStorage.getItem('photo_'+n); if(v != null) return Math.max(0, +v||0); }catch(e){}
+  return PHOTO_DEFAULT[n] || 0;
+}
+const PHOTOS = [
+  {name:'企业（项目）门牌照', max:2, need:true},
+  {name:'技术人员现场服务照片', max:2, need:true},
+  {name:'现场检查照片', max:50},
+];
+function photoCard(){
+  const html = PHOTOS.map(r=>{
+    const right = r.need
+      ? (photoCount(r.name) >= r.max ? `<span class="phstat phok">已完成</span>` : `<span class="phstat phno">未完成</span>`)
+      : `<span class="phcap">${r.max}张</span>`;
+    return `<div class="phlrow" onclick="goPhoto('${encodeURIComponent(r.name)}',${r.max})">
+      <div class="phltxt">${r.name}</div>
+      <div class="phright">${right}<span class="phgo">›</span></div>
+    </div>`;
+  }).join('');
+  return `<div class="phsec">现场照片</div><div class="phcard">${html}</div>`;
+}
+function goPhoto(name,max){ location.href = '照片采集.html?title=' + name + '&max=' + max; }
+
 function render(){
   const html = DOCS.map(d=>{
     const st = state[d.key];
@@ -190,7 +253,7 @@ function render(){
   const other = state.__other;
   const otherShown = other && other.names && other.names.length ? '' : 'display:none';
   const otherNames = other && other.names ? other.names.join('、') : '';
-  document.getElementById('body').innerHTML = html + `
+  document.getElementById('body').innerHTML = infoCard() + photoCard() + html + `
     <div class="card">
       <div class="card-title"><i></i>其他文档</div>
       <div class="upload">
@@ -274,7 +337,8 @@ function generateReport(){
     '<div class="pv-row"><div class="pv-k">预防服务工单</div><div class="pv-v">'+esc(orderNo)+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">服务项目</div><div class="pv-v">'+esc(proj)+'</div></div>'+
     DOCS.map(d=>'<div class="pv-row"><div class="pv-k">'+esc(d.name)+'</div><div class="pv-v">'+sub(d.key)+'</div></div>').join('')+
-    '<div class="pv-row"><div class="pv-k">其他文档</div><div class="pv-v">'+esc((state.__other&&state.__other.names&&state.__other.names.length)?state.__other.names.join('、'):'—')+'</div></div>';
+    '<div class="pv-row"><div class="pv-k">其他文档</div><div class="pv-v">'+esc((state.__other&&state.__other.names&&state.__other.names.length)?state.__other.names.join('、'):'—')+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">现场照片</div><div class="pv-v">'+esc(PHOTOS.map(p=>p.name+' '+photoCount(p.name)+'张').join('、'))+'</div></div>';
   document.getElementById('previewSub').textContent = '工单号 '+orderNo+' · '+proj;
   document.getElementById('preview').classList.add('show');
 }

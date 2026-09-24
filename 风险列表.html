@@ -27,7 +27,8 @@
   /* ===== 列表 ===== */
   .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:18px}
   .body::-webkit-scrollbar{display:none}
-  .card{background:#fff;border-radius:12px;margin:12px 16px 0;box-shadow:0 4px 14px rgba(30,50,110,.05);overflow:hidden}
+  .card{background:#fff;border-radius:12px;margin:12px 16px 0;box-shadow:0 4px 14px rgba(30,50,110,.05);overflow:hidden;cursor:pointer;transition:background .12s}
+  .card:active{background:#fafbfe}
   .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
   .no{font-size:13.5px;line-height:1.4;min-width:0}
   .no .k{color:var(--lbl)}
@@ -61,7 +62,7 @@
     <div class="statusbar"><span>9:41</span>
       <span class="icons">
         <svg viewBox="0 0 17 11" width="17" height="11" fill="#1f2329"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
-        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#1f2329"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#1f2329"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 5.5a5.8 2.6 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
         <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#1f2329" stroke-opacity=".4" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#1f2329"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#1f2329" fill-opacity=".4"/></svg>
       </span>
     </div>
@@ -71,31 +72,37 @@
 
   <div class="body" id="body"></div>
 
-  <button class="fab" onclick="location.href='新增风险_安全风险辨识评估评价.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent('安全风险辨识、评估、评价')">＋ 新增风险</button>
+  <button class="fab" onclick="location.href='新增风险_安全风险辨识评估评价.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent(project)">＋ 新增风险</button>
 
   <div class="home-ind"></div>
 </div>
 
 <script>
-/* ===== 风险等级 → 徽标样式（参照设计稿配色） ===== */
 const LEVEL_CLS = {
   '重大风险':'lv-red',
   '较大风险':'lv-orange',
   '一般风险':'lv-blue',
   '低风险':'lv-green',
 };
-/* ===== 风险数据（后续可对接接口/本地存储） ===== */
+/* 默认示例数据（首次无本地存储时使用，含评价参数以便详情回填） */
 const DEMO = [
-  {name:'存在土堆塌方风险，存在土堆塌方风险，存在土堆塌方风险，', effect:'坍塌、滑坡', advice:'加强工地巡逻', level:'重大风险'},
-  {name:'存在土堆塌方风险，存在土堆塌方风险，存在土堆塌方风险，', effect:'滑坡', advice:'加强工地巡逻', level:'较大风险'},
-  {name:'存在土堆塌方风险，存在土堆塌方风险，存在土堆塌方风险，', effect:'高处坠落', advice:'加强工地巡逻', level:'一般风险'},
-  {name:'存在土堆塌方风险，存在土堆塌方风险，存在土堆塌方风险，', effect:'物体打击', advice:'加强工地巡逻', level:'低风险'},
+  {name:'临边土堆堆放过高（示例）', kind:'场所区域', loc:'生产区域', accType:['坍塌','滑坡'], method:'风险判定矩阵法（R=LS）', Lm:5,Sm:4,Ll:null,El:null,Cl:null, level:'重大风险', cause:'土堆堆放过高且未支护，雨季易滑坡', advice:'加强工地巡逻，对土堆进行放坡支护并设警示', photos:[]},
+  {name:'高处作业平台临边（示例）', kind:'作业活动', loc:'生产区域', accType:['高处坠落'], method:'风险判定矩阵法（R=LS）', Lm:4,Sm:4,Ll:null,El:null,Cl:null, level:'较大风险', cause:'平台临边防护缺失', advice:'设置临边防护栏杆并系挂安全带', photos:[]},
+  {name:'设备转动部位（示例）', kind:'设备设施', loc:'辅助生产区域', accType:['机械致害'], method:'风险判定矩阵法（R=LS）', Lm:3,Sm:3,Ll:null,El:null,Cl:null, level:'一般风险', cause:'防护罩缺失', advice:'加装防护罩，作业前点检', photos:[]},
+  {name:'地面油污滑倒（示例）', kind:'场所区域', loc:'非生产区域', accType:['物体打击'], method:'风险判定矩阵法（R=LS）', Lm:2,Sm:2,Ll:null,El:null,Cl:null, level:'低风险', cause:'地面有油污', advice:'及时清理地面并设置警示', photos:[]},
 ];
 
 const q = new URLSearchParams(location.search);
 const orderNo = q.get('no') || 'YF2131900';
+const project = q.get('project') || '安全风险辨识、评估、评价';
+const LIST_KEY = 'fxlist_' + project;
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function loadList(){
+  try{ const s = localStorage.getItem(LIST_KEY); if(s){ const a = JSON.parse(s); if(Array.isArray(a)) return a; } }catch(e){}
+  return DEMO.slice();
+}
 
 function renderSummary(list){
   const order = ['重大风险','较大风险','一般风险','低风险'];
@@ -112,22 +119,24 @@ function renderList(list){
   box.innerHTML = list.map((r,i)=>{
     const no = `${orderNo}_FX_${String(i+1).padStart(3,'0')}`;
     const cls = LEVEL_CLS[r.level] || 'lv-blue';
-    return `<div class="card">
+    const acc = Array.isArray(r.accType) ? r.accType.join('、') : (r.accType||'');
+    return `<div class="card" onclick="location.href='风险详情.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent(project)+'&i='+${i}">
       <div class="card-head">
         <div class="no"><span class="k">风险编号：</span><span class="v">${esc(no)}</span></div>
-        <span class="badge ${cls}">${esc(r.level)}</span>
+        <span class="badge ${cls}">${esc(r.level||'—')}</span>
       </div>
       <div class="card-body">
         <div class="row"><span class="k">风险点名称：</span><span class="v">${esc(r.name)}</span></div>
-        <div class="row"><span class="k">可能导致的事故种类：</span><span class="v">${esc(r.effect)}</span></div>
+        <div class="row"><span class="k">可能导致的事故种类：</span><span class="v">${esc(acc)}</span></div>
         <div class="row"><span class="k">管控措施：</span><span class="v">${esc(r.advice)}</span></div>
       </div>
     </div>`;
   }).join('');
 }
 
-renderSummary(DEMO);
-renderList(DEMO);
+const _list = loadList();
+renderSummary(_list);
+renderList(_list);
 </script>
 </body>
 </html>
