@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>投保企业管理 · 保险机构端</title>
+<link rel="stylesheet" href="ins-common.css">
+<style>
+  .card{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(20,30,60,.04);}
+  /* 查询卡片 */
+  .search{padding:18px 20px;margin-bottom:14px;}
+  .fields{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 22px;}
+  .fi{display:flex;align-items:center;gap:8px;min-width:0;}
+  .fi label{flex:0 0 110px;text-align:right;padding-right:8px;color:#4a5568;white-space:nowrap;}
+  .fi input,.fi select{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
+  .fi input:focus,.fi select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .acts{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap;}
+  .btn{height:32px;padding:0 18px;border-radius:4px;border:1px solid #dfe4ed;background:#fff;color:#3a4354;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;}
+  .btn:hover{border-color:#c7d0de;}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .btn.primary:hover{background:var(--brand-d);border-color:var(--brand-d);}
+  .toolbar{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+
+  /* 表格 */
+  .table-wrap{overflow:hidden;overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:1080px;}
+  thead th{background:#f7f9fc;color:#5d6879;font-weight:600;text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:13px;}
+  tbody td{padding:13px 14px;border-bottom:1px solid var(--line);color:#2b3242;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  tbody tr:hover{background:#f9fbff;}
+  td.op a{color:var(--brand);cursor:pointer;margin-right:16px;}
+  td.op a:last-child{margin-right:0;}
+  td.op a:hover{text-decoration:underline;}
+  .empty{text-align:center;color:#9aa3b2;padding:38px 0 !important;}
+
+  /* 分页 */
+  .pager{display:flex;align-items:center;gap:12px;padding:14px 18px;color:#5d6879;font-size:13px;flex-wrap:wrap;}
+  .pager .pgbtn{min-width:30px;height:30px;padding:0 8px;border:1px solid #e2e7f0;border-radius:4px;background:#fff;cursor:pointer;color:#3a4354;font-size:13px;}
+  .pager .pgbtn:hover:not(:disabled){border-color:#c7d0de;}
+  .pager .pgbtn.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .pager .pgbtn:disabled{opacity:.45;cursor:not-allowed;}
+  .pager .sizesel{height:30px;border:1px solid #e2e7f0;border-radius:4px;padding:0 8px;color:#3a4354;background:#fff;}
+  .pager .go input{width:44px;height:30px;border:1px solid #e2e7f0;border-radius:4px;padding:0 6px;text-align:center;}
+
+  /* 弹窗 */
+  .mask{position:fixed;inset:0;background:rgba(15,22,36,.45);display:none;align-items:center;justify-content:center;z-index:50;}
+  .mask.show{display:flex;}
+  .modal{width:min(780px,94vw);max-height:88vh;background:#fff;border-radius:6px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .mhead{height:52px;flex:0 0 52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);}
+  .mtitle{font-size:15px;font-weight:600;display:flex;align-items:center;gap:9px;}
+  .mtitle::before{content:"";width:3px;height:15px;background:var(--brand);border-radius:2px;}
+  .mclose{font-size:18px;color:#9aa3b2;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;}
+  .mclose:hover{background:#f0f2f7;}
+  .mbody{flex:1;overflow:auto;padding:22px 26px 26px;}
+  .mfoot{flex:0 0 60px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 26px;border-top:1px solid var(--line);}
+  .form{display:grid;grid-template-columns:1fr;gap:14px;}
+  .fitem{display:flex;flex-direction:row;align-items:flex-start;gap:0;}
+  .fitem label{flex:0 0 188px;width:188px;text-align:right;padding-right:12px;font-size:13px;font-weight:400;color:#3a4354;line-height:32px;}
+  .fitem .req{color:#f04438;margin-right:3px;}
+  .fitem input,.fitem select,.fitem textarea{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;font-family:inherit;}
+  .fitem textarea{height:72px;min-height:0;padding:8px 10px;line-height:1.5;resize:vertical;}
+  .fitem input:focus,.fitem select:focus,.fitem textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .fitem .unit{flex:0 0 auto;align-self:center;color:#8a93a5;padding-left:8px;white-space:nowrap;}
+
+  @media (max-width:1100px){ .fitem label{flex:0 0 140px;width:140px;} .fields{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:768px){ .fields{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="side">
+    <div class="brand"><i class="logo"><i></i><b></b></i><span>保险机构端</span></div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+
+  <main class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="tabs" id="tabs"></div>
+
+    <div class="page">
+      <!-- 查询 -->
+      <div class="card search">
+        <div class="fields">
+          <div class="fi"><label>企业名称</label><input id="q_name" placeholder="请输入企业名称" onkeydown="if(event.key==='Enter')doSearch()"></div>
+          <div class="fi"><label>统一社会信用代码</label><input id="q_credit" placeholder="请输入信用代码" onkeydown="if(event.key==='Enter')doSearch()"></div>
+          <div class="fi"><label>企业性质</label><select id="q_nature"></select></div>
+          <div class="fi"><label>企业规模</label><select id="q_scale"></select></div>
+        </div>
+        <div class="acts">
+          <button class="btn primary" onclick="doSearch()">查询</button>
+          <button class="btn" onclick="doReset()">重置</button>
+        </div>
+      </div>
+
+      <!-- 操作区 -->
+      <div class="toolbar">
+        <button class="btn primary" onclick="openAdd()">新增企业</button>
+      </div>
+
+      <!-- 列表 -->
+      <div class="card table-wrap">
+        <table>
+          <colgroup>
+            <col style="width:60px"><col><col><col><col style="width:110px"><col style="width:90px"><col style="width:90px"><col><col style="width:120px">
+          </colgroup>
+          <thead><tr>
+            <th>序号</th><th>企业名称</th><th>统一社会信用代码</th><th>所属行业</th>
+            <th>企业性质</th><th>企业规模</th><th>职工数量</th><th>企业法人</th>
+            <th class="op">操作</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="pager" id="pager"></div>
+    </div>
+  </main>
+</div>
+
+<!-- 新增/编辑弹窗 -->
+<div class="mask" id="mask">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle" id="mtitle">新增企业</div>
+      <div class="mclose" onclick="closeModal()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="form" id="form"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn primary" onclick="saveForm()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="ins-common.js"></script>
+<script>
+/* ===== 枚举 ===== */
+const ENUM = {
+  nature:['国有企业','集体企业','私营企业','外资企业','中外合资企业','国民合资企业'],
+  scale :['大型','中型','小型','微小'],
+  industry:['煤矿','非煤矿山','危险化学品','烟花爆竹','交通运输','建筑施工','民用爆炸物品','金属冶炼','渔业生产','电力生产','工贸企业','其他'],
+  std   :['已创建','未创建','已定级','不明'],                 // 安全生产标准化创建情况
+  dual  :['已创建','未创建','不明'],                          // 双重预防体系创建情况
+  rescue:['已创建','未创建','不明'],                         // 应急救援体系创建情况
+  eval  :['已开展','未开展','不明']                           // 安全评价情况
+};
+
+/* ===== 字段定义（modal 表单据此生成） ===== */
+const FIELDS = [
+  {k:'name',   label:'企业名称',type:'text',max:100,req:true,ph:'请输入企业名称'},
+  {k:'credit', label:'统一社会信用代码',type:'text',max:18,req:true,ph:'18位阿拉伯数字和大写字母',upper:true},
+  {k:'industry',label:'所属行业',type:'select',opts:ENUM.industry,req:true},
+  {k:'nature', label:'企业性质',type:'select',opts:ENUM.nature,req:true},
+  {k:'scale',  label:'企业规模',type:'select',opts:ENUM.scale,req:true},
+  {k:'staff',  label:'职工数量',type:'num',max:10,req:true,ph:'数字，最多10位'},
+  {k:'legal',  label:'企业法人',type:'text',max:100,req:true,ph:'请输入企业法人'},
+  {k:'legalPhone',label:'法人联系电话',type:'tel',max:11,req:false,ph:'11位数字（选填）'},
+  {k:'safe',   label:'企业安全负责人',type:'text',max:100,req:true,ph:'请输入安全负责人'},
+  {k:'safePhone',label:'安全负责人联系电话',type:'tel',max:11,req:false,ph:'11位数字（选填）'},
+  {k:'addr',   label:'企业地址',type:'text',max:100,req:true,ph:'请输入企业地址'},
+  {k:'reg',    label:'注册资本',type:'num',unit:'万元',req:true,ph:'数字，单位万元'},
+  {k:'income', label:'年度收入',type:'num',unit:'万元',req:true,ph:'数字，单位万元'},
+  {k:'std',    label:'企业安全生产标准化创建情况',type:'select',opts:ENUM.std,req:true},
+  {k:'dual',   label:'企业双重预防体系创建情况',type:'select',opts:ENUM.dual,req:true},
+  {k:'rescue', label:'企业应急救援体系创建情况',type:'select',opts:ENUM.rescue,req:true},
+  {k:'eval',   label:'企业安全评价情况',type:'select',opts:ENUM.eval,req:true},
+  {k:'intro',  label:'企业简介',type:'area',max:500,req:true,ph:'500字以内'},
+  {k:'scope',  label:'经营范围',type:'area',max:500,req:true,ph:'500字以内'}
+];
+
+function fillSel(sel,arr){
+  sel.innerHTML='<option value="">请选择</option>'+arr.map(o=>`<option>${o}</option>`).join('');
+}
+fillSel($('#q_nature'),ENUM.nature);
+fillSel($('#q_scale'),ENUM.scale);
+
+/* ===== 表单生成 ===== */
+function fieldHTML(f){
+  let ctrl='';
+  if(f.type==='select'){
+    ctrl=`<select id="e_${f.k}"><option value="">请选择</option>${f.opts.map(o=>`<option>${o}</option>`).join('')}</select>`;
+  } else if(f.type==='area'){
+    ctrl=`<textarea id="e_${f.k}" maxlength="${f.max}" placeholder="${f.ph||''}"></textarea>`;
+  } else if(f.type==='num'){
+    ctrl=`<input id="e_${f.k}" type="text" inputmode="decimal" placeholder="${f.ph||''}" oninput="cleanNum(this)">${f.unit?`<span class="unit">${f.unit}</span>`:''}`;
+  } else if(f.type==='tel'){
+    ctrl=`<input id="e_${f.k}" type="tel" inputmode="numeric" maxlength="11" placeholder="${f.ph||''}" oninput="cleanTel(this)">`;
+  } else {
+    ctrl=`<input id="e_${f.k}" type="text" maxlength="${f.max||''}" placeholder="${f.ph||''}" ${f.upper?'oninput="cleanCredit(this)"':''}>`;
+  }
+  const req=f.req?'<i class="req">*</i>':'';
+  return `<div class="fitem"><label>${req}${f.label}：</label>${ctrl}</div>`;
+}
+$('#form').innerHTML=FIELDS.map(fieldHTML).join('');
+
+/* ===== 输入清洗 ===== */
+function cleanCredit(el){ el.value=el.value.toUpperCase().replace(/[^0-9A-Z]/g,'').slice(0,18); }
+function cleanTel(el){ el.value=el.value.replace(/\D/g,'').slice(0,11); }
+function cleanNum(el){
+  if(el.dataset.cap){ el.value=el.value.replace(/\D/g,'').slice(0,+el.dataset.cap); return; }
+  let v=el.value.replace(/[^\d.]/g,''); const p=v.split('.'); if(p.length>2)v=p[0]+'.'+p.slice(1).join(''); el.value=v;
+}
+
+/* ===== 演示数据 ===== */
+function seed(){
+  const R=[
+    ['华能电力集团有限公司','91110108MA01A1B2C3','电力、热力生产和供应','国有企业','大型','3200','张建国','13800001111','李安全','13800002222','北京市朝阳区建国路88号','500000','1200000','已定级','已创建','已创建','已开展'],
+    ['苏州精工精密制造有限公司','91320506MA02D3E4F5','通用设备制造','私营企业','中型','860','王伟','13900003333','陈晨','13900004444','江苏省苏州市吴中区越溪街道12号','20000','85000','已创建','已创建','已创建','已开展'],
+    ['广东明阳新能源股份有限公司','91440300MA03G5H6I7','电气机械和器材制造','私营企业','大型','1500','黄强','13700005555','周敏','13700006666','广东省中山市火炬开发区','120000','480000','已创建','已创建','未创建','已开展'],
+    ['上海陆家嘴置业有限公司','91310115MA04J7K8L9','房地产业','外资企业','中型','420','陈国华','13600007777','林芳','13600008888','上海市浦东新区世纪大道100号','300000','210000','未创建','未创建','未创建','未开展'],
+    ['成都天府建筑工程公司','91510100MA05M9N0P1','房屋建筑业','集体企业','小型','230','刘建军','13500009999','杨波','13500001010','四川省成都市武侯区天府大道','8000','32000','已定级','已创建','已创建','已开展'],
+    ['天津港集装箱物流有限公司','91120116MA06Q1R2S3','水上运输业','中外合资企业','大型','1900','赵海洋','13400001112','孙磊','13400002213','天津市滨海新区天津港','260000','950000','已定级','已创建','已创建','已开展'],
+    ['武汉光谷生物技术有限公司','91420100MA07U3V4W5','医药制造业','私营企业','小型','180','周涛','13300003314','吴静','13300004415','湖北省武汉市东湖高新区','15000','60000','已创建','未创建','未创建','已开展'],
+    ['西安重型装备制造集团','91610100MA08X5Y6Z7','专用设备制造','国有企业','大型','2600','郑大勇','13200005516','马超','13200006617','陕西省西安市未央区','400000','700000','已定级','已创建','已创建','已开展'],
+    ['杭州云栖互联网科技有限公司','91330100MA09A7B8C9','软件和信息技术服务','私营企业','微型','80','马云飞','13100007718','钱多多','13100008819','浙江省杭州市余杭区文一西路','5000','40000','未创建','未创建','未创建','不明'],
+    ['青岛远洋船舶工程有限公司','91370200MA0AC9D0E1','铁路、船舶、航空航天','国民合资企业','中型','640','徐航','13000009910','高翔','13000001011','山东省青岛市黄岛区','45000','130000','已创建','已创建','未创建','已开展'],
+    ['重庆山城食品饮料有限公司','91500100MA0BD1F2G3','酒、饮料和精制茶制造','私营企业','小型','300','罗刚','18900001112','田甜','18900002213','重庆市九龙坡区','12000','58000','已定级','已创建','已创建','已开展'],
+    ['昆明高原旅游开发公司','91530100MA0CE3H4I5','公共设施管理业','集体企业','微型','60','杨丽','18800003314','段勇','18800004415','云南省昆明市官渡区','3000','15000','未创建','未创建','未创建','不明']
+  ];
+  return R.map(r=>({name:r[0],credit:r[1],industry:r[2],nature:r[3],scale:r[4],staff:r[5],legal:r[6],
+    legalPhone:r[7],safe:r[8],safePhone:r[9],addr:r[10],reg:r[11],income:r[12],
+    std:r[13],dual:r[14],rescue:r[15],eval:r[16],intro:'',scope:''}));
+}
+let DATA;
+try{ const s=localStorage.getItem('ins_enterprises'); DATA=s?JSON.parse(s):null; }catch(e){ DATA=null; }
+if(!Array.isArray(DATA)||!DATA.length) DATA=seed();
+function save(){ try{ localStorage.setItem('ins_enterprises', JSON.stringify(DATA)); }catch(e){} }
+save();
+
+/* ===== 列表 / 查询 / 分页 ===== */
+let state={page:1,size:10,q:{name:'',credit:'',nature:'',scale:''}};
+function filtered(){
+  const {name,credit,nature,scale}=state.q;
+  return DATA.filter(r=>(!name||r.name.toLowerCase().includes(name))
+    &&(!credit||(r.credit||'').toLowerCase().includes(credit))
+    &&(!nature||r.nature===nature)
+    &&(!scale||r.scale===scale));
+}
+function doSearch(){
+  state.q={name:$('#q_name').value.trim().toLowerCase(),credit:$('#q_credit').value.trim().toLowerCase(),
+    nature:$('#q_nature').value,scale:$('#q_scale').value};
+  state.page=1;renderTable();
+}
+function doReset(){
+  $('#q_name').value='';$('#q_credit').value='';$('#q_nature').value='';$('#q_scale').value='';
+  state.q={name:'',credit:'',nature:'',scale:''};state.page=1;renderTable();
+}
+function setSize(v){state.size=+v;state.page=1;renderTable();}
+function gotoPage(p){state.page=p;renderTable();}
+
+function renderTable(){
+  const rows=filtered(),total=rows.length,size=state.size;
+  const pages=Math.max(1,Math.ceil(total/size));
+  if(state.page>pages)state.page=pages;
+  const start=(state.page-1)*size,cur=rows.slice(start,start+size);
+  $('#tbody').innerHTML=cur.length?cur.map((r,i)=>{
+    const idx=DATA.indexOf(r);
+    return `<tr>
+      <td>${start+i+1}</td>
+      <td title="${esc(r.name)}">${esc(r.name)}</td>
+      <td title="${esc(r.credit)}">${esc(r.credit)}</td>
+      <td title="${esc(r.industry)}">${esc(r.industry)}</td>
+      <td>${esc(r.nature)}</td>
+      <td>${esc(r.scale)}</td>
+      <td>${esc(r.staff)}</td>
+      <td title="${esc(r.legal)}">${esc(r.legal)}</td>
+      <td class="op"><a onclick="openEdit(${idx})">编辑</a><a onclick="del(${idx})">删除</a></td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="9" class="empty">暂无数据</td></tr>`;
+  renderPager(total,pages);
+}
+function renderPager(total,pages){
+  const cur=state.page;
+  let wS=Math.max(1,cur-2),wE=Math.min(pages,wS+4);wS=Math.max(1,wE-4);
+  let pg='';for(let i=wS;i<=wE;i++)pg+=`<button class="pgbtn ${i===cur?'on':''}" onclick="gotoPage(${i})">${i}</button>`;
+  $('#pager').innerHTML=
+    `<span>共 ${total} 条</span>`+
+    `<select class="sizesel" onchange="setSize(this.value)">${[10,20,50].map(n=>`<option ${n===state.size?'selected':''}>${n}条/页</option>`).join('')}</select>`+
+    `<button class="pgbtn" onclick="gotoPage(${Math.max(1,cur-1)})" ${cur===1?'disabled':''}>‹</button>`+
+    pg+
+    `<button class="pgbtn" onclick="gotoPage(${Math.min(pages,cur+1)})" ${cur===pages?'disabled':''}>›</button>`+
+    `<span class="go">前往<input type="number" min="1" max="${pages}" value="${cur}" onchange="gotoPage(Math.min(${pages},Math.max(1,+this.value||1)))">页</span>`;
+}
+
+/* ===== 新增 / 编辑弹窗 ===== */
+let editIdx=-1;
+function closeModal(){$('#mask').classList.remove('show');}
+$('#mask').addEventListener('click',e=>{if(e.target===$('#mask'))closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+function openAdd(){
+  editIdx=-1;
+  $('#mtitle').textContent='新增企业';
+  FIELDS.forEach(f=>{ $('#e_'+f.k).value=''; if(f.type==='num'&&f.max) $('#e_'+f.k).dataset.cap=f.max; });
+  $('#mask').classList.add('show');$('#e_name').focus();
+}
+function openEdit(i){
+  const r=DATA[i];editIdx=i;
+  $('#mtitle').textContent='编辑企业';
+  FIELDS.forEach(f=>{ const el=$('#e_'+f.k); el.value=r[f.k]||''; if(f.type==='num'&&f.max) el.dataset.cap=f.max; });
+  $('#mask').classList.add('show');
+}
+function saveForm(){
+  const rec={};
+  for(const f of FIELDS){
+    const el=$('#e_'+f.k);
+    let v=el.value.trim();
+    if(f.type==='select'){
+      if(!v){ if(f.req){ toast('请选择'+f.label); return; } rec[f.k]=''; continue; }
+      rec[f.k]=v; continue;
+    }
+    if(f.req && !v){ toast('请填写'+f.label); return; }
+    if(f.k==='credit' && !/^[0-9A-Z]{18}$/.test(v)){ toast('统一社会信用代码需为18位数字和字母'); return; }
+    if(f.type==='tel' && v && !/^\d{11}$/.test(v)){ toast(f.label+'需为11位数字'); return; }
+    rec[f.k]=v;
+  }
+  if(editIdx<0){ DATA.unshift(rec); toast('企业新增成功'); }
+  else{ DATA[editIdx]=rec; toast('企业信息已更新'); }
+  closeModal();renderTable();save();
+}
+
+/* ===== 删除 ===== */
+function del(i){
+  if(!confirm('确认删除企业「'+DATA[i].name+'」？')) return;
+  DATA.splice(i,1);save();renderTable();toast('已删除');
+}
+
+/* ===== 初始化 ===== */
+initIns({bread:['投保企业管理'],active:'投保企业管理'});
+renderTable();
+</script>
+</body>
+</html>

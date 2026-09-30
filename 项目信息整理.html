@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>项目信息整理</title>
+<style>
+  :root{--blue:#2b5ce6;--blue-d:#1f49c4;--text:#1f2329;--sub:#9aa0ad;--val:#3a4050;--bg:#f4f6fb;--line:#eef0f5;--red:#e5484d;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;
+    border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:30}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.22;z-index:30}
+
+  .header{flex:none;position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 100%);color:#fff;z-index:10}
+  .header::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent) 90% 40%/200px 130px no-repeat,
+               radial-gradient(closest-side,rgba(255,255,255,.10),transparent) 6% 90%/170px 110px no-repeat}
+  .statusbar{position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .navbar{position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:2px 16px 8px;height:46px}
+  .back{width:26px;height:26px;font-size:26px;line-height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:300}
+  .navtitle{font-size:17px;font-weight:700;letter-spacing:.5px}
+  .capsule{margin-left:auto;display:flex;align-items:center;height:32px;padding:0 13px;border-radius:16px;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .cap-dots{font-size:14px;letter-spacing:2px;line-height:1;padding-bottom:5px;cursor:pointer}
+  .cap-line{width:1px;height:15px;background:rgba(255,255,255,.4);margin:0 9px}
+  .cap-circ{width:17px;height:17px;border-radius:50%;border:1.6px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .cap-circ i{width:6px;height:6px;border-radius:50%;background:#fff;display:block}
+  .ctx{position:relative;z-index:5;padding:0 16px 12px;font-size:12px;color:rgba(255,255,255,.9)}
+  .ctx b{font-weight:600}
+
+  .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .body::-webkit-scrollbar{display:none}
+  .card{background:#fff;border-radius:14px;margin:14px 16px;padding:6px 16px 14px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .card-title{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:700;color:var(--text);padding:14px 0 6px}
+  .card-title i{width:3px;height:15px;border-radius:2px;background:var(--blue);display:block}
+  .field{padding:13px 0;border-top:1px solid var(--line)}
+  .field:first-of-type{border-top:none}
+  .flbl{display:flex;align-items:center;color:var(--sub);font-size:13.5px;margin-bottom:10px}
+  .flbl .req{color:var(--red);margin-right:3px}
+
+  /* 选项 chips */
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{padding:8px 15px;border:1px solid #d8dde8;border-radius:18px;font-size:13.5px;color:var(--val);background:#fff;cursor:pointer;user-select:none;transition:.12s}
+  .chip.on{background:rgba(43,92,230,.10);border-color:var(--blue);color:var(--blue);font-weight:600}
+
+  /* 输入 */
+  .inp{width:100%;height:40px;border:1px solid #e0e5ef;border-radius:9px;padding:0 12px;font-size:14px;color:var(--val);outline:none;background:#fff;font-family:inherit}
+  .inp:focus{border-color:var(--blue)}
+  .area{min-height:96px;height:auto;padding:10px 12px;line-height:1.6;resize:none}
+  .ctr{display:flex;justify-content:flex-end;margin-top:6px;color:#b9bfcc;font-size:12px}
+
+  /* 日期区间 */
+  .daterow{display:flex;align-items:center;gap:8px}
+  .daterow .inp{flex:1;min-width:0}
+  .daterow .sep{color:var(--sub);font-size:13px;flex:none}
+
+  .footer{flex:none;padding:10px 16px 24px;background:var(--bg)}
+  .btn-main{width:100%;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
+  .btn-main:active{background:var(--blue-d)}
+
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:80;display:none;max-width:74%;text-align:center;line-height:1.6}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff"><rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/><rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/><rect x="9.3" y="3" width="3.1" height="8" rx="1"/><rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/></svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff"><path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/><path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 5.8 0 0 1 4-1.65Z" opacity=".92"/><path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/></svg>
+        <svg viewBox="0 0 25 12" width="25" height="12"><rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/><rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/><path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/></svg>
+      </span>
+    </div>
+    <div class="navbar">
+      <div class="back" onclick="history.back()">‹</div>
+      <div class="navtitle">项目信息整理</div>
+      <div class="capsule"><span class="cap-dots" onclick="toast('更多')">•••</span><span class="cap-line"></span><span class="cap-circ" onclick="toast('设置')"><i></i></span></div>
+    </div>
+    <div class="ctx">工单号 <b id="ctxNo">—</b> · <span id="ctxProj"></span></div>
+  </div>
+
+  <div class="body" id="body"></div>
+
+  <div class="footer"><button class="btn-main" onclick="submitForm()">保存项目信息</button></div>
+
+  <div class="home-ind"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const FIELDS = [
+  {type:'text',  name:'项目名称', max:100, ph:'请填写项目名称（100字以内）', req:true},
+  {type:'text',  name:'项目类型', max:100, ph:'请填写项目类型（100字以内）', req:true},
+  {type:'text',  name:'项目详细地址', max:100, ph:'请填写项目详细地址（100字以内）', req:true},
+  {type:'text',  name:'建设单位', max:100, ph:'请填写建设单位（100字以内）', req:false},
+  {type:'text',  name:'施工单位', max:100, ph:'请填写施工单位（100字以内）', req:false},
+  {type:'single',name:'工程阶段', opts:['基础施工','主体施工','装饰安装'], req:true},
+  {type:'daterange', name:'工程工期', req:true},
+  {type:'text',  name:'项目负责人', max:100, ph:'请填写项目负责人（100字以内）', req:true},
+  {type:'phone', name:'项目负责人联系电话', max:11, ph:'请填写11位联系电话', req:true},
+  {type:'text',  name:'项目安全负责人', max:100, ph:'请填写项目安全负责人（100字以内）', req:true},
+  {type:'phone', name:'项目安全负责人联系电话', max:11, ph:'请填写11位联系电话', req:true},
+  {type:'single',name:'项目安全生产标准化创建情况', opts:['已创建','未创建','已定级','不明'], req:true},
+  {type:'single',name:'项目双重预防创建情况', opts:['已创建','未创建','不明'], req:true},
+  {type:'single',name:'项目应急预案创建备案情况', opts:['已创建','未创建','不明'], req:true},
+  {type:'single',name:'项目安全现状评价情况', opts:['已创建','未创建','不明'], req:true},
+  {type:'area',  name:'项目介绍', max:500, ph:'请填写项目介绍（500字以内）', req:true},
+  {type:'area',  name:'主要设备', max:500, ph:'请填写主要设备（500字以内）', req:true},
+  {type:'area',  name:'主要工艺', max:500, ph:'请填写主要工艺（500字以内）', req:true},
+  {type:'area',  name:'主要产物', max:500, ph:'请填写主要产物（500字以内）', req:true},
+];
+
+const q = new URLSearchParams(location.search);
+document.getElementById('ctxNo').textContent   = q.get('no') || '—';
+document.getElementById('ctxProj').textContent = q.get('project') || '项目信息整理';
+
+function render(){
+  const fields = FIELDS.map(f=>fieldHTML(f)).join('');
+  document.getElementById('body').innerHTML =
+    `<div class="card"><div class="card-title"><i></i>项目信息整理</div>${fields}</div>`;
+}
+
+function fieldHTML(f){
+  let inner = '';
+  if(f.type==='single'){
+    inner = `<div class="chips" data-type="single">${f.opts.map(o=>`<span class="chip" data-v="${o}">${o}</span>`).join('')}</div>`;
+  } else if(f.type==='area'){
+    inner = `<textarea class="inp area" maxlength="${f.max}" placeholder="${f.ph||''}" oninput="updCount(this)"></textarea><div class="ctr"><span>0/${f.max}</span></div>`;
+  } else if(f.type==='daterange'){
+    inner = `<div class="daterow"><input class="inp" type="date"><span class="sep">至</span><input class="inp" type="date"></div>`;
+  } else if(f.type==='phone'){
+    inner = `<input class="inp" type="tel" inputmode="numeric" maxlength="11" placeholder="${f.ph||''}" oninput="cleanPhone(this)"><div class="ctr"><span>0/11</span></div>`;
+  } else {
+    inner = `<input class="inp" type="text" maxlength="${f.max||''}" placeholder="${f.ph||''}" oninput="updCount(this)"><div class="ctr">${f.max?`<span>0/${f.max}</span>`:''}</div>`;
+  }
+  const req = f.req?'<span class="req">*</span>':'';
+  return `<div class="field"><div class="flbl">${req}${f.name}</div>${inner}</div>`;
+}
+
+function updCount(el){
+  const max = el.maxLength || 0;
+  const ctr = el.parentElement.querySelector('.ctr span');
+  if(ctr && max) ctr.textContent = el.value.length + '/' + max;
+}
+
+function cleanPhone(el){
+  el.value = el.value.replace(/\D/g,'').slice(0,11);
+  const ctr = el.parentElement.querySelector('.ctr span');
+  if(ctr) ctr.textContent = el.value.length + '/11';
+}
+
+document.getElementById('body').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip');
+  if(chip){
+    const box = chip.closest('.chips');
+    if(box.dataset.type==='single'){
+      box.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+      chip.classList.add('on');
+    }
+  }
+});
+
+function submitForm(){
+  const miss = [];
+  document.querySelectorAll('#body .field').forEach(f=>{
+    const lbl = f.querySelector('.flbl').textContent.replace('*','').trim();
+    const chips = f.querySelector('.chips');
+    if(chips){
+      if(!f.querySelector('.chip.on')) miss.push(lbl);
+    } else if(f.querySelector('.daterow')){
+      const ds = f.querySelectorAll('.daterow input');
+      if(!ds[0].value || !ds[1].value) miss.push(lbl + '（起止日期）');
+    } else if(f.querySelector('textarea')){
+      if(!f.querySelector('textarea').value.trim()) miss.push(lbl);
+    } else {
+      const el = f.querySelector('input');
+      if(!el.value.trim()){ miss.push(lbl); }
+      else if(f.querySelector('.inp[type=tel]') && !/^\d{11}$/.test(el.value.trim())){ miss.push(lbl + '（需11位数字）'); }
+    }
+  });
+  if(miss.length){ toast('请完善：'+miss.join('、')); return; }
+  const data = {};
+  document.querySelectorAll('#body .field').forEach(f=>{
+    const lbl = f.querySelector('.flbl').textContent.replace('*','').trim();
+    const on = f.querySelector('.chip.on');
+    if(on){ data[lbl] = on.dataset.v; }
+    else if(f.querySelector('.daterow')){
+      const ds = f.querySelectorAll('.daterow input');
+      data[lbl] = ds[0].value + ' 至 ' + ds[1].value;
+    } else {
+      const el = f.querySelector('input,textarea');
+      data[lbl] = el.value.trim();
+    }
+  });
+  try{ localStorage.setItem('entry_项目信息整理_'+(q.get('no')||q.get('project')||'default'), JSON.stringify(data)); }catch(e){}
+  toast('项目信息已保存');
+  setTimeout(()=>{ history.back(); }, 1100);
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
+
+render();
+</script>
+</body>
+</html>

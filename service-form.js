@@ -3,7 +3,7 @@
 
 const ACCIDENT = ['物体打击','厂（场）内车辆致害','道路（轨道）车辆致害','机械致害','起重致害','触电','淹溺','灼烫','火灾','高处坠落','跌落','坍塌','水害','容器爆炸','管道爆炸','可燃气体爆炸','可燃液体蒸气爆炸','粉尘爆炸','民用爆炸物品爆炸','烟花爆竹爆炸','其他可燃固体爆炸','高温熔融物爆炸','中毒','窒息','滑坡','泄漏','其他'];
 
-let orderNo, project, OVERDUE, PLACE, COMPANY, COMPANY_INDUSTRY='', LITE=false, ENTRY='', RISK=false, HAZARD=false, PATROL=false, SCORE=false;
+let orderNo, project, OVERDUE, PLACE, COMPANY, COMPANY_INDUSTRY='', LITE=false, ENTRY='', RISK=false, HAZARD=false, PATROL=false, SCORE=false, DEDUCT=false;
 
 /* ===== 六大项目字段 schema（来自功能清单.md） ===== */
 const SCHEMA = {
@@ -65,10 +65,10 @@ const SCHEMA = {
  '安全生产应急救援演练': [
    {title:'演练信息', rows:[
      {t:'multi',name:'演练目的',opts:['检验预案','完善准备','锻炼队伍','磨合机制','科普宣教']},
-     {t:'single',name:'演练类型',opts:['综合应急演练','专项应急演练']},
+     {t:'single',name:'演练形式',opts:['综合应急演练','专项应急演练']},
      {t:'text',name:'演练地点',max:30},
      {t:'single',name:'演练方式',opts:['桌面推演','实战演练']},
-     {t:'text',name:'演练名称',max:50},
+     {t:'text',name:'演练主题',max:50},
      {t:'text',name:'总指挥',max:50},
      {t:'number',name:'演练人数'},
      {t:'single',name:'效果评价',opts:['达到既定目标','基本达到既定目标','未达到既定目标']},
@@ -269,6 +269,40 @@ function countEntryCard(kind){
       <div class="ltxt">${cfg.label}</div>
       <div class="right"><span class="rcount">${countOf(cfg.prefix)}</span><span class="go">›</span></div>
     </div></div>`;
+}
+
+/* 评分情况入口（安全生产标准化管理体系建设专用）
+   结构参考「隐患」：标准总分（输入）+ 扣分明细（汇总，点击进列表）+ 新增扣分（按钮，进新增页） */
+function deductObj(){
+  try{ const o=JSON.parse(localStorage.getItem('deduct_'+project)||'null');
+    if(o&&typeof o==='object') return {standard:o.standard||'', entries:Array.isArray(o.entries)?o.entries:[]};
+  }catch(e){}
+  return {standard:'', entries:[]};
+}
+function deductSum(){ return deductObj().entries.reduce((s,e)=>s+(parseFloat(e.deduct)||0),0); }
+function deductSumText(){ const n=deductSum(); return (n>0?('-'+n):'0')+' 分'; }
+function saveStdScore(v){
+  const o=deductObj(); o.standard=v;
+  try{ localStorage.setItem('deduct_'+project, JSON.stringify(o)); }catch(e){}
+  const el=document.getElementById('deductSum'); if(el) el.textContent=deductSumText();
+}
+function deductEntryCard(){
+  const o=deductObj();
+  const hrefList='扣分明细列表.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent(project);
+  const hrefAdd ='新增扣分.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent(project);
+  return `<div class="sec">评分情况</div><div class="card">
+    <div class="frow">
+      <div class="flabel"><span class="req">*</span>标准总分</div>
+      <input class="inp" id="stdScore" type="number" placeholder="请输入标准总分" oninput="saveStdScore(this.value)">
+    </div>
+    <div class="frow lrow" onclick="location.href='${hrefList}'">
+      <div class="ltxt">扣分明细</div>
+      <div class="right"><span class="rcount" id="deductSum">${deductSumText()}</span><span class="go">›</span></div>
+    </div>
+    <div class="frow">
+      <button class="addbtn" type="button" onclick="location.href='${hrefAdd}'">＋ 新增扣分</button>
+    </div>
+  </div>`;
 }
 
 /* 现场清单（现场排查 / 现场评分，表可自定义增删） */
@@ -522,7 +556,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 document.addEventListener('click', e=>{ const b=e.target.closest('.btn-main'); if(b){ saveSvcForm(); } });
 
 /* ===== 初始化（由各 HTML 调用） ===== */
-function init(projectName, lite, entry, risk, hazard, patrol, score){
+function init(projectName, lite, entry, risk, hazard, patrol, score, deduct){
   const q = new URLSearchParams(location.search);
   orderNo  = q.get('no') || 'YF2131900';
   project  = projectName || q.get('project') || '安全风险辨识、评估、评价';
@@ -533,6 +567,7 @@ function init(projectName, lite, entry, risk, hazard, patrol, score){
   HAZARD   = !!hazard;
   PATROL   = !!patrol;
   SCORE    = !!score;
+  DEDUCT   = !!deduct;
   PLACE    = '福州马尾区海峡广场A座';
   COMPANY  = '福州无比欢信息科技有限公司';
   COMPANY_INDUSTRY = enterpriseIndustry();
@@ -544,10 +579,13 @@ function renderBody(){
   const scoreHTML  = SCORE ? listCard('score') : '';
   const riskHTML   = RISK ? countEntryCard('risk') : '';
   const hazardHTML = HAZARD ? countEntryCard('hazard') : '';
-  document.getElementById('body').innerHTML = infoCard() + photoCard() + entryHTML + patrolHTML + scoreHTML + riskHTML + hazardHTML + (LITE ? '' : projectCard());
+  const deductHTML  = DEDUCT ? deductEntryCard() : '';
+  document.getElementById('body').innerHTML = infoCard() + photoCard() + entryHTML + patrolHTML + scoreHTML + riskHTML + hazardHTML + deductHTML + (LITE ? '' : projectCard());
+  /* 回填「评分情况 · 标准总分」 */
+  const si=document.getElementById('stdScore'); if(si) si.value = deductObj().standard || '';
   applyShow('deduct', (document.querySelector('[data-group="deduct"] .chip.on')||{}).textContent || '无问题');
   applyShow('exam', (document.querySelector('[data-group="exam"] .chip.on')||{}).textContent || '否');
   calcRisk();
   recompute();
 }
-window.addEventListener('pageshow',function(e){if(e.persisted)init(project, LITE, ENTRY, RISK, HAZARD, PATROL, SCORE);});
+window.addEventListener('pageshow',function(e){if(e.persisted)init(project, LITE, ENTRY, RISK, HAZARD, PATROL, SCORE, DEDUCT);});

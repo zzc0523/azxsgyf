@@ -50,6 +50,8 @@
   .row2{display:flex;gap:8px;align-items:center}
   .row2 .inp{flex:1}
   .mini{height:34px;padding:0 14px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:8px;font-size:13px;white-space:nowrap;cursor:pointer}
+  .addbtn{width:100%;height:42px;border:1px solid var(--blue);background:#fff;color:var(--blue);border-radius:9px;font-size:14.5px;font-weight:600;cursor:pointer}
+  .addbtn:active{background:#f1f5ff}
 
   .chips{display:flex;flex-wrap:wrap;gap:8px}
   .chip{border:1px solid #dde2ec;color:#5b6472;background:#fff;padding:7px 13px;border-radius:18px;font-size:13px;cursor:pointer;transition:.12s}
@@ -79,7 +81,7 @@
   .minus{flex:none;width:18px;height:18px;border-radius:50%;background:#e5484d;display:flex;align-items:center;justify-content:center;margin-right:11px;cursor:pointer}
   .minus i{width:9px;height:2px;background:#fff;border-radius:1px;display:block}
 
-  .aibtn{margin-top:9px;width:100%;height:36px;border:none;border-radius:8px;background:linear-gradient(90deg,#6f4ff0,#9b6cf0);color:#fff;font-size:13px;font-weight:500;cursor:pointer}
+  .aibtn{margin-top:9px;width:100%;height:36px;border:none;border-radius:8px;background:#7c3aed;color:#fff;font-size:13px;font-weight:600;cursor:pointer}
   .calc{background:#f7f9fd;border:1px solid #eceff6;border-radius:10px;padding:12px}
   .calc .seg{margin-bottom:10px}
   .calc .line{font-size:13px;color:#5b6472;margin:6px 0}
@@ -143,7 +145,7 @@
 <script src="service-form.js"></script>
 <script>
   /* 安全生产标准化管理体系建设 专用服务登记页（基本信息 + 现场照片） */
-  init('安全生产标准化管理体系建设', true, null, false, false, false, false);
+  init('安全生产标准化管理体系建设', true, null, false, false, false, false, true);
 </script>
 </body>
 </html>

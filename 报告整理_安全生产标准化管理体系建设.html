@@ -37,8 +37,6 @@
   .info .k{color:#8b91a0;flex:none}
   .info .v{color:#1f2329;font-weight:600;flex:1;min-width:0;word-break:break-word}
 
-  .flabel{color:var(--sub);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-  .tagdoc{background:#e8effd;color:var(--blue);font-size:11px;padding:1px 7px;border-radius:8px}
 
   .chips{display:flex;flex-wrap:wrap;gap:8px}
   .seg{display:inline-flex;background:#f1f3f8;border-radius:20px;padding:3px;margin-bottom:12px}
@@ -50,20 +48,24 @@
   .pane.show{display:block}
   .hide{display:none!important}
 
-  /* 上传框 */
-  .uprow{display:flex;align-items:center;gap:12px;border:1px dashed #c9d2e6;border-radius:10px;padding:14px;cursor:pointer;background:#fafbfe;transition:.12s}
-  .uprow:active{background:#f1f5fd}
-  .uico{flex:none;width:42px;height:42px;border-radius:8px;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
-  .uico.doc{background:#7a5bf0}
-  .utxt{flex:1;min-width:0}
-  .uname{font-size:13.5px;color:var(--val);line-height:1.4;word-break:break-word}
-  .uhint{font-size:12px;color:var(--sub);margin-top:3px}
+  /* 统一上传样式（对齐其他 报告整理 页） */
+  .flbl{display:flex;align-items:center;color:var(--sub);font-size:13.5px;margin-bottom:10px}
+  .flbl .note{margin-left:auto;color:#b9bfcc;font-size:12px;font-weight:400}
+  .upload{display:flex;align-items:center;gap:10px}
+  .up-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:9px;font-size:13.5px;cursor:pointer;font-weight:600}
+  .up-btn svg{display:block}
+  .fname{color:#6b7280;font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .docs{display:flex;flex-direction:column;gap:10px}
+  .doclist{display:flex;flex-direction:column;gap:7px}
+  .docitem{display:flex;align-items:center;gap:8px;background:#f4f6fb;border-radius:8px;padding:9px 11px}
+  .docitem .docname{font-size:12.5px;color:#3a4050;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .docitem .docx{width:18px;height:18px;border-radius:50%;background:#c8cedb;color:#fff;font-size:13px;text-align:center;line-height:17px;cursor:pointer;flex:none}
   .ustat{font-size:13px;font-weight:600}
   .ustat.ok{color:#2f9e6b}
   .ustat.no{color:var(--red)}
 
   .ta{width:100%;min-height:120px;border:1px solid #e6e9f0;border-radius:8px;padding:10px;font-size:13.5px;outline:none;resize:vertical;font-family:inherit;box-sizing:border-box;color:var(--val);line-height:1.7}
-  .aibtn{margin-top:10px;width:100%;height:38px;border:none;border-radius:8px;background:linear-gradient(90deg,#6f4ff0,#9b6cf0);color:#fff;font-size:13px;font-weight:500;cursor:pointer}
+  .aibtn{margin-top:10px;width:100%;height:38px;border:none;border-radius:8px;background:#7c3aed;color:#fff;font-size:13px;font-weight:600;cursor:pointer}
   .aibtn:active{opacity:.85}
   .smbtn{margin-top:8px;width:100%;height:38px;border:1px solid var(--blue);border-radius:8px;background:#fff;color:var(--blue);font-size:13px;font-weight:500;cursor:pointer}
 
@@ -111,6 +113,33 @@
   .phstat.phok{color:#2f9e6b}
   .phstat.phno{color:#e5484d}
   .phcap{color:#9aa0ad;font-size:12.5px}
+
+  /* 现场服务照片（页内拍照 / 引用） */
+  .ph-hint{font-size:12px;color:var(--sub);margin:4px 0 10px}
+  .ph-grid{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
+  .ph-thumb{position:relative;width:80px;height:80px;border-radius:10px;overflow:hidden;flex:none;box-shadow:0 3px 9px rgba(30,50,110,.14)}
+  .ph-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .ph-thumb .ph-tag{position:absolute;left:0;top:0;background:rgba(0,0,0,.35);color:#fff;font-size:10px;padding:2px 6px;border-bottom-right-radius:8px}
+  .ph-thumb .ph-x{position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:13px;line-height:17px;text-align:center;cursor:pointer}
+  .ph-add{width:80px;height:80px;border-radius:10px;border:1px dashed #c7cedd;background:#fafbfe;color:#9aa0ad;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font-size:24px;flex:none}
+  .ph-add:active{background:#f1f4fb}
+  .ph-add span{font-size:11px;font-weight:400}
+  .mask{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:60;display:none}
+  .mask.show{display:block}
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:61;background:#fff;border-radius:16px 16px 0 0;transform:translateY(100%);transition:.25s;padding:8px 0 22px}
+  .sheet.show{transform:translateY(0)}
+  .sheet-title{text-align:center;color:#9aa0ad;font-size:13px;padding:12px 0 8px}
+  .sheet-opt{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:none;background:#fff;text-align:center;font-size:16px;color:var(--val);padding:15px 0;cursor:pointer;border-top:1px solid var(--line)}
+  .sheet-opt:active{background:#f4f6fb}
+  .so-tag{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;color:#fff;font-size:12px;font-weight:600}
+  .sheet-cancel{display:block;width:calc(100% - 32px);margin:14px 16px 0;height:46px;border:none;border-radius:10px;background:#f1f3f8;color:var(--val);font-size:16px;font-weight:600;cursor:pointer}
+  .sheet-foot{display:flex;gap:10px;padding:6px 16px 0}
+  .sheet-foot .sheet-cancel{width:auto;margin:0}
+  .refgrid{display:flex;flex-wrap:wrap;gap:10px;padding:4px 0 8px}
+  .refitem{position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;cursor:pointer;flex:none;border:2px solid transparent}
+  .refitem img{width:100%;height:100%;object-fit:cover;display:block}
+  .refitem input{position:absolute;right:3px;top:3px;width:18px;height:18px;accent-color:#2b5ce6}
+  .refempty{text-align:center;color:var(--sub);font-size:13px;padding:20px 0}
 </style>
 </head>
 <body>
@@ -145,6 +174,16 @@
 
   <div class="footer"><button class="btn-draft" onclick="saveDraft()">存为草稿</button><button class="btn-main" onclick="generateReport()">生成报告</button></div>
   <div class="home-ind"></div>
+
+  <!-- 现场服务照片：来源弹层 -->
+  <div class="mask" id="phMask" onclick="closePhSheet()"></div>
+  <div class="sheet" id="phSheet">
+    <div class="sheet-title" id="phSheetTitle">选择照片来源</div>
+    <div id="phSheetOpts"></div>
+    <div id="phSheetRefs" style="display:none;padding:0 16px"></div>
+    <div class="sheet-foot" id="phSheetFoot"></div>
+  </div>
+
   <div class="toast" id="toast"></div>
 </div>
 
@@ -159,11 +198,11 @@ const DATE     = '2025.01.01-2025.01.05';
 
 const PIN = '<svg viewBox="0 0 12 15" width="11" height="14" style="vertical-align:-2px;margin-left:4px"><path d="M6 0a6 6 0 0 0-6 6c0 4.2 6 9 6 9s6-4.8 6-9A6 6 0 0 0 6 0Zm0 8.2A2.2 2.2 0 1 1 6 3.8a2.2 2.2 0 0 1 0 4.4Z" fill="#2b5ce6"/></svg>';
 
-/* 三类报告配置：评审报告 / 改进建议（PDF 上传 或 大模型生成）；其他报告（文档上传） */
+/* 报告区块配置：自评报告及改进建议（PDF 上传或大模型生成）；评分明细（文档）；附件上传（多份文档） */
 const BLOCKS = {
-  review: {sec:'评审报告', tag:'PDF', doc:false, accept:'application/pdf', sub:'PDF 上传 或 大模型生成后人工编辑上传'},
-  advice: {sec:'改进建议', tag:'PDF', doc:false, accept:'application/pdf', sub:'PDF 上传 或 大模型生成后人工编辑上传'},
-  other:  {sec:'其他报告', tag:'DOC', doc:true,  accept:'.pdf,.doc,.docx', sub:'文档上传（PDF / Word）'},
+  selfassess: {sec:'自评报告及改进建议', doc:false, accept:'application/pdf', sub:'支持 PDF · 可大模型生成', ai:true},
+  scores:     {sec:'评分明细',          doc:true,  accept:'.pdf,.doc,.docx', sub:'支持 PDF / Word'},
+  attach:     {sec:'附件上传',          doc:true,  accept:'.pdf,.doc,.docx', sub:'支持 PDF / Word 多份', multi:true},
 };
 
 /* ===== 前项内容（现场评分）汇总，供大模型生成引用 ===== */
@@ -205,43 +244,65 @@ function infoCard(){
 function statusLine(key){
   const st = STATE[key];
   if(!st || !st.type) return `<div class="rstat">当前状态：<span class="ustat no">未上传</span></div>`;
-  if(st.type === 'pdf') return `<div class="rstat">已上传 PDF：<b>${esc(st.file || '评审报告.pdf')}</b></div>`;
-  if(st.type === 'ai')  return `<div class="rstat">已由大模型生成并编辑：<b>${esc(st.file || '报告.docx')}</b></div>`;
-  if(st.type === 'doc') return `<div class="rstat">已上传文档：<b>${esc(st.file || '其他报告')}</b></div>`;
+  if(st.type === 'pdf') return `<div class="rstat">已上传 PDF：<b>${esc(st.file || '')}</b></div>`;
+  if(st.type === 'ai')  return `<div class="rstat">已由大模型生成并编辑：<b>${esc(st.file || '报告.doc')}</b></div>`;
+  if(st.type === 'doc'){
+    if(st.files && st.files.length) return `<div class="rstat">已上传文档 <b>${st.files.length}</b> 份：${esc(st.files.join('、'))}</div>`;
+    return `<div class="rstat">已上传文档：<b>${esc(st.file || '')}</b></div>`;
+  }
   return `<div class="rstat">当前状态：<span class="ustat no">未上传</span></div>`;
 }
 
 function blockHTML(key){
   const b = BLOCKS[key];
+  const hasAI = !!b.ai;
   const mode = (STATE[key] && STATE[key].type === 'ai') ? 'ai' : 'pdf';
-  const isOther = key === 'other';
-  const seg = isOther ? '' : `
+  const seg = hasAI ? `
     <div class="seg">
       <span class="chip ${mode==='pdf'?'on':''}" onclick="switchMode('${key}','pdf',this)">PDF 上传</span>
       <span class="chip ${mode==='ai'?'on':''}" onclick="switchMode('${key}','ai',this)">大模型生成</span>
-    </div>`;
-  const pdfPane = `
-    <div class="pane ${mode==='pdf'?'show':''}" data-pane="${key}_pdf">
-      <div class="uprow" onclick="document.getElementById('file_${key}').click()">
-        <div class="uico">${b.tag}</div>
-        <div class="utxt"><div class="uname" id="name_${key}">${b.doc?'点击上传文档（PDF / Word）':'点击上传 '+b.sec+' PDF（≤20MB）'}</div><div class="uhint">${b.doc?'支持 PDF / Word 格式':'支持 PDF 格式'}</div></div>
-        <input type="file" id="file_${key}" accept="${b.accept}" hidden onchange="onUpload('${key}',this)">
+    </div>` : '';
+  const upIcon = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2b5ce6" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  let uploadHTML;
+  if(hasAI){
+    const fname = (STATE[key] && STATE[key].type==='pdf' && STATE[key].file) ? STATE[key].file : '';
+    uploadHTML = `
+      <div class="pane ${mode==='pdf'?'show':''}" data-pane="${key}_pdf">
+        <div class="upload">
+          <button class="up-btn" type="button" onclick="document.getElementById('file_${key}').click()">${upIcon}上传 PDF</button>
+          <span class="fname" id="name_${key}">${fname?esc(fname):'未选择文件'}</span>
+          <input type="file" id="file_${key}" accept="${b.accept}" hidden onchange="onUpload('${key}',this)">
+        </div>
       </div>
-    </div>`;
-  const aiPane = isOther ? '' : `
-    <div class="pane ${mode==='ai'?'show':''}" data-pane="${key}_ai">
-      <textarea class="ta" id="ta_${key}" placeholder="点击「大模型生成」根据前项内容生成，可人工编辑后保存">${esc((STATE[key]&&STATE[key].text)||'')}</textarea>
-      <button class="aibtn" onclick="aiGen('${key}')">✦ 大模型生成（C5）</button>
-      <button class="smbtn" onclick="saveText('${key}')">保存编辑结果</button>
-    </div>`;
-  return `<div class="sec">${b.sec} <span class="tagdoc">${b.doc?'文档':'报告'}</span></div>
-    <div class="card">
-      <div class="flabel">${b.sub}</div>
-      ${seg}
-      ${pdfPane}
-      ${aiPane}
-      ${statusLine(key)}
-    </div>`;
+      <div class="pane ${mode==='ai'?'show':''}" data-pane="${key}_ai">
+        <textarea class="ta" id="ta_${key}" placeholder="点击「大模型生成」根据前项内容生成，可人工编辑后保存">${esc((STATE[key]&&STATE[key].text)||'')}</textarea>
+        <button class="aibtn" onclick="aiGen('${key}')">✦ 大模型生成（C5）</button>
+        <button class="smbtn" onclick="saveText('${key}')">保存编辑结果</button>
+      </div>`;
+  } else if(b.multi){
+    const list = (STATE[key] && STATE[key].files) ? STATE[key].files : [];
+    const items = list.map((f,i)=>`<div class="docitem"><span class="docname">${esc(f)}</span><span class="docx" onclick="delAttach('${key}',${i})">×</span></div>`).join('');
+    uploadHTML = `
+      <div class="docs">
+        <button class="up-btn" type="button" onclick="document.getElementById('file_${key}').click()">${upIcon}添加文档</button>
+        <div class="doclist">${items}</div>
+        <input type="file" id="file_${key}" accept="${b.accept}" multiple hidden onchange="onUploadMulti('${key}',this)">
+      </div>`;
+  } else {
+    const fname = (STATE[key] && STATE[key].file) ? STATE[key].file : '';
+    uploadHTML = `
+      <div class="upload">
+        <button class="up-btn" type="button" onclick="document.getElementById('file_${key}').click()">${upIcon}上传文档</button>
+        <span class="fname" id="name_${key}">${fname?esc(fname):'未选择文件'}</span>
+        <input type="file" id="file_${key}" accept="${b.accept}" hidden onchange="onUpload('${key}',this)">
+      </div>`;
+  }
+  return `<div class="card">
+    <div class="flbl">${b.sec}<span class="note">${b.sub}</span></div>
+    ${seg}
+    ${uploadHTML}
+    ${statusLine(key)}
+  </div>`;
 }
 
 /* ===== 现场照片（回显采集状态；点击跳转 照片采集.html） ===== */
@@ -273,9 +334,95 @@ function render(){
   document.getElementById('body').innerHTML =
     infoCard() +
     photoCard() +
-    blockHTML('review') +
-    blockHTML('advice') +
-    blockHTML('other');
+    servicePhotoCard() +
+    blockHTML('selfassess') +
+    blockHTML('scores') +
+    blockHTML('attach');
+}
+
+/* ===== 现场服务照片（拍照 / 引用现场检查照片，最多 6 张） ===== */
+const SRV_PHOTO_NAME = '现场服务照片';
+const SRV_PHOTO_MAX = 6;
+function photoImgs(name){
+  try{ const s=localStorage.getItem('photo_imgs_'+name); if(s){ const a=JSON.parse(s); if(Array.isArray(a)) return a; } }catch(e){}
+  return [];
+}
+function setPhotoImgs(name, arr){
+  try{ localStorage.setItem('photo_imgs_'+name, JSON.stringify(arr)); }catch(e){}
+}
+function fileToDataURL(file, cb, maxPx){
+  const fr=new FileReader();
+  fr.onload=()=>{const img=new Image();img.onload=()=>{
+    const MAX=maxPx||1000; let w=img.width,h=img.height; const m=Math.max(w,h);
+    if(m>MAX){const r=MAX/m;w=Math.round(w*r);h=Math.round(h*r);}
+    const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+    cv.getContext('2d').drawImage(img,0,0,w,h);
+    cb(cv.toDataURL('image/jpeg',0.82));
+  };img.onerror=()=>cb('');img.src=fr.result;};
+  fr.readAsDataURL(file);
+}
+function servicePhotoCard(){
+  const imgs = photoImgs(SRV_PHOTO_NAME);
+  const full = imgs.length >= SRV_PHOTO_MAX;
+  const grid = imgs.length ? imgs.map((s,i)=>`<div class="ph-thumb"><img src="${s}" alt=""><span class="ph-tag">${i+1}</span><span class="ph-x" onclick="delServicePhoto(${i})">×</span></div>`).join('') : '';
+  const add = full ? '' : `<div class="ph-add" onclick="openPhSheet()">+<span>添加</span></div>`;
+  return `<div class="sec">现场服务照片</div><div class="card">
+    <div class="ph-hint">拍照 或 引用现场检查照片，最多 ${SRV_PHOTO_MAX} 张</div>
+    <div class="ph-grid">${grid}${add}</div>
+    <input type="file" id="phCam" accept="image/*" capture="environment" hidden onchange="onPhCam(this)">
+  </div>`;
+}
+function delServicePhoto(idx){
+  const a = photoImgs(SRV_PHOTO_NAME); if(idx<0||idx>=a.length) return;
+  a.splice(idx,1); setPhotoImgs(SRV_PHOTO_NAME, a); render();
+}
+function openPhSheet(){
+  if(photoImgs(SRV_PHOTO_NAME).length >= SRV_PHOTO_MAX){ toast('已达最大数量'); return; }
+  document.getElementById('phSheetTitle').textContent = `选择照片来源（最多 ${SRV_PHOTO_MAX} 张）`;
+  document.getElementById('phSheetOpts').style.display='';
+  document.getElementById('phSheetRefs').style.display='none';
+  document.getElementById('phSheetOpts').innerHTML =
+    `<button class="sheet-opt" type="button" onclick="pickPhSrc('拍照')"><span class="so-tag" style="background:linear-gradient(135deg,#5b86f5,#3f6ef2)">拍</span>拍照</button>`+
+    `<button class="sheet-opt" type="button" onclick="pickPhSrc('引用现场检查照片')"><span class="so-tag" style="background:linear-gradient(135deg,#f0a44a,#e0852a)">引</span>引用现场检查照片</button>`;
+  document.getElementById('phSheetFoot').innerHTML = `<button class="sheet-cancel" type="button" onclick="closePhSheet()">取消</button>`;
+  document.getElementById('phMask').classList.add('show');
+  document.getElementById('phSheet').classList.add('show');
+}
+function closePhSheet(){ document.getElementById('phMask').classList.remove('show'); document.getElementById('phSheet').classList.remove('show'); }
+function pickPhSrc(s){
+  if(s==='引用现场检查照片'){ renderPhRefPick(); return; }
+  closePhSheet();
+  const el=document.getElementById('phCam'); if(el) el.click();
+}
+function onPhCam(inp){
+  const files=inp.files?Array.from(inp.files):[]; if(!files.length) return;
+  fileToDataURL(files[0], d=>{ if(d){ const a=photoImgs(SRV_PHOTO_NAME); if(a.length<SRV_PHOTO_MAX){ a.push(d); setPhotoImgs(SRV_PHOTO_NAME,a); } render(); toast('已添加照片'); } });
+  inp.value='';
+}
+function renderPhRefPick(){
+  const src = photoImgs('现场检查照片');
+  const cur = photoImgs(SRV_PHOTO_NAME).length;
+  const t=document.getElementById('phSheetTitle'); if(t) t.textContent = `引用现场检查照片（可再引用 ${Math.max(0,SRV_PHOTO_MAX-cur)} 张）`;
+  document.getElementById('phSheetOpts').style.display='none';
+  const r=document.getElementById('phSheetRefs'); r.style.display='';
+  if(!src.length){
+    r.innerHTML='<div class="refempty">暂无现场检查照片可引用，请先前往「现场照片 · 现场检查照片」采集。</div>';
+    document.getElementById('phSheetFoot').innerHTML='<button class="sheet-cancel" type="button" onclick="openPhSheet()">返回</button>';
+    return;
+  }
+  r.innerHTML='<div class="refgrid">'+src.map((s,i)=>`<label class="refitem"><img src="${s}" alt=""><input type="checkbox" value="${i}"></label>`).join('')+'</div>';
+  document.getElementById('phSheetFoot').innerHTML=
+    '<button class="sheet-cancel" type="button" onclick="openPhSheet()">返回</button>'+
+    '<button class="btn-main" type="button" onclick="confirmPhRef()">确定引用</button>';
+}
+function confirmPhRef(){
+  const picks=[...document.querySelectorAll('#phSheetRefs .refgrid input:checked')].map(x=>+x.value);
+  if(!picks.length){ toast('请先勾选要引用的照片'); return; }
+  const src=photoImgs('现场检查照片');
+  let imgs=photoImgs(SRV_PHOTO_NAME), n=0;
+  picks.forEach(i=>{ if(imgs.length<SRV_PHOTO_MAX && src[i]){ imgs.push(src[i]); n++; } });
+  setPhotoImgs(SRV_PHOTO_NAME, imgs.slice(0,SRV_PHOTO_MAX));
+  closePhSheet(); render(); toast('已引用 '+n+' 张照片');
 }
 
 /* ===== 交互 ===== */
@@ -289,43 +436,55 @@ function switchMode(key, mode, el){
 
 function onUpload(key, inp){
   const f = inp.files && inp.files[0]; if(!f) return;
-  STATE[key] = {type: (key==='other'?'doc':(STATE[key]&&STATE[key].type==='ai'?'ai':'pdf')), file: f.name};
-  if(STATE[key].type !== 'ai') STATE[key].file = f.name;
+  const type = BLOCKS[key].doc ? 'doc' : 'pdf';
+  STATE[key] = {type, file: f.name};
   saveState(STATE);
   const label = document.getElementById('name_'+key);
   if(label) label.textContent = f.name;
   render();
-  toast((key==='other'?'文档':'PDF')+' 已上传');
+  toast(type==='pdf' ? 'PDF 已上传' : '文档已上传');
+}
+function onUploadMulti(key, inp){
+  const files = inp.files ? Array.from(inp.files).map(f=>f.name) : [];
+  if(!files.length) return;
+  const cur = (STATE[key] && STATE[key].files) ? STATE[key].files.slice() : [];
+  STATE[key] = {type:'doc', files: cur.concat(files)};
+  saveState(STATE);
+  render();
+  toast('已添加 '+files.length+' 份文档');
+}
+function delAttach(key, i){
+  const st = STATE[key]; if(!st || !st.files) return;
+  st.files.splice(i,1); STATE[key] = st; saveState(STATE); render();
+  toast('已删除');
 }
 
 function aiGen(key){
   const c = prevContent();
-  const text = key === 'review'
-    ? `安全生产标准化管理体系建设 · 评审报告
+  const text = `安全生产标准化管理体系建设 · 自评报告及改进建议
 一、服务概况
 受 ${COMPANY} 委托，于 ${DATE} 在 ${PLACE} 开展安全生产标准化现场评审服务。本次引用评分表：${c.names}（共 ${c.total} 项，已完成 ${c.done} 项）。
 二、评审依据
 《企业安全生产标准化基本规范》（GB/T 33000）及企业所属行业安全生产标准化评定标准。
-三、评审内容
+三、评审内容（含评分明细）
 1. 目标职责：安全生产目标、机构设置与人员配备。
 2. 制度化管理：法规标准识别、规章制度、操作规程。
 3. 教育培训：培训计划与人员持证上岗情况。
 4. 现场管理：设备设施、作业安全、隐患排查治理。
 5. 持续改进：绩效评定与自评报告。
-四、评审结论
-企业安全生产标准化管理体系基本建立并有效运行，建议在制度落地与现场执行方面持续改进，形成闭环管理。`
-    : `安全生产标准化管理体系建设 · 改进建议
-一、主要问题
+四、主要问题
 1. 部分安全管理制度未完全落实到基层岗位，执行记录不完整。
 2. 现场隐患排查治理闭环管理有待加强，个别整改未留痕。
 3. 从业人员安全教育培训覆盖面不足，特种作业人员持证管理需常态化。
-二、改进建议
+五、改进建议
 1. 完善制度宣贯与考核机制，确保各项制度落实到班组与个人。
 2. 建立隐患排查治理台账，实现"排查—整改—验收"闭环。
 3. 制定年度培训计划并严格实施，确保特种作业人员 100% 持证上岗。
-4. 定期开展自评与绩效评定，推动安全生产标准化持续达标。`;
+4. 定期开展自评与绩效评定，推动安全生产标准化持续达标。
+六、评审结论
+企业安全生产标准化管理体系基本建立并有效运行，建议在制度落地与现场执行方面持续改进，形成闭环管理。`;
   document.getElementById('ta_'+key).value = text;
-  STATE[key] = {type:'ai', text, file: (key+'_报告.doc')};
+  STATE[key] = {type:'ai', text, file:(key+'_报告.doc')};
   saveState(STATE);
   render();
   toast('大模型已生成，可人工编辑');
@@ -353,23 +512,28 @@ function generateReport(){
     if(!st || !st.type) return '<span style="color:#e5484d">未整理</span>';
     if(st.type==='pdf') return '已上传 PDF：'+esc(st.file||'');
     if(st.type==='ai')  return '大模型生成并编辑（'+(st.text||'').length+' 字）';
-    if(st.type==='doc') return '已上传文档：'+esc(st.file||'');
+    if(st.type==='doc'){
+      if(st.files && st.files.length) return '已上传文档 '+st.files.length+' 份：'+esc(st.files.join('、'));
+      return '已上传文档：'+esc(st.file||'');
+    }
     return '已整理';
   };
+  const spCount = photoImgs(SRV_PHOTO_NAME).length;
   document.getElementById('previewBody').innerHTML =
     '<div class="pv-sec">安全生产标准化管理体系建设 · 报告整理</div>'+
     '<div class="pv-row"><div class="pv-k">预防服务工单</div><div class="pv-v">'+esc(orderNo)+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">企业名称</div><div class="pv-v">'+esc(COMPANY)+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">服务项目</div><div class="pv-v">'+esc(project)+'</div></div>'+
-    '<div class="pv-row"><div class="pv-k">评审报告</div><div class="pv-v">'+sub('review')+'</div></div>'+
-    '<div class="pv-row"><div class="pv-k">改进建议</div><div class="pv-v">'+sub('advice')+'</div></div>'+
-    '<div class="pv-row"><div class="pv-k">其他报告</div><div class="pv-v">'+sub('other')+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">现场服务照片</div><div class="pv-v">'+(spCount?spCount+' 张（页内拍照 / 引用）':'未上传')+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">评分明细</div><div class="pv-v">'+sub('scores')+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">自评报告及改进建议</div><div class="pv-v">'+sub('selfassess')+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">附件上传</div><div class="pv-v">'+sub('attach')+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">现场照片</div><div class="pv-v">'+esc(PHOTOS.map(p=>p.name+' '+photoCount(p.name)+'张').join('、'))+'</div></div>';
   document.getElementById('previewSub').textContent = '工单号 '+orderNo+' · '+project;
   document.getElementById('preview').classList.add('show');
 }
 function submitReport(){
-  const none = ['review','advice','other'].filter(k=>!(STATE[k] && STATE[k].type));
+  const none = ['selfassess','scores','attach'].filter(k=>!(STATE[k] && STATE[k].type));
   if(none.length){ toast('请先完成：' + none.map(k=>BLOCKS[k].sec).join('、')); return; }
   try{
     const status = JSON.parse(localStorage.getItem('sg_report_status') || '{}');

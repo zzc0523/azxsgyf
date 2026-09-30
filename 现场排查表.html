@@ -113,7 +113,7 @@
   .ta{width:100%;min-height:60px;border:1px solid #e6e9f0;border-radius:8px;padding:9px;font-size:13.5px;outline:none;resize:vertical;font-family:inherit;box-sizing:border-box;color:var(--val)}
   .ta:focus{border-color:var(--blue)}
 
-  .aibtn{height:34px;padding:0 14px;border:none;border-radius:8px;background:linear-gradient(90deg,#6f4ff0,#9b6cf0);color:#fff;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+  .aibtn{height:34px;padding:0 14px;border:none;border-radius:8px;background:#7c3aed;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
   .aibtn:disabled{opacity:.5}
   .mini{height:30px;padding:0 11px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:8px;font-size:12px;cursor:pointer;white-space:nowrap}
 
@@ -427,7 +427,7 @@ function openHazard(i){
 
     <div class="qfield">
       <div class="qtop"><span class="qlbl">排查依据</span>
-        <button class="aibtn" onclick="genBasis(${i})">大模型生成</button></div>
+        <button class="aibtn" onclick="genBasis(${i})">✦ 大模型生成</button></div>
       <textarea class="ta" id="bs_${i}" placeholder="手动输入，或大模型根据「行业类别 + 隐患描述」生成" oninput="STATE[${i}].basis=this.value;persist()">${esc(s.basis)}</textarea>
     </div>
 
@@ -439,7 +439,7 @@ function openHazard(i){
 
     <div class="qfield">
       <div class="qtop"><span class="qlbl">整改建议</span>
-        <button class="aibtn" onclick="genAdv(${i})">大模型生成</button></div>
+        <button class="aibtn" onclick="genAdv(${i})">✦ 大模型生成</button></div>
       <textarea class="ta" id="ad_${i}" placeholder="手动输入，或大模型根据「隐患描述」生成" oninput="STATE[${i}].advice=this.value;persist()">${esc(s.advice)}</textarea>
     </div>`;
   document.getElementById('hzpage').classList.add('show');

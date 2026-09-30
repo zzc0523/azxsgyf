@@ -29,6 +29,7 @@
   .body::-webkit-scrollbar{display:none}
   .card{background:#fff;border-radius:14px;margin:0 16px;padding:4px 16px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
   .card.first{margin-top:0}
+  .card.gap{margin-top:14px}
   .sec-title{font-size:13px;font-weight:600;color:#8b91a0;padding:16px 16px 8px}
   .sec{font-size:15px;font-weight:700;color:var(--text);padding:18px 16px 8px;display:flex;align-items:center}
   .sec::before{content:"";width:3px;height:15px;background:var(--blue);border-radius:2px;margin-right:8px}
@@ -112,6 +113,46 @@
   .as-item .ai-code{font-size:12px;color:var(--sub);margin-top:3px}
   .as-empty{padding:28px 16px;text-align:center;color:var(--sub);font-size:13px}
   .as-cancel{height:50px;display:flex;align-items:center;justify-content:center;color:#5b6472;font-size:15px;font-weight:600;cursor:pointer}
+
+  /* 现场服务照片（页内拍照 / 引用） */
+  .ph-hint{font-size:12px;color:var(--sub);margin:4px 0 10px}
+  .ph-grid{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
+  .ph-thumb{position:relative;width:80px;height:80px;border-radius:10px;overflow:hidden;flex:none;box-shadow:0 3px 9px rgba(30,50,110,.14)}
+  .ph-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .ph-thumb .ph-tag{position:absolute;left:0;top:0;background:rgba(0,0,0,.35);color:#fff;font-size:10px;padding:2px 6px;border-bottom-right-radius:8px}
+  .ph-thumb .ph-x{position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:13px;line-height:17px;text-align:center;cursor:pointer}
+  .ph-add{width:80px;height:80px;border-radius:10px;border:1px dashed #c7cedd;background:#fafbfe;color:#9aa0ad;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font-size:24px;flex:none}
+  .ph-add:active{background:#f1f4fb}
+  .ph-add span{font-size:11px;font-weight:400}
+  .mask{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:60;display:none}
+  .mask.show{display:block}
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:61;background:#fff;border-radius:16px 16px 0 0;transform:translateY(100%);transition:.25s;padding:8px 0 22px}
+  .sheet.show{transform:translateY(0)}
+  .sheet-title{text-align:center;color:#9aa0ad;font-size:13px;padding:12px 0 8px}
+  .sheet-opt{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:none;background:#fff;text-align:center;font-size:16px;color:var(--val);padding:15px 0;cursor:pointer;border-top:1px solid var(--line)}
+  .sheet-opt:active{background:#f4f6fb}
+  .so-tag{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;color:#fff;font-size:12px;font-weight:600}
+  .sheet-cancel{display:block;width:calc(100% - 32px);margin:14px 16px 0;height:46px;border:none;border-radius:10px;background:#f1f3f8;color:var(--val);font-size:16px;font-weight:600;cursor:pointer}
+  .sheet-foot{display:flex;gap:10px;padding:6px 16px 0}
+  .sheet-foot .sheet-cancel{width:auto;margin:0}
+  .refgrid{display:flex;flex-wrap:wrap;gap:10px;padding:4px 0 8px}
+  .refitem{position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;cursor:pointer;flex:none;border:2px solid transparent}
+  .refitem img{width:100%;height:100%;object-fit:cover;display:block}
+  .refitem input{position:absolute;right:3px;top:3px;width:18px;height:18px;accent-color:#2b5ce6}
+  .refempty{text-align:center;color:var(--sub);font-size:13px;padding:20px 0}
+
+  /* 附件上传（统一上传样式） */
+  .flbl{display:flex;align-items:center;color:var(--sub);font-size:13.5px;margin-bottom:10px}
+  .flbl .note{margin-left:auto;color:#b9bfcc;font-size:12px;font-weight:400}
+  .upload{display:flex;align-items:center;gap:10px}
+  .up-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:9px;font-size:13.5px;cursor:pointer;font-weight:600}
+  .up-btn svg{display:block}
+  .fname{color:#6b7280;font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .docs{display:flex;flex-direction:column;gap:10px}
+  .doclist{display:flex;flex-direction:column;gap:7px}
+  .docitem{display:flex;align-items:center;gap:8px;background:#f4f6fb;border-radius:8px;padding:9px 11px}
+  .docitem .docname{font-size:12.5px;color:#3a4050;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .docitem .docx{width:18px;height:18px;border-radius:50%;background:#c8cedb;color:#fff;font-size:13px;text-align:center;line-height:17px;cursor:pointer;flex:none}
 </style>
 </head>
 <body>
@@ -147,6 +188,16 @@
 
   <div id="reportHost"><div id="reportDoc" class="rpt"></div></div>
   <div class="home-ind"></div>
+
+  <!-- 现场服务照片：来源弹层 -->
+  <div class="mask" id="phMask" onclick="closePhSheet()"></div>
+  <div class="sheet" id="phSheet">
+    <div class="sheet-title" id="phSheetTitle">选择照片来源</div>
+    <div id="phSheetOpts"></div>
+    <div id="phSheetRefs" style="display:none;padding:0 16px"></div>
+    <div class="sheet-foot" id="phSheetFoot"></div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <!-- 检查表选择 弹层 -->
@@ -261,11 +312,129 @@ function hazardCard(){
       <div class="right"><span class="rcount">${hazardCount()}</span><span class="go">›</span></div>
     </div></div>`;
 }
+
+/* ===== 现场服务照片（拍照 / 引用现场检查照片，最多 6 张） ===== */
+const SRV_PHOTO_NAME = '现场服务照片';
+const SRV_PHOTO_MAX = 6;
+function photoImgs(name){
+  try{ const s=localStorage.getItem('photo_imgs_'+name); if(s){ const a=JSON.parse(s); if(Array.isArray(a)) return a; } }catch(e){}
+  return [];
+}
+function setPhotoImgs(name, arr){
+  try{ localStorage.setItem('photo_imgs_'+name, JSON.stringify(arr)); }catch(e){}
+}
+function fileToDataURL(file, cb, maxPx){
+  const fr=new FileReader();
+  fr.onload=()=>{const img=new Image();img.onload=()=>{
+    const MAX=maxPx||1000; let w=img.width,h=img.height; const m=Math.max(w,h);
+    if(m>MAX){const r=MAX/m;w=Math.round(w*r);h=Math.round(h*r);}
+    const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+    cv.getContext('2d').drawImage(img,0,0,w,h);
+    cb(cv.toDataURL('image/jpeg',0.82));
+  };img.onerror=()=>cb('');img.src=fr.result;};
+  fr.readAsDataURL(file);
+}
+function servicePhotoCard(){
+  const imgs = photoImgs(SRV_PHOTO_NAME);
+  const full = imgs.length >= SRV_PHOTO_MAX;
+  const grid = imgs.length ? imgs.map((s,i)=>`<div class="ph-thumb"><img src="${s}" alt=""><span class="ph-tag">${i+1}</span><span class="ph-x" onclick="delServicePhoto(${i})">×</span></div>`).join('') : '';
+  const add = full ? '' : `<div class="ph-add" onclick="openPhSheet()">+<span>添加</span></div>`;
+  return `<div class="sec">现场服务照片</div><div class="card">
+    <div class="ph-hint">拍照 或 引用现场检查照片，最多 ${SRV_PHOTO_MAX} 张</div>
+    <div class="ph-grid">${grid}${add}</div>
+    <input type="file" id="phCam" accept="image/*" capture="environment" hidden onchange="onPhCam(this)">
+  </div>`;
+}
+function delServicePhoto(idx){
+  const a = photoImgs(SRV_PHOTO_NAME); if(idx<0||idx>=a.length) return;
+  a.splice(idx,1); setPhotoImgs(SRV_PHOTO_NAME, a); render();
+}
+function openPhSheet(){
+  if(photoImgs(SRV_PHOTO_NAME).length >= SRV_PHOTO_MAX){ toast('已达最大数量'); return; }
+  document.getElementById('phSheetTitle').textContent = `选择照片来源（最多 ${SRV_PHOTO_MAX} 张）`;
+  document.getElementById('phSheetOpts').style.display='';
+  document.getElementById('phSheetRefs').style.display='none';
+  document.getElementById('phSheetOpts').innerHTML =
+    `<button class="sheet-opt" type="button" onclick="pickPhSrc('拍照')"><span class="so-tag" style="background:linear-gradient(135deg,#5b86f5,#3f6ef2)">拍</span>拍照</button>`+
+    `<button class="sheet-opt" type="button" onclick="pickPhSrc('引用现场检查照片')"><span class="so-tag" style="background:linear-gradient(135deg,#f0a44a,#e0852a)">引</span>引用现场检查照片</button>`;
+  document.getElementById('phSheetFoot').innerHTML = `<button class="sheet-cancel" type="button" onclick="closePhSheet()">取消</button>`;
+  document.getElementById('phMask').classList.add('show');
+  document.getElementById('phSheet').classList.add('show');
+}
+function closePhSheet(){ document.getElementById('phMask').classList.remove('show'); document.getElementById('phSheet').classList.remove('show'); }
+function pickPhSrc(s){
+  if(s==='引用现场检查照片'){ renderPhRefPick(); return; }
+  closePhSheet();
+  const el=document.getElementById('phCam'); if(el) el.click();
+}
+function onPhCam(inp){
+  const files=inp.files?Array.from(inp.files):[]; if(!files.length) return;
+  fileToDataURL(files[0], d=>{ if(d){ const a=photoImgs(SRV_PHOTO_NAME); if(a.length<SRV_PHOTO_MAX){ a.push(d); setPhotoImgs(SRV_PHOTO_NAME,a); } render(); toast('已添加照片'); } });
+  inp.value='';
+}
+function renderPhRefPick(){
+  const src = photoImgs('现场检查照片');
+  const cur = photoImgs(SRV_PHOTO_NAME).length;
+  const t=document.getElementById('phSheetTitle'); if(t) t.textContent = `引用现场检查照片（可再引用 ${Math.max(0,SRV_PHOTO_MAX-cur)} 张）`;
+  document.getElementById('phSheetOpts').style.display='none';
+  const r=document.getElementById('phSheetRefs'); r.style.display='';
+  if(!src.length){
+    r.innerHTML='<div class="refempty">暂无现场检查照片可引用，请先前往「现场照片 · 现场检查照片」采集。</div>';
+    document.getElementById('phSheetFoot').innerHTML='<button class="sheet-cancel" type="button" onclick="openPhSheet()">返回</button>';
+    return;
+  }
+  r.innerHTML='<div class="refgrid">'+src.map((s,i)=>`<label class="refitem"><img src="${s}" alt=""><input type="checkbox" value="${i}"></label>`).join('')+'</div>';
+  document.getElementById('phSheetFoot').innerHTML=
+    '<button class="sheet-cancel" type="button" onclick="openPhSheet()">返回</button>'+
+    '<button class="btn-main" type="button" onclick="confirmPhRef()">确定引用</button>';
+}
+function confirmPhRef(){
+  const picks=[...document.querySelectorAll('#phSheetRefs .refgrid input:checked')].map(x=>+x.value);
+  if(!picks.length){ toast('请先勾选要引用的照片'); return; }
+  const src=photoImgs('现场检查照片');
+  let imgs=photoImgs(SRV_PHOTO_NAME), n=0;
+  picks.forEach(i=>{ if(imgs.length<SRV_PHOTO_MAX && src[i]){ imgs.push(src[i]); n++; } });
+  setPhotoImgs(SRV_PHOTO_NAME, imgs.slice(0,SRV_PHOTO_MAX));
+  closePhSheet(); render(); toast('已引用 '+n+' 张照片');
+}
+
+/* ===== 附件上传（PDF / Word 多份） ===== */
+const ATTACH_KEY = 'hazard_report_attach';
+function loadAttach(){ try{ return JSON.parse(localStorage.getItem(ATTACH_KEY))||[]; }catch(e){ return []; } }
+function saveAttach(a){ try{ localStorage.setItem(ATTACH_KEY, JSON.stringify(a)); }catch(e){} }
+function attachCard(){
+  const files = loadAttach();
+  const items = files.map((f,i)=>`<div class="docitem"><span class="docname">${esc(f)}</span><span class="docx" onclick="delAttach(${i})">×</span></div>`).join('');
+  const upIcon = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2b5ce6" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  return `<div class="card gap">
+    <div class="flbl">附件上传<span class="note">支持 PDF / Word 多份</span></div>
+    <div class="docs">
+      <button class="up-btn" type="button" onclick="document.getElementById('file_attach').click()">${upIcon}添加文档</button>
+      <div class="doclist">${items}</div>
+      <input type="file" id="file_attach" accept=".pdf,.doc,.docx" multiple hidden onchange="onUploadMulti(this)">
+    </div>
+  </div>`;
+}
+function onUploadMulti(inp){
+  const files = inp.files ? Array.from(inp.files).map(f=>f.name) : [];
+  if(!files.length) return;
+  const cur = loadAttach();
+  saveAttach(cur.concat(files));
+  render();
+  toast('已添加 '+files.length+' 份文档');
+}
+function delAttach(i){
+  const a = loadAttach(); if(i<0||i>=a.length) return;
+  a.splice(i,1); saveAttach(a); render();
+  toast('已删除');
+}
 function render(){
   document.getElementById('body').innerHTML =
     infoCard() + photoCard() +
+    servicePhotoCard() +
     `<div id="patrolWrap">${patrolCard()}</div>` +
-    hazardCard();
+    hazardCard() +
+    attachCard();
 }
 function renderPatrol(){ document.getElementById('patrolWrap').innerHTML = patrolCard(); }
 
@@ -354,7 +523,9 @@ function collect(){
   };
   const photo = PHOTOS.map(p=>p.name+' '+photoCount(p.name)+'张').join('、');
   const patrol = patrolLoad().map(r=>r.name+'：'+(r.done?'已完成':'未完成')).join('、');
-  return {basic, photo, patrol, list: loadHazards()};
+  const srvPhoto = photoImgs(SRV_PHOTO_NAME).length;
+  const attach = loadAttach();
+  return {basic, photo, patrol, list: loadHazards(), srvPhoto, attach};
 }
 function buildReportDOM(meta, data){
   const basicRows = Object.entries(data.basic).map(([k,v])=>
@@ -370,7 +541,10 @@ function buildReportDOM(meta, data){
     `<div class="rpt-rule"></div>`+
     `<div class="rpt-sec">一、基本信息</div>${basicRows}${photoRow}`+
     `<div class="rpt-sec">二、现场排查</div>${patrolRow}`+
-    `<div class="rpt-sec">三、隐患清单（共 ${data.list.length} 项）</div>${riskBlocks}`;
+    `<div class="rpt-sec">三、隐患清单（共 ${data.list.length} 项）</div>${riskBlocks}`+
+    `<div class="rpt-sec">四、现场服务照片与附件</div>`+
+    `<div class="rpt-row"><div class="rpt-k">现场服务照片</div><div class="rpt-v">${esc(data.srvPhoto?data.srvPhoto+' 张（页内拍照 / 引用）':'未上传')}</div></div>`+
+    `<div class="rpt-row"><div class="rpt-k">附件上传</div><div class="rpt-v">${esc(data.attach.length?data.attach.join('、'):'未上传')}</div></div>`;
 }
 async function generateReport(){
   const data = collect();

@@ -55,6 +55,8 @@
   .ctr{display:flex;justify-content:flex-end;margin-top:6px;color:#b9bfcc;font-size:12px}
   .save{margin-top:8px;width:100%;height:40px;border:none;border-radius:9px;background:var(--blue);color:#fff;font-size:14px;font-weight:600;cursor:pointer}
   .save:active{background:var(--blue-d)}
+  .save.aigen{background:#7c3aed}
+  .save.aigen:active{background:#6d28d9}
 
   .fileline{margin-top:10px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:#6b7280}
   .fileline .ok{color:#2f9e6b;flex:none}
@@ -112,6 +114,13 @@
   .infrow{display:flex;padding:9px 0;font-size:13.5px;line-height:1.5}
   .infrow .ink{color:#8b91a0;flex:none}
   .infrow .inv{color:#1f2329;font-weight:600;flex:1;min-width:0;word-break:break-word}
+  .req{color:#e5484d;margin-left:4px}
+  .photos{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+  .photos .add{width:74px;height:74px;border:1.5px dashed #c8cedb;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#9aa0ad;font-size:22px;cursor:pointer;gap:2px;flex:none}
+  .photos .add span{font-size:12px}
+  .thumb{position:relative;width:74px;height:74px;border-radius:10px;overflow:hidden;background:#dfe4ee;flex:none}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb .x{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:13px;text-align:center;line-height:17px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -157,6 +166,7 @@
 
 <input type="file" id="pdfInput" accept="application/pdf" style="display:none">
 <input type="file" id="docInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip" multiple style="display:none">
+<input type="file" id="sitePhotoInput" accept="image/*" multiple style="display:none">
 
 <script>
 const PROJECT = '安全生产应急预案编制';
@@ -253,13 +263,14 @@ function render(){
   const other = state.__other;
   const otherShown = other && other.names && other.names.length ? '' : 'display:none';
   const otherNames = other && other.names ? other.names.join('、') : '';
-  document.getElementById('body').innerHTML = infoCard() + photoCard() + html + `
+  document.getElementById('body').innerHTML = infoCard() + photoCard() + entryCard() + preDocHTML() + html + `
     <div class="card">
-      <div class="card-title"><i></i>其他文档</div>
+      <div class="card-title"><i></i>附件上传</div>
+      <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">文档上传（PDF、Word 多份）</div>
       <div class="upload">
         <span class="up-btn" onclick="uploadOther()">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2b5ce6" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          上传文档
+          添加文档
         </span>
         <span class="fname" id="otherNames">未选择文件</span>
       </div>
@@ -337,13 +348,19 @@ function generateReport(){
     '<div class="pv-row"><div class="pv-k">预防服务工单</div><div class="pv-v">'+esc(orderNo)+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">服务项目</div><div class="pv-v">'+esc(proj)+'</div></div>'+
     DOCS.map(d=>'<div class="pv-row"><div class="pv-k">'+esc(d.name)+'</div><div class="pv-v">'+sub(d.key)+'</div></div>').join('')+
-    '<div class="pv-row"><div class="pv-k">其他文档</div><div class="pv-v">'+esc((state.__other&&state.__other.names&&state.__other.names.length)?state.__other.names.join('、'):'—')+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">生产安全事故风险分析</div><div class="pv-v">'+esc(state.__riskAnalysis||'—')+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">应急资源差距分析</div><div class="pv-v">'+esc(state.__gapAnalysis||'—')+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">现场服务照片</div><div class="pv-v">'+esc((state.__sitePhotos&&state.__sitePhotos.length)?state.__sitePhotos.map(p=>p.name).join('、'):'—')+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">附件上传</div><div class="pv-v">'+esc((state.__other&&state.__other.names&&state.__other.names.length)?state.__other.names.join('、'):'—')+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">现场照片</div><div class="pv-v">'+esc(PHOTOS.map(p=>p.name+' '+photoCount(p.name)+'张').join('、'))+'</div></div>';
   document.getElementById('previewSub').textContent = '工单号 '+orderNo+' · '+proj;
   document.getElementById('preview').classList.add('show');
 }
 function doSubmit(){
   const miss = DOCS.filter(d=>!state[d.key]).map(d=>d.name);
+  if(!(state.__sitePhotos && state.__sitePhotos.length)) miss.push('现场服务照片');
+  if(!state.__riskAnalysis || !state.__riskAnalysis.trim()) miss.push('生产安全事故风险分析');
+  if(!state.__gapAnalysis || !state.__gapAnalysis.trim()) miss.push('应急资源差距分析');
   if(miss.length){ toast('请完善：'+miss.join('、')); return; }
   const status = JSON.parse(localStorage.getItem('sg_report_status') || '{}');
   status[orderNo] = '审核中';
@@ -416,7 +433,140 @@ function genPlan(){
 包括善后、调查与恢复生产。
 
 七、预案管理
-明确培训、演练与修订要求。`;
+ 明确培训、演练与修订要求。`;
+}
+
+/* ===== 应急预案编制信息采集 入口 ===== */
+function goCollect(){ location.href='应急预案编制信息采集.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent(PROJECT); }
+function entryCard(){
+  return `<div class="card" style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="goCollect()">
+    <div style="flex:1">
+      <div style="font-size:15px;font-weight:700;color:var(--text)">应急预案编制信息采集</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:4px">填写设备名单、作业行为、风险场景等基础信息，供大模型生成报告</div>
+    </div>
+    <span class="phgo">›</span>
+  </div>`;
+}
+
+/* ===== 报告前置信息（应急资源调查报告前方） ===== */
+function preDocHTML(){
+  const sp = state.__sitePhotos || [];
+  const spHtml = sp.map((p,i)=>`<div class="thumb"><img src="${esc(p.data)}"><span class="x" onclick="removeSitePhoto(${i})">×</span></div>`).join('');
+  const addShown = sp.length>=6 ? 'style="display:none"' : '';
+  const risk = state.__riskAnalysis || '';
+  const gap = state.__gapAnalysis || '';
+  return `
+  <div class="card">
+    <div class="card-title"><i></i>现场服务照片<span class="req">*</span></div>
+    <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">拍照、引用现场检查照片（最多 6 张）</div>
+    <div class="photos" data-max="6">
+      ${spHtml}
+      <div class="add" onclick="pickSitePhotos(this)" ${addShown}>+<span>添加</span></div>
+    </div>
+    <div class="ctr"><span>${sp.length}/6</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i></i>生产安全事故风险分析<span class="req">*</span></div>
+    <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">手动输入 或 大模型生成（500 字以内）</div>
+    <div class="editor">
+      <textarea class="doc-area" id="area_riskAnalysis" oninput="liveCount('riskAnalysis')" maxlength="500">${esc(risk)}</textarea>
+      <div class="ctr"><span id="cnt_riskAnalysis">${risk.length} 字</span></div>
+      <button class="save" onclick="genAnalysis()">大模型生成</button>
+      <button class="save" onclick="saveAnalysis()">保存</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i></i>应急资源差距分析<span class="req">*</span></div>
+    <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">手动输入 或 大模型生成（500 字以内）</div>
+    <div class="editor">
+      <textarea class="doc-area" id="area_gapAnalysis" oninput="liveCount('gapAnalysis')" maxlength="500">${esc(gap)}</textarea>
+      <div class="ctr"><span id="cnt_gapAnalysis">${gap.length} 字</span></div>
+      <button class="save aigen" onclick="genGap()">✦ 大模型生成</button>
+      <button class="save" onclick="saveGap()">保存</button>
+    </div>
+  </div>`;
+}
+
+/* ===== 现场服务照片（内嵌上传，最多 6 张） ===== */
+function readDataURL(file, cb){
+  const fr=new FileReader(); fr.onload=()=>cb(fr.result); fr.onerror=()=>cb(''); fr.readAsDataURL(file);
+}
+function pickSitePhotos(addEl){
+  const box=addEl.closest('.photos'); const max=+box.dataset.max;
+  const cur=(state.__sitePhotos||[]).length;
+  if(cur>=max){ toast('最多上传 '+max+' 张'); return; }
+  const input=document.getElementById('sitePhotoInput'); input.value='';
+  input.onchange=()=>{
+    const room=max-(state.__sitePhotos||[]).length;
+    const files=[...input.files].slice(0,room);
+    let done=0;
+    files.forEach(file=>{
+      readDataURL(file, data=>{
+        state.__sitePhotos=(state.__sitePhotos||[]).concat({name:file.name,data});
+        if(++done===files.length){ saveState(); render(); }
+      });
+    });
+    input.value='';
+  };
+  input.click();
+}
+function removeSitePhoto(i){
+  state.__sitePhotos.splice(i,1); saveState(); render();
+}
+
+/* ===== 风险分析 / 差距分析（手动或大模型生成） ===== */
+function genRiskAnalysis(){
+  return `生产安全事故风险分析
+（依据「应急预案编制信息采集」前项内容开展风险分析）
+
+一、风险概述
+结合现场采集的设备名单、作业行为与工艺流程，识别各生产环节潜在的致害因素，形成系统化的风险清单。
+
+二、主要风险
+重点关注物体打击、触电、火灾、高处坠落、机械致害等高发事故类型，结合危险化学品清单评估泄漏、爆炸与中毒风险。
+
+三、事故链分析
+围绕"设备/作业因原因导致事故"的逻辑，梳理触发条件与扩大路径，明确关键控制节点。
+
+四、风险等级
+依据可能性与严重性进行初步分级，标识重大风险与较大风险，作为应急预案编制的重点对象。
+
+五、防控要点
+针对重大风险提出工程技术与管理措施，并与事故响应程序、应急资源保障相衔接，形成闭环。`;
+}
+function genGapAnalysis(){
+  return `应急资源差距分析
+（依据「应急预案编制信息采集」前项内容与资源调查结论）
+
+一、物资差距
+对照预案需求核查消防、急救、防护、照明、警戒等器材的数量、有效期与分布，列明缺口与补配计划。
+
+二、队伍差距
+核实应急组织架构与人员分工的到位情况，识别关键岗位替补与专业技能短板。
+
+三、外部依托
+评估周边医疗机构、救援机构的可达性与联动效率，明确改进措施。
+
+四、综合结论
+汇总关键差距项，形成整改清单与完成时限，纳入闭环管理并跟踪验证。`;
+}
+function genAnalysis(){
+  state.__riskAnalysis = genRiskAnalysis(); saveState(); render();
+  toast('大模型已生成风险分析，可编辑后保存');
+}
+function saveAnalysis(){
+  const t = document.getElementById('area_riskAnalysis').value.trim();
+  if(!t){ toast('内容不能为空'); return; }
+  state.__riskAnalysis = t; saveState(); render(); toast('已保存');
+}
+function genGap(){
+  state.__gapAnalysis = genGapAnalysis(); saveState(); render();
+  toast('大模型已生成差距分析，可编辑后保存');
+}
+function saveGap(){
+  const t = document.getElementById('area_gapAnalysis').value.trim();
+  if(!t){ toast('内容不能为空'); return; }
+  state.__gapAnalysis = t; saveState(); render(); toast('已保存');
 }
 
 render();

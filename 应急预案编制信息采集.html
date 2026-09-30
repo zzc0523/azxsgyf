@@ -54,6 +54,14 @@
   .area{min-height:96px;height:auto;padding:10px 12px;line-height:1.6;resize:none}
   .ctr{display:flex;justify-content:flex-end;margin-top:6px;color:#b9bfcc;font-size:12px}
 
+  /* 图片上传 */
+  .photos{display:flex;flex-wrap:wrap;gap:10px}
+  .photos .add{width:74px;height:74px;border:1.5px dashed #c8cedb;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#9aa0ad;font-size:22px;cursor:pointer;gap:2px;flex:none}
+  .photos .add span{font-size:12px}
+  .thumb{position:relative;width:74px;height:74px;border-radius:10px;overflow:hidden;background:#dfe4ee;flex:none}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb .x{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:13px;text-align:center;line-height:17px;cursor:pointer}
+
   /* 定位行 */
   .loc-row{display:flex;gap:10px;align-items:center}
   .loc-row .inp{flex:1}
@@ -99,8 +107,12 @@
 <script>
 const FIELDS = [
   {type:'text', name:'应急预案名称', max:50, ph:'请填写应急预案名称（50字以内）', req:true},
-  {type:'area', name:'风险场景', max:500, ph:'如：1.XX设备/作业因XX原因导致XX事故；2.XX...', req:true},
   {type:'multi', name:'应急预案种类', opts:['综合应急预案','专项应急预案','现场处置方案'], req:true},
+  {type:'area', name:'设备名单', max:500, ph:'请填写设备名单（500字以内）', req:true},
+  {type:'area', name:'作业行为', max:500, ph:'请填写作业行为（500字以内）', req:true},
+  {type:'area', name:'危险化学品清单', max:500, ph:'请填写危险化学品清单（500字以内，无则填"无"）', req:false},
+  {type:'area', name:'工艺流程', max:500, ph:'请填写工艺流程（500字以内）', req:true},
+  {type:'area', name:'风险场景', max:500, ph:'如：1.XX设备/作业因XX原因导致XX事故；2.XX...', req:true},
   {type:'area', name:'应急组织架构及人员分工', max:500, ph:'请填写应急组织架构及人员分工（500字以内）', req:true},
   {type:'multi', name:'事故种类', opts:[
     '物体打击','厂（场）内车辆致害','道路（轨道）车辆致害','机械致害','起重致害','触电','淹溺','灼烫','火灾','高处坠落',
@@ -110,6 +122,9 @@ const FIELDS = [
   {type:'area', name:'事故响应程序', max:500, ph:'请填写事故响应程序（500字以内）', req:true},
   {type:'location', name:'当前位置', max:50, ph:'请填写当前位置（50字以内）', req:true},
   {type:'area', name:'应急物资', max:500, ph:'请填写应急物资（500字以内）', req:true},
+  {type:'photo', name:'周边医疗机构', min:2, max:6, req:true},
+  {type:'photo', name:'周边救援机构', min:2, max:6, req:true},
+  {type:'photo', name:'周边关系图', min:2, max:6, req:true},
 ];
 
 const q = new URLSearchParams(location.search);
@@ -130,6 +145,8 @@ function fieldHTML(f){
     inner = `<textarea class="inp area" maxlength="${f.max}" placeholder="${f.ph||''}" oninput="updCount(this)"></textarea><div class="ctr"><span>0/${f.max}</span></div>`;
   } else if(f.type==='location'){
     inner = `<div class="loc-row"><input class="inp" maxlength="${f.max}" placeholder="${f.ph||''}"><button class="loc-btn" onclick="getLocation(this)">获取定位</button></div>`;
+  } else if(f.type==='photo'){
+    inner = `<div class="photos" data-min="${f.min||0}" data-max="${f.max}"><div class="add" onclick="pickPhotos(this)">+<span>添加</span></div></div><div class="ctr"><span>0/${f.max}</span></div>`;
   } else {
     inner = `<input class="inp" type="text" maxlength="${f.max||''}" placeholder="${f.ph||''}"><div class="ctr"></div>`;
   }
@@ -161,11 +178,55 @@ function getLocation(btn){
   );
 }
 
+let _photoInput=null;
+function pickPhotos(addEl){
+  const box = addEl.closest('.photos');
+  const max = +box.dataset.max;
+  if(box.querySelectorAll('.thumb').length >= max){ toast('最多上传 '+max+' 张'); return; }
+  if(!_photoInput){
+    _photoInput = document.createElement('input');
+    _photoInput.type = 'file';
+    _photoInput.accept = 'image/*';
+    _photoInput.multiple = true;
+    _photoInput.style.display = 'none';
+    document.body.appendChild(_photoInput);
+    _photoInput.onchange = function(){
+      const list = _photoInput._box;
+      const cur = list.querySelectorAll('.thumb').length;
+      const room = +list.dataset.max - cur;
+      [..._photoInput.files].slice(0, room).forEach(file=>{
+        const d = document.createElement('div');
+        d.className = 'thumb';
+        d.innerHTML = `<img src="${URL.createObjectURL(file)}"><span class="x" onclick="removeThumb(this)">×</span>`;
+        list.insertBefore(d, list.querySelector('.add'));
+      });
+      const cnt = list.querySelectorAll('.thumb').length;
+      list.querySelector('.ctr span').textContent = cnt + '/' + list.dataset.max;
+      if(cnt >= +list.dataset.max) list.querySelector('.add').style.display = 'none';
+      _photoInput.value = '';
+    };
+  }
+  _photoInput._box = box;
+  _photoInput.click();
+}
+function removeThumb(el){
+  const box = el.closest('.photos');
+  el.parentElement.remove();
+  const cnt = box.querySelectorAll('.thumb').length;
+  box.querySelector('.ctr span').textContent = cnt + '/' + box.dataset.max;
+  if(cnt < +box.dataset.max) box.querySelector('.add').style.display = 'flex';
+}
+
 function submitForm(){
   const miss = [];
   document.querySelectorAll('#body .field').forEach(f=>{
     const lbl = f.querySelector('.flbl').textContent.replace('*','').trim();
     if(f.querySelector('.chips')){ if(!f.querySelector('.chip.on')) miss.push(lbl); }
+    else if(f.querySelector('.photos')){
+      const n = f.querySelectorAll('.thumb').length;
+      const min = +f.querySelector('.photos').dataset.min || 0;
+      if(n < min) miss.push(lbl + '（至少 ' + min + ' 张）');
+    }
     else { const el = f.querySelector('input,textarea'); if(!el.value.trim()) miss.push(lbl); }
   });
   if(miss.length){ toast('请完善：'+miss.join('、')); return; }

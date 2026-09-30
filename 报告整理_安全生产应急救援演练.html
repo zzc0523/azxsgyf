@@ -72,11 +72,16 @@
   .up-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:9px;font-size:13.5px;cursor:pointer;font-weight:600}
   .up-btn svg{display:block}
   .fname{color:#6b7280;font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .docs{display:flex;flex-direction:column;gap:10px}
+  .doclist{display:flex;flex-direction:column;gap:7px}
+  .docitem{display:flex;align-items:center;gap:8px;background:#f4f6fb;border-radius:8px;padding:9px 11px}
+  .docitem .docname{font-size:12.5px;color:#3a4050;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .docitem .docx{width:18px;height:18px;border-radius:50%;background:#c8cedb;color:#fff;font-size:13px;text-align:center;line-height:17px;cursor:pointer;flex:none}
 
   /* AI 生成按钮 */
   .ai-row{margin-top:10px;display:flex}
-  .ai-btn{display:inline-flex;align-items:center;gap:5px;height:38px;padding:0 14px;border:none;
-    background:linear-gradient(135deg,#7b5bef,#5b3ef2);color:#fff;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer}
+  .ai-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 16px;border:none;
+    background:#7c3aed;color:#fff;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer}
   .ai-btn:active{opacity:.9}
 
   .footer{flex:none;padding:10px 16px 24px;background:var(--bg);display:flex;gap:10px}
@@ -198,6 +203,7 @@
 </div>
 
 <input type="file" id="pdfInput" accept="application/pdf" style="display:none">
+<input type="file" id="docInput" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple style="display:none">
 
 <script src="html2canvas.min.js"></script>
 <script src="jspdf.umd.min.js"></script>
@@ -205,10 +211,11 @@
 const SECTIONS = [
   { title:'报告整理', fields:[
     {type:'multi', name:'演练目的', opts:['检验预案','完善准备','锻炼队伍','磨合机制','科普宣教'], req:true},
-    {type:'single', name:'演练类型', opts:['综合应急演练','专项应急演练'], def:'综合应急演练', req:true},
+    {type:'single', name:'演练形式', opts:['综合应急演练','专项应急演练'], def:'综合应急演练', req:true},
+    {type:'text', name:'指导专家', max:50, ph:'指导专家（自动回显技术服务人员）', req:true},
     {type:'text', name:'演练地点', max:30, ph:'请填写演练地点（30字以内）', req:true},
     {type:'single', name:'演练方式', opts:['桌面推演','实战演练'], def:'实战演练', req:true},
-    {type:'text', name:'演练名称', max:50, ph:'请填写演练名称（50字以内）', req:true},
+    {type:'text', name:'演练主题', max:50, ph:'请填写演练主题（50字以内）', req:true},
     {type:'text', name:'总指挥', max:50, ph:'请填写总指挥（50字以内）', req:true},
     {type:'multi-other', name:'应急组织架构', opts:['指挥部','抢险救援组','警戒疏散组','医疗救护组','通讯联络组','后勤保障组'], req:true},
     {type:'text', name:'演练流程', max:500, area:true, ph:'请填写演练流程（500字以内）', req:true},
@@ -230,6 +237,7 @@ const SECTIONS = [
     {type:'single', name:'医疗救护', opts:['符合','基本符合','不符合'], def:'符合', req:true},
     {type:'single', name:'效果评价', opts:['达到既定目标','基本达到既定目标','未达到既定目标'], def:'达到既定目标', req:true},
     {type:'text', name:'演练总结', max:500, area:true, ph:'请填写演练总结（500字以内），或点击「AI 生成」', ai:'summary', req:true},
+    {type:'docs', name:'附件上传', note:'支持 PDF / Word 多份', req:false},
   ]},
 ];
 
@@ -242,6 +250,13 @@ const SRC_STYLE = {
 const q = new URLSearchParams(location.search);
 document.getElementById('ctxNo').textContent   = q.get('no') || 'YF2131900';
 document.getElementById('ctxProj').textContent = q.get('project') || '安全生产应急救援演练';
+
+/* 当期技术服务人员：优先取 URL ?staff=，其次按工单号映射演示工单，回退默认 */
+const TECH_STAFF = {'YF20260014':'赵强'};
+function getTechStaff(){
+  const no = q.get('no') || 'YF2131900';
+  return q.get('staff') || TECH_STAFF[no] || '赵强';
+}
 
 /* ===== 基本信息（顶部展示） ===== */
 const INFO_COMPANY = '福州无比欢信息科技有限公司';
@@ -322,6 +337,8 @@ function fieldHTML(f){
     } else {
       inner = `<div class="upload">${up}</div>`;
     }
+  } else if(f.type==='docs'){
+    inner = `<div class="docs"><button class="up-btn" type="button" onclick="pickDoc(this)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2b5ce6" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>添加文档</button><div class="doclist"></div></div>`;
   }
   const req = f.req?'<span class="req">*</span>':'';
   const note = (f.type!=='photo' && f.note)?`<span class="note">${f.note}</span>`:'';
@@ -403,6 +420,23 @@ function pickPDF(btn){
   input.click();
 }
 
+function pickDoc(btn){
+  const input = document.getElementById('docInput');
+  input._list = btn.parentElement.querySelector('.doclist');
+  input.onchange = ()=>{
+    const list = input._list;
+    [...input.files].forEach(file=>{
+      const d = document.createElement('div');
+      d.className = 'docitem';
+      d.innerHTML = `<span class="docname">${esc(file.name)}</span><span class="docx" onclick="removeDoc(this)">×</span>`;
+      list.appendChild(d);
+    });
+    input.value = '';
+  };
+  input.click();
+}
+function removeDoc(el){ el.parentElement.remove(); }
+
 /* 读取某字段当前值（按标签），用于大模型生成 */
 function getFieldVal(name){
   let v = '—';
@@ -425,8 +459,8 @@ function getFieldVal(name){
 function genWord(btn){
   const g = n => getFieldVal(n);
   const rows = [
-    ['演练目的', g('演练目的')], ['演练类型', g('演练类型')], ['演练地点', g('演练地点')],
-    ['演练方式', g('演练方式')], ['演练名称', g('演练名称')], ['总指挥', g('总指挥')],
+    ['演练目的', g('演练目的')], ['演练形式', g('演练形式')], ['演练地点', g('演练地点')],
+    ['演练方式', g('演练方式')], ['演练主题', g('演练主题')], ['总指挥', g('总指挥')],
     ['应急组织架构', g('应急组织架构')], ['演练流程', g('演练流程')],
     ['演练场景', g('演练场景')], ['演练物资', g('演练物资')]
   ];
@@ -441,7 +475,7 @@ function genWord(btn){
 /* 演练总结：大模型根据评估字段生成（500字） */
 function genSummary(btn){
   const g = n => getFieldVal(n);
-  const name = g('演练名称'), num = g('演练人数');
+  const name = g('演练主题'), num = g('演练人数');
   const dims = ['方案编制','人员分工','组织协调','事故报告','人员配合','应急处置','医疗救护'];
   const detail = dims.map(k=>`${k}${g(k)}`).join('，');
   const eff = g('效果评价');
@@ -459,7 +493,8 @@ function validateReport(){
   const miss = [];
   document.querySelectorAll('#body .field').forEach(f=>{
     const req = f.querySelector('.req'); if(!req) return;
-    const lbl = f.querySelector('.flbl').textContent.replace('*','').trim();
+    const flbl = f.querySelector('.flbl');
+    const lbl = flbl.textContent.replace(flbl.querySelector('.note')?.textContent||'','').replace('*','').trim();
     if(f.querySelector('.chips')){
       if(!f.querySelector('.chip.on')) miss.push(lbl);
     } else if(f.querySelector('.inp')){
@@ -468,6 +503,8 @@ function validateReport(){
       if(!f.querySelector('textarea').value.trim()) miss.push(lbl);
     } else if(f.querySelector('.photos')){
       if(!f.querySelector('.thumb')) miss.push(lbl);
+    } else if(f.querySelector('.docs')){
+      if(!f.querySelector('.docitem')) miss.push(lbl);
     } else if(f.querySelector('.upload')){
       if(f.querySelector('.fname').textContent==='未选择文件') miss.push(lbl);
     }
@@ -478,7 +515,8 @@ function validateReport(){
 function collectReport(){
   const items = [];
   document.querySelectorAll('#body .field').forEach(f=>{
-    const name = f.querySelector('.flbl').textContent.replace('*','').trim();
+    const flbl = f.querySelector('.flbl');
+    const name = flbl.textContent.replace(flbl.querySelector('.note')?.textContent||'','').replace('*','').trim();
     let val = '—';
     if(f.querySelector('.chips')){
       const ons = [...f.querySelectorAll('.chip.on')].map(c=>c.dataset.v);
@@ -493,6 +531,9 @@ function collectReport(){
     } else if(f.querySelector('.photos')){
       const thumbs = [...f.querySelectorAll('.thumb')];
       val = thumbs.length ? thumbs.map(t=>({'拍':'拍照','引':'引用现场检查照片','册':'手机相册'}[t.querySelector('.tag')?.textContent] || '照片')).join('、') : '—';
+    } else if(f.querySelector('.docs')){
+      const di = [...f.querySelectorAll('.docitem .docname')].map(d=>d.textContent);
+      val = di.length ? di.join('、') : '—';
     } else if(f.querySelector('.upload')){
       const fn = f.querySelector('.fname').textContent;
       val = fn==='未选择文件' ? '—' : fn;
@@ -573,7 +614,19 @@ function doSubmit(){
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
 
+function autofillTech(){
+  const v = getTechStaff();
+  document.querySelectorAll('#body .field').forEach(f=>{
+    const lbl = f.querySelector('.flbl');
+    if(lbl && lbl.textContent.replace('*','').trim()==='指导专家'){
+      const inp = f.querySelector('input.inp');
+      if(inp && !inp.value) inp.value = v;
+    }
+  });
+}
+
 render();
+autofillTech();
 </script>
 </body>
 </html>

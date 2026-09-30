@@ -79,7 +79,7 @@
   .phstat.ok{color:#2fa96b}
   .phstat.no{color:#e5484d}
   .btn.sm{height:30px;padding:0 12px;font-size:12px;border-radius:5px}
-  .btn.sm.ai{background:linear-gradient(90deg,#6f4ff0,#9b6cf0);border-color:transparent;color:#fff}
+  .btn.sm.ai{background:#7c3aed;border-color:#7c3aed;color:#fff}
 
   /* 隐患 / 风险 清单（读取自小程序端，可编辑） */
   .haz-meta{font-size:13px;color:#5d6879;margin:10px 0 8px}
@@ -111,7 +111,7 @@
   .echip{padding:5px 12px;border:1px solid #dfe4ed;border-radius:15px;font-size:12.5px;line-height:1.5;color:#3a4354;background:#fff;cursor:pointer;user-select:none;transition:.12s}
   .echip:hover{border-color:#9db2e6}
   .echip.on{background:rgba(43,92,230,.10);border-color:var(--brand);color:var(--brand);font-weight:600}
-  .aibtn{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 10px;border:none;background:linear-gradient(135deg,#7b5bef,#5b3ef2);color:#fff;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+  .aibtn{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 10px;border:none;background:#7c3aed;color:#fff;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
   .aibtn:hover{opacity:.92}
   .efield .cnt{font-size:12px;color:#b9bfcc;text-align:right;margin-top:-2px}
   /* 风险等级自动计算 · 徽标与算式 */
@@ -208,6 +208,11 @@
   .pv-x:hover{background:#e6e9ef}
   .pv-img{width:100%;max-height:72vh;object-fit:contain;background:#0f1115}
   .pv-acts{flex:none;display:flex;gap:10px;justify-content:center;padding:12px}
+  .docs{display:flex;flex-direction:column;gap:10px}
+  .doclist{display:flex;flex-direction:column;gap:7px}
+  .docitem{display:flex;align-items:center;gap:8px;background:#f4f6fb;border-radius:8px;padding:9px 11px}
+  .docitem .docname{font-size:12.5px;color:#3a4050;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .docitem .docx{width:18px;height:18px;border-radius:50%;background:#c8cedb;color:#fff;font-size:13px;text-align:center;line-height:17px;cursor:pointer;flex:none}
 </style>
 </head>
 <body>
@@ -415,8 +420,10 @@ const PROJECT_DEF = {
   '安全生产宣传教育培训':{type:'sections',sections:[
     {title:'报告整理',fields:[
       {name:'培训形式',type:'single',opts:['线上培训','线下培训'],def:'线上培训',req:true},
+      {name:'培训方式',type:'single',opts:['理论培训','实操培训','视频观摩'],def:'理论培训',req:true},
+      {name:'组织人员',type:'text',max:50,ph:'请填写组织人员',req:true},
       {name:'培训通知',type:'photo',req:true},
-      {name:'培训照片',type:'photo',max:20,req:true},
+      {name:'培训照片',type:'photo',max:6,req:true},
       {name:'签到表',type:'photo',max:10,req:true},
       {name:'培训课件1',type:'pdf',note:'支持 PDF 上传',req:true},
       {name:'培训主题',type:'text',max:50,ph:'请填写培训主题',req:true},
@@ -426,17 +433,20 @@ const PROJECT_DEF = {
       {name:'参与人数',type:'number',ph:'请输入参与人数',req:true},
       {name:'是否有考试',type:'single',opts:['否','是'],def:'否',key:'exam',req:true},
       {name:'成绩汇总单',type:'photo',max:10,sources:['拍照','引用现场检查照片'],showIf:'exam=是',req:true},
+      {name:'考试试卷摘要',type:'photo',max:10,sources:['拍照','引用现场检查照片'],showIf:'exam=是',req:true},
       {name:'培训效果评估',type:'single',opts:['实操','理论','满意度调查','无评估'],def:'实操',req:true},
       {name:'培训效果反馈表',type:'photo',max:10,req:true},
+      {name:'附件上传',type:'docs',note:'支持 PDF / Word 多份',req:false},
     ]},
   ]},
   '安全生产应急救援演练':{type:'sections',sections:[
     {title:'报告整理',fields:[
       {name:'演练目的',type:'multi',opts:['检验预案','完善准备','锻炼队伍','磨合机制','科普宣教'],req:true},
-      {name:'演练类型',type:'single',opts:['综合应急演练','专项应急演练'],def:'综合应急演练',req:true},
+      {name:'演练形式',type:'single',opts:['综合应急演练','专项应急演练'],def:'综合应急演练',req:true},
+      {name:'指导专家',type:'text',max:50,ph:'指导专家（自动回显技术服务人员）',req:true},
       {name:'演练地点',type:'text',max:30,ph:'请填写演练地点（30字以内）',req:true},
       {name:'演练方式',type:'single',opts:['桌面推演','实战演练'],def:'实战演练',req:true},
-      {name:'演练名称',type:'text',max:50,ph:'请填写演练名称（50字以内）',req:true},
+      {name:'演练主题',type:'text',max:50,ph:'请填写演练主题（50字以内）',req:true},
       {name:'总指挥',type:'text',max:50,ph:'请填写总指挥（50字以内）',req:true},
       {name:'应急组织架构',type:'multi-other',opts:['指挥部','抢险救援组','警戒疏散组','医疗救护组','通讯联络组','后勤保障组'],req:true},
       {name:'演练流程',type:'area',max:500,ph:'请填写演练流程（500字以内）',req:true},
@@ -458,6 +468,7 @@ const PROJECT_DEF = {
       {name:'医疗救护',type:'single',opts:['符合','基本符合','不符合'],def:'符合',req:true},
       {name:'效果评价',type:'single',opts:['达到既定目标','基本达到既定目标','未达到既定目标'],def:'达到既定目标',req:true},
       {name:'演练总结',type:'area',max:500,ph:'请填写演练总结（500字以内），或点击「AI 生成」',ai:'summary',req:true},
+      {name:'附件上传',type:'docs',note:'支持 PDF / Word 多份',req:false},
     ]},
   ]},
   '安全生产应急预案编制':{type:'blocks',blocks:[
@@ -773,6 +784,9 @@ function fieldHTML(f,form){
     }
     if(f.ai) ctrl+=`<button class="btn sm ai" type="button" onclick="genField('${esc(f.name)}')">大模型生成</button>`;
     ctrl+=`<input type="file" id="ff_${idk(f.name)}" accept="application/pdf" hidden onchange="onUpField('${esc(f.name)}',this)">`;
+  } else if(f.type==='docs'){
+    const list=(val&&typeof val==='string')?val.split('、').filter(Boolean):[];
+    ctrl=`<div class="docs" data-doc="${esc(f.name)}"><button class="btn sm" type="button" onclick="pickDocOrg(this)">添加文档</button><div class="doclist">${list.map(n=>`<div class="docitem"><span class="docname">${esc(n)}</span><span class="docx" onclick="removeDocOrg(this)">×</span></div>`).join('')}</div></div>`;
   }
   const hint=(f.type==='multi'||f.type==='multi-other')?'<span class="fhint">可多选</span>':'';
   return `<div class="fitem" ${f.showIf?('data-showif="'+esc(f.showIf)+'"'):''}><label>${esc(f.name)}${f.req?' <i class="req">*</i>':''}${hint}</label>${ctrl}</div>`;
@@ -790,7 +804,7 @@ function blockHTML(b,form){
      <div class="bhint">${b.tag==='文档'?'文档上传（PDF / Word）':'PDF 上传 或 大模型生成'}</div>
      <div class="bacts">
        ${st.mode==='pdf'?`<button class="btn sm" type="button" onclick="previewFile('${esc(st.data||'')}','${esc(st.name||'文件.pdf')}')">预览</button><button class="btn sm" type="button" onclick="upBlock('${esc(b.sec)}')">替换</button>`:`<button class="btn sm" type="button" onclick="upBlock('${esc(b.sec)}')">PDF 上传</button>`}
-       ${hasAI?`<button class="btn sm ai" type="button" onclick="genBlock('${esc(b.sec)}')">大模型生成</button>`:''}
+       ${hasAI?`<button class="btn sm ai" type="button" onclick="genBlock('${esc(b.sec)}')">✦ 大模型生成</button>`:''}
      </div>
      <input type="file" id="bf_${kid}" ${isDoc?'accept=".pdf,.doc,.docx"':'accept="application/pdf"'} hidden onchange="onUpBlock('${esc(b.sec)}',this)">
      <div class="bfile" id="bfile_${kid}" style="${fileShown}"><span class="ok">✓</span><span class="fname">${esc(st.name||'')}</span></div>
@@ -1170,7 +1184,8 @@ function collectSections(form,project){
       let arr=[]; if(grp)grp.querySelectorAll('input[type=checkbox]:checked').forEach(c=>arr.push(c.value));
       if(f.type==='multi-other'){const o=document.querySelector('#mbody [data-k="'+f.name+'__other"]'); if(o&&o.value.trim())arr.push('其他：'+o.value.trim());}
       form[f.name]=arr.join('、');
-    } else if(f.type==='photo'||f.type==='pdf'){ /* 状态由各自上传/生成处理器写入 */ }
+    }     else if(f.type==='photo'||f.type==='pdf'){ /* 状态由各自上传/生成处理器写入 */ }
+    else if(f.type==='docs'){ const box=document.querySelector('#mbody [data-doc="'+f.name+'"]'); const names=box?[...box.querySelectorAll('.docname')].map(d=>d.textContent):[]; form[f.name]=names.join('、'); }
     else { const el=document.querySelector('#mbody [data-k="'+f.name+'"]'); if(el)form[f.name]=el.value; }
   }));
 }
@@ -1180,6 +1195,21 @@ function upPhoto(name){const el=document.getElementById('pf_'+idk(name)); if(el)
 function upField(name){const el=document.getElementById('ff_'+idk(name)); if(el)el.click();}
 function readFileDataURL(file,cb){const fr=new FileReader();fr.onload=()=>cb(fr.result);fr.onerror=()=>cb('');fr.readAsDataURL(file);}
 function onUpField(name,inp){const f=inp.files&&inp.files[0]; if(!f)return; readFileDataURL(f,d=>{curReport.form[name]={mode:'pdf',name:f.name,data:d}; saveReports(); openDetail(curNo); toast('已上传文件');});}
+function pickDocOrg(btn){
+  const input=document.getElementById('docInputOrg');
+  input._box=btn.closest('.docs');
+  input.onchange=()=>{
+    const box=input._box; const list=box.querySelector('.doclist');
+    [...input.files].forEach(file=>{
+      const d=document.createElement('div'); d.className='docitem';
+      d.innerHTML=`<span class="docname">${esc(file.name)}</span><span class="docx" onclick="removeDocOrg(this)">×</span>`;
+      list.appendChild(d);
+    });
+    input.value='';
+  };
+  input.click();
+}
+function removeDocOrg(el){ el.parentElement.remove(); }
 function previewFile(dataURL,name){ if(!dataURL){toast('暂无可预览的文件');return;} openPdfModal(); const f=$('#pdfframe'); f.src=dataURL; f.style.display='block'; $('#pdfload').style.display='none'; const dl=$('#pdfDl'); dl.style.display=''; dl.onclick=()=>downloadDataURL(dataURL,name||'文件.pdf'); $('#pdfmask')._fileMode=true; }
 function downloadDataURL(dataURL,name){ try{const a=document.createElement('a');a.href=dataURL;a.download=name;document.body.appendChild(a);a.click();a.remove();}catch(e){toast('下载失败');} }
 function genField(name){curReport.form[name]={mode:'gen',text:(name==='演练方案'?'已根据演练信息生成演练方案大纲，请人工补充完善。':'已根据前项内容生成，请人工编辑完善。')}; saveReports(); openDetail(curNo); toast('已生成，可人工编辑');}
@@ -1346,5 +1376,6 @@ renderTable();
   </div>
 </div>
 
+<input type="file" id="docInputOrg" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple hidden>
 </body>
 </html>

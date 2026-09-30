@@ -71,6 +71,11 @@
   .up-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:9px;font-size:13.5px;cursor:pointer;font-weight:600}
   .up-btn svg{display:block}
   .fname{color:#6b7280;font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .docs{display:flex;flex-direction:column;gap:10px}
+  .doclist{display:flex;flex-direction:column;gap:7px}
+  .docitem{display:flex;align-items:center;gap:8px;background:#f4f6fb;border-radius:8px;padding:9px 11px}
+  .docitem .docname{font-size:12.5px;color:#3a4050;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .docitem .docx{width:18px;height:18px;border-radius:50%;background:#c8cedb;color:#fff;font-size:13px;text-align:center;line-height:17px;cursor:pointer;flex:none}
 
   .footer{flex:none;padding:10px 16px 24px;background:var(--bg);display:flex;gap:10px}
   .btn-main{flex:1;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
@@ -191,6 +196,7 @@
 </div>
 
 <input type="file" id="pdfInput" accept="application/pdf" style="display:none">
+<input type="file" id="docInput" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple style="display:none">
 
 <script src="html2canvas.min.js"></script>
 <script src="jspdf.umd.min.js"></script>
@@ -198,8 +204,10 @@
 const SECTIONS = [
   { title:'报告整理', fields:[
     {type:'single', name:'培训形式', opts:['线上培训','线下培训'], def:'线上培训', req:true},
+    {type:'single', name:'培训方式', opts:['理论培训','实操培训','视频观摩'], def:'理论培训', req:true},
+    {type:'text', name:'组织人员', max:50, ph:'请填写组织人员', req:true},
     {type:'photo', name:'培训通知', max:1, sources:['拍照','引用现场检查照片','手机相册'], req:true},
-    {type:'photo', name:'培训照片', max:20, sources:['拍照','引用现场检查照片'], req:true},
+    {type:'photo', name:'培训照片', max:6, sources:['拍照','引用现场检查照片'], req:true},
     {type:'photo', name:'签到表', max:10, sources:['拍照','引用现场检查照片','手机相册'], req:true},
     {type:'pdf', name:'培训课件1', note:'支持 PDF 上传', req:true},
     {type:'text', name:'培训主题', max:50, ph:'请填写培训主题', req:true},
@@ -209,8 +217,10 @@ const SECTIONS = [
     {type:'number', name:'参与人数', ph:'请输入参与人数', req:true},
     {type:'single', name:'是否有考试', opts:['否','是'], def:'否', key:'exam', req:true},
     {type:'photo', name:'成绩汇总单', max:10, sources:['拍照','引用现场检查照片'], showIf:'exam=是', req:true},
+    {type:'photo', name:'考试试卷摘要', max:10, sources:['拍照','引用现场检查照片'], showIf:'exam=是', req:true},
     {type:'single', name:'培训效果评估', opts:['实操','理论','满意度调查','无评估'], def:'实操', req:true},
     {type:'photo', name:'培训效果反馈表', max:10, sources:['拍照','引用现场检查照片'], req:true},
+    {type:'docs', name:'附件上传', note:'支持 PDF / Word 多份', req:false},
   ]},
 ];
 
@@ -294,6 +304,8 @@ function fieldHTML(f){
     if(f.note) inner += `<div class="ctr"><span style="margin-left:auto">${f.note}</span></div>`;
   } else if(f.type==='pdf'){
     inner = `<div class="upload"><span class="up-btn" onclick="pickPDF(this)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2b5ce6" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>上传 PDF</span><span class="fname">未选择文件</span></div>`;
+  } else if(f.type==='docs'){
+    inner = `<div class="docs"><button class="up-btn" type="button" onclick="pickDoc(this)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2b5ce6" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>添加文档</button><div class="doclist"></div></div>`;
   }
   const req = f.req?'<span class="req">*</span>':'';
   const note = (f.type!=='photo' && f.note)?`<span class="note">${f.note}</span>`:'';
@@ -379,6 +391,23 @@ function pickPDF(btn){
   input.click();
 }
 
+function pickDoc(btn){
+  const input = document.getElementById('docInput');
+  input._list = btn.parentElement.querySelector('.doclist');
+  input.onchange = ()=>{
+    const list = input._list;
+    [...input.files].forEach(file=>{
+      const d = document.createElement('div');
+      d.className = 'docitem';
+      d.innerHTML = `<span class="docname">${esc(file.name)}</span><span class="docx" onclick="removeDoc(this)">×</span>`;
+      list.appendChild(d);
+    });
+    input.value = '';
+  };
+  input.click();
+}
+function removeDoc(el){ el.parentElement.remove(); }
+
 function validateReport(){
   const miss = [];
   document.querySelectorAll('#body .field').forEach(f=>{
@@ -391,6 +420,8 @@ function validateReport(){
       if(!f.querySelector('.inp').value.trim()) miss.push(lbl);
     } else if(f.querySelector('.photos')){
       if(!f.querySelector('.thumb')) miss.push(lbl);
+    } else if(f.querySelector('.docs')){
+      if(!f.querySelector('.docitem')) miss.push(lbl);
     } else if(f.querySelector('.upload')){
       if(f.querySelector('.fname').textContent==='未选择文件') miss.push(lbl);
     }
@@ -417,6 +448,9 @@ function collectReport(){
         const tag = t.querySelector('.tag')?.textContent;
         return ({'拍':'拍照','引':'引用现场检查照片','册':'手机相册'}[tag] || '照片');
       }).join('、') : '—';
+    } else if(f.querySelector('.docs')){
+      const di = [...f.querySelectorAll('.docitem .docname')].map(d=>d.textContent);
+      val = di.length ? di.join('、') : '—';
     } else if(f.querySelector('.upload')){
       const fn = f.querySelector('.fname').textContent;
       val = fn==='未选择文件' ? '—' : fn;
