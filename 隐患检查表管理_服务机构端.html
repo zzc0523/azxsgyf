@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>隐患检查表管理 · 服务机构端</title>
-<link rel="stylesheet" href="tech-common.css">
+<title>隐患检查表管理 · 保险机构端</title>
+<link rel="stylesheet" href="ins-common.css">
 <style>
   .card{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(20,30,60,.04);}
   /* 查询卡片 */
@@ -77,12 +77,11 @@
   .mbody{flex:1;overflow:auto;padding:22px 26px 26px;}
   .mfoot{flex:0 0 60px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 26px;border-top:1px solid var(--line);}
   .form{display:grid;grid-template-columns:1fr;gap:16px;}
-  /* 覆盖 tech-common.css 的 .fitem 纵向布局，保持与「检查表管理」一致的横向表单 */
-  .fitem{display:flex;flex-direction:row;align-items:flex-start;gap:0;}
-  .fitem label{flex:0 0 116px;width:116px;text-align:right;padding-right:12px;font-size:13px;font-weight:400;color:#3a4354;line-height:32px;}
-  .fitem .req{color:#f04438;margin-left:0;margin-right:3px;}
-  .fitem input,.fitem select,.fitem textarea{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;font-family:inherit;}
-  .fitem textarea{height:72px;min-height:0;padding:8px 10px;line-height:1.5;resize:vertical;}
+  .fitem{display:flex;align-items:flex-start;}
+  .fitem label{flex:0 0 116px;width:116px;text-align:right;padding-right:12px;font-size:13px;color:#3a4354;line-height:32px;}
+  .fitem .req{color:#f04438;margin-right:3px;}
+  .fitem input,.fitem select,.fitem textarea{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
+  .fitem textarea{height:72px;padding:8px 10px;line-height:1.5;resize:vertical;}
   .fitem input:focus,.fitem select:focus,.fitem textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
   input:disabled{background:#f5f7fa;border-color:#eef1f6;color:#2b3242;-webkit-text-fill-color:#2b3242;cursor:default;}
   /* 题库弹窗：加宽标签列，避免标签换行 */
@@ -114,13 +113,13 @@
 <body>
 <div class="layout">
   <aside class="side">
-    <div class="brand"><i class="logo"><i></i><b></b></i><span>安全服务端</span></div>
+    <div class="brand"><i class="logo"><i></i><b></b></i><span>保险机构端</span></div>
     <nav class="nav" id="nav"></nav>
   </aside>
 
   <main class="main">
     <header class="topbar" id="topbar"></header>
-    <!-- 页签（公共组件，菜单/路由在 tech-common.js 中维护） -->
+    <!-- 页签（公共组件，菜单/路由在 ins-common.js 中维护） -->
     <div class="tabs" id="tabs"></div>
 
     <div class="page">
@@ -300,7 +299,7 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="tech-common.js"></script>
+<script src="ins-common.js"></script>
 <script>
 /* ===== 枚举 ===== */
 const INDUSTRIES=['煤矿','非煤矿山','危险化学品','烟花爆竹','交通运输','建筑施工','民用爆炸物品','金属冶炼','渔业生产','其他'];
@@ -329,16 +328,16 @@ fillSel($('#e_industry'),INDUSTRIES,'');
 function fmt(d){const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());}
 function seed(){
   const R=[
-    ['2088082639112712118','施工现场安全风险检查表','建筑施工','启用','安全服务端','-','2026-08-14 09:57:51'],
-    ['2088082343800156119','施工现场安全隐患检查表','建筑施工','启用','安全服务端','-','2026-08-14 09:56:40'],
-    ['2085181952246018017','化学品生产企业重大事故隐患排查表','危险化学品','启用','安全服务端','-','2026-08-06 09:51:33'],
-    ['2085181733529841613','市政房屋工程重大事故隐患排查表','建筑施工','停用','安全服务端','-','2026-08-06 09:50:41'],
-    ['2084923126070505410','建筑施工-市政房屋工程隐患排查表','建筑施工','停用','安全服务端','-','2026-08-05 16:43:04'],
-    ['2084897736211951612','工贸企业','其他','启用','技术人员测试','安全服务端','2026-08-05 15:02:10'],
+    ['2088082639112712118','施工现场安全风险检查表','建筑施工','启用','监管部门','-','2026-08-14 09:57:51'],
+    ['2088082343800156119','施工现场安全隐患检查表','建筑施工','启用','监管部门','-','2026-08-14 09:56:40'],
+    ['2085181952246018017','化学品生产企业重大事故隐患排查表','危险化学品','启用','监管部门','-','2026-08-06 09:51:33'],
+    ['2085181733529841613','市政房屋工程重大事故隐患排查表','建筑施工','停用','监管部门','-','2026-08-06 09:50:41'],
+    ['2084923126070505410','建筑施工-市政房屋工程隐患排查表','建筑施工','停用','监管部门','-','2026-08-05 16:43:04'],
+    ['2084897736211951612','工贸企业','其他','启用','技术人员测试','中国人寿保险','2026-08-05 15:02:10'],
     ['2084583522133995514','111','煤矿','启用','技术人员测试','-','2026-08-04 18:13:36'],
-    ['2084556149107847116','测试金属矿','煤矿','启用','安全服务端','-','2026-08-04 16:24:50'],
-    ['2004115218715000811','自定','煤矿','启用','技术人员测试','安全服务端','2025-12-25 17:01:17'],
-    ['2004115074573549515','定义及','交通运输','启用','技术人员测试','安全服务端','2025-12-25 17:00:43']
+    ['2084556149107847116','测试金属矿','煤矿','启用','监管部门','-','2026-08-04 16:24:50'],
+    ['2004115218715000811','自定','煤矿','启用','技术人员测试','中国人寿保险','2025-12-25 17:01:17'],
+    ['2004115074573549515','定义及','交通运输','启用','技术人员测试','中国人寿保险','2025-12-25 17:00:43']
   ];
   const list=R.map(([code,name,industry,status,creator,org,time])=>({code,name,industry,status,creator,org,time}));
   const NAMES=['非煤矿山安全隐患检查表','道路运输企业安全检查表','危险化学品储存安全检查表','建筑施工起重机械检查表','工贸企业粉尘防爆检查表',
@@ -350,18 +349,18 @@ function seed(){
       name:NAMES[i%10]+(i>=10?'（'+(Math.floor(i/10)+1)+'）':''),
       industry:INDUSTRIES[i%5],
       status:i%5===0?'停用':'启用',
-      creator:i%3===0?'技术人员测试':'安全服务端',
-      org:i%3===0?'安全服务端':'-',
+      creator:i%3===0?'技术人员测试':'监管部门',
+      org:i%3===0?'中国人寿保险':'-',
       time:fmt(new Date(base-i*2*86400000-(i%7)*3600000))
     });
   }
   return list;
 }
 let DATA;
-try{ const s=localStorage.getItem('svc_patrol_tables'); DATA=s?JSON.parse(s):null; }catch(e){ DATA=null; }
+try{ const s=localStorage.getItem('ins_patrol_tables'); DATA=s?JSON.parse(s):null; }catch(e){ DATA=null; }
 if(!Array.isArray(DATA)||!DATA.length) DATA=seed();
-function saveTables(){ try{ localStorage.setItem('svc_patrol_tables', JSON.stringify(DATA)); }catch(e){} }
-saveTables();   // 持久化供移动端「服务登记」从服务机构端选用启用检查表
+function saveTables(){ try{ localStorage.setItem('ins_patrol_tables', JSON.stringify(DATA)); }catch(e){} }
+saveTables();   // 持久化供移动端「服务登记」从机构端选用启用检查表
 
 /* ===== 题库 演示数据（示例题目按图片构建：房屋市政工程生产安全重大事故隐患） ===== */
 const QBASE=[
@@ -417,7 +416,7 @@ function seedQuestions(){
 /* 按检查表名称隔离题库数据（懒初始化，持久化到 localStorage 供现场排查表读取） */
 const BANK={};
 function nameOf(code){ const d=DATA.find(x=>x.code===code); return d?d.name:code; }
-function bankKey(nm){ return 'svc_qbank_'+encodeURIComponent(nm); }
+function bankKey(nm){ return 'ins_qbank_'+encodeURIComponent(nm); }
 function saveBank(code){ try{ localStorage.setItem(bankKey(nameOf(code)), JSON.stringify(BANK[code])); }catch(e){} }
 function bankOf(code){
   const nm=nameOf(code);
@@ -553,8 +552,8 @@ function saveForm(){
     name:name,
     industry:$('#e_industry').value,
     status:$('#e_status').value,
-    creator:'安全服务端',
-    org:'安全服务端',
+    creator:'中国人寿保险',
+    org:'中国人寿保险',
     time:fmt(new Date())
   };
   if(editIdx<0){DATA.unshift(rec);state.page=1;toast('检查表新增成功');}
@@ -761,11 +760,11 @@ function doImport(){
 }
 
 /* ===== 初始化（公共组件入口） ===== */
-initTech({
+initIns({
   bread:['隐患检查表管理'],
-  active:'检查表管理',
-  tabs:['检查表管理'],
-  tabActive:'检查表管理'
+  active:'隐患检查表管理',
+  tabs:['隐患检查表管理'],
+  tabActive:'隐患检查表管理'
 });
 renderTable();
 </script>

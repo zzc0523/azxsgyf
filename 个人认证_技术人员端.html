@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>个人认证 · 技术人员端</title>
+<link rel="stylesheet" href="tech-person-common.css">
+<style>
+  /* ===== 认证卡片 ===== */
+  .wrap{max-width:1060px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:8px;
+    box-shadow:0 1px 3px rgba(20,30,60,.06);padding:22px 64px 46px}
+  .ptitle{text-align:center;font-size:18px;font-weight:600;color:#222b3a;letter-spacing:2px;margin:4px 0 24px}
+  .sec{font-size:14px;font-weight:600;color:#222b3a;margin:28px 0 18px}
+  .req{color:#e5484d;font-style:normal;margin-right:3px}
+
+  /* ===== 表单行 ===== */
+  .frow{display:flex;align-items:flex-start;margin-bottom:16px}
+  .frow>label{flex:0 0 150px;text-align:right;padding-right:14px;font-size:13px;color:#5d6879;line-height:34px;white-space:nowrap}
+  .frow.top>label{line-height:22px;padding-top:7px}
+  .ctrls{flex:1;min-width:0;display:flex;flex-direction:column;gap:9px}
+  .ctrls.row{flex-direction:row;align-items:center;gap:30px;height:34px}
+
+  .inp{width:340px;height:34px;border:1px solid #dfe4ed;border-radius:5px;padding:0 10px;font-size:13px;
+    color:var(--txt);background:#fff;outline:none;font-family:inherit}
+  select.inp{cursor:pointer}
+  .inp:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(43,92,230,.12)}
+  .inp.short{width:190px}
+  textarea.inp{width:380px;height:104px;padding:8px 10px;line-height:1.6;resize:vertical}
+
+  /* ===== 单选 / 复选 ===== */
+  .rd{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:#2b3242;cursor:pointer}
+  .rd input{width:15px;height:15px;accent-color:var(--brand);cursor:pointer}
+  .ckgrid{display:flex;flex-wrap:wrap;gap:14px 34px;max-width:840px}
+  .ck{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:#2b3242;cursor:pointer;white-space:nowrap}
+
+  /* ===== 身份证照片 ===== */
+  .idrow{display:flex;align-items:center;gap:46px;margin:2px 0 22px}
+  .idgroup{display:flex;align-items:center;gap:14px}
+  .idgroup>label{flex:0 0 150px;text-align:right;padding-right:14px;font-size:13px;color:#5d6879;white-space:nowrap}
+  .idcard{position:relative;width:122px;height:76px;flex:0 0 122px;border:1px solid #c9d5e8;border-radius:5px;
+    background:linear-gradient(150deg,#eef4fd,#dae6f8);overflow:hidden;cursor:pointer;transition:.15s;
+    box-shadow:0 1px 2px rgba(20,30,60,.08)}
+  .idcard:hover{border-color:var(--brand);box-shadow:0 0 0 3px rgba(43,92,230,.12)}
+  .idcard .idcn{position:absolute;left:21px;top:6px;font-size:7.5px;line-height:1.3;color:#2a4d8f}
+  .idcard .emblem{position:absolute;left:6px;top:7px;width:11px;height:11px;border-radius:50%;
+    background:radial-gradient(circle at 50% 38%,#ff6b6b,#d92b2b)}
+  .idcard.front .photo{position:absolute;right:7px;top:24px;width:30px;height:40px;border-radius:3px;
+    border:1px solid #b7cdea;background:linear-gradient(160deg,#d6e5f8,#9fbfe6)}
+  .idcard.back .emblem{left:50%;top:44%;transform:translate(-50%,-50%);width:24px;height:24px}
+  .idcard.back .idcn{left:50%;top:auto;bottom:5px;transform:translateX(-50%);white-space:nowrap}
+
+  /* ===== 网络认证印章 ===== */
+  .seal{position:relative;margin-left:auto;width:88px;height:88px;flex:0 0 88px;border-radius:50%;
+    border:2px solid #18a06a;color:#18a06a;display:flex;align-items:center;justify-content:center;
+    transform:rotate(-16deg);opacity:.92}
+  .seal::before{content:"";position:absolute;inset:5px;border:1px dashed #18a06a;border-radius:50%}
+  .seal .st{font-size:13px;font-weight:700;letter-spacing:2px;line-height:1.15;text-align:center}
+
+  /* ===== 证书文件 ===== */
+  .fileline{display:flex;align-items:center;gap:16px}
+  .filechip{display:inline-flex;align-items:center;gap:14px;height:34px;padding:0 12px;border:1px solid #e2e7f0;
+    border-radius:5px;background:#fff;color:#2b3242;font-size:13px}
+  .filechip .del{color:#8a93a5;cursor:pointer}
+  .filechip .del:hover{color:#e5484d}
+  .down{color:var(--brand);cursor:pointer}
+  .down:hover{text-decoration:underline}
+  .hint{font-size:12px;color:#9aa3b2}
+
+  /* ===== 提交 ===== */
+  .submitbar{display:flex;justify-content:center;margin-top:36px}
+  .btn.lg{height:38px;padding:0 30px;font-size:14px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="side">
+    <div class="brand"><i class="logo"><svg viewBox="0 0 16 16"><circle cx="8" cy="5.4" r="2.8"/><path d="M2.9 13.7a5.1 5.1 0 0 1 10.2 0"/></svg></i><span>安责险安全服务端</span></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-toggle" onclick="toggleSide()" title="收起/展开菜单"><i>«</i></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="tabs" id="tabs"></div>
+
+    <div class="page">
+      <div class="wrap">
+        <div class="ptitle">个人认证</div>
+
+        <!-- ============ 个人基本信息 ============ -->
+        <div class="sec">个人基本信息</div>
+
+        <div class="idrow">
+          <div class="idgroup">
+            <label><i class="req">*</i>身份证正面：</label>
+            <div class="idcard front" title="点击重新上传"><span class="emblem"></span><span class="idcn">中华人民共和国<br>居民身份证</span><span class="photo"></span></div>
+          </div>
+          <div class="idgroup">
+            <label>身份证反面：</label>
+            <div class="idcard back" title="点击重新上传"><span class="emblem"></span><span class="idcn">中华人民共和国居民身份证</span></div>
+          </div>
+          <div class="seal"><span class="st">审核通过</span></div>
+        </div>
+
+        <div class="frow"><label><i class="req">*</i>姓名：</label><div class="ctrls"><input class="inp" value="张老师"></div></div>
+        <div class="frow"><label><i class="req">*</i>性别：</label>
+          <div class="ctrls row">
+            <label class="rd"><input type="radio" name="sex">男</label>
+            <label class="rd"><input type="radio" name="sex" checked>女</label>
+          </div>
+        </div>
+        <div class="frow"><label><i class="req">*</i>身份证号码：</label><div class="ctrls"><input class="inp" value="110101199303070670"></div></div>
+        <div class="frow"><label><i class="req">*</i>年龄：</label><div class="ctrls"><input class="inp" value="33"></div></div>
+        <div class="frow"><label><i class="req">*</i>联系电话：</label><div class="ctrls"><input class="inp" value="14759249405"></div></div>
+        <div class="frow"><label><i class="req">*</i>户籍：</label><div class="ctrls"><input class="inp" value="北京"></div></div>
+        <div class="frow"><label><i class="req">*</i>所属机构：</label>
+          <div class="ctrls"><select class="inp">
+            <option>福建xx安全咨询</option>
+            <option>福建安信安全技术服务有限公司</option>
+            <option>其他机构</option>
+          </select></div>
+        </div>
+        <div class="frow"><label><i class="req">*</i>学历：</label>
+          <div class="ctrls"><select class="inp">
+            <option>博士研究生</option>
+            <option>硕士研究生</option>
+            <option>本科</option>
+            <option>大专及以下</option>
+          </select></div>
+        </div>
+        <div class="frow"><label><i class="req">*</i>毕业院校：</label><div class="ctrls"><input class="inp" value="北京大学"></div></div>
+        <div class="frow"><label><i class="req">*</i>所属专业：</label><div class="ctrls"><input class="inp" value="安全咨询"></div></div>
+
+        <!-- ============ 安全业务相关信息 ============ -->
+        <div class="sec">安全业务相关信息</div>
+
+        <div class="frow"><label><i class="req">*</i>证书名称：</label><div class="ctrls"><input class="inp" value="安全生产许可证"></div></div>
+
+        <div class="frow"><label><i class="req">*</i>安全相关证书：</label>
+          <div class="ctrls">
+            <div class="fileline">
+              <span class="filechip" id="certChip">安全生产许可证.jpg <a class="del" onclick="delCert()">删除</a></span>
+              <a class="down" onclick="toast('开始下载：安全生产许可证.jpg')">下载</a>
+            </div>
+            <div class="hint">支持扩展名：.jpg .bmp .png .pdf .doc .docx</div>
+          </div>
+        </div>
+
+        <div class="frow"><label><i class="req">*</i>职称级别：</label>
+          <div class="ctrls"><select class="inp">
+            <option>高级</option>
+            <option>中级</option>
+            <option>初级</option>
+          </select></div>
+        </div>
+
+        <div class="frow top"><label><i class="req">*</i>主要服务项目：</label>
+          <div class="ctrls">
+            <label class="ck"><input type="checkbox" data-all="proj">全选</label>
+            <div class="ckgrid">
+              <label class="ck"><input type="checkbox" data-grp="proj" checked>安全生产宣传教育培训</label>
+              <label class="ck"><input type="checkbox" data-grp="proj" checked>安全风险辨识、评估和安全评价</label>
+              <label class="ck"><input type="checkbox" data-grp="proj" checked>生产安全事故隐患排查</label>
+              <label class="ck"><input type="checkbox" data-grp="proj">安全生产标准化建设</label>
+              <label class="ck"><input type="checkbox" data-grp="proj">安全生产应急救援演练</label>
+              <label class="ck"><input type="checkbox" data-grp="proj">安全生产应急预案编制</label>
+            </div>
+            <input class="inp short" placeholder="其他">
+          </div>
+        </div>
+
+        <div class="frow top"><label><i class="req">*</i>主要服务行业：</label>
+          <div class="ctrls">
+            <label class="ck"><input type="checkbox" data-all="ind">全选</label>
+            <div class="ckgrid">
+              <label class="ck"><input type="checkbox" data-grp="ind">煤矿</label>
+              <label class="ck"><input type="checkbox" data-grp="ind">非煤矿山</label>
+              <label class="ck"><input type="checkbox" data-grp="ind">危险化学品</label>
+              <label class="ck"><input type="checkbox" data-grp="ind">烟花爆竹</label>
+              <label class="ck"><input type="checkbox" data-grp="ind">交通运输</label>
+              <label class="ck"><input type="checkbox" data-grp="ind" checked>建筑施工</label>
+              <label class="ck"><input type="checkbox" data-grp="ind">民用爆炸物品</label>
+              <label class="ck"><input type="checkbox" data-grp="ind">金属冶炼</label>
+              <label class="ck"><input type="checkbox" data-grp="ind">渔业生产</label>
+              <label class="ck"><input type="checkbox" data-grp="ind">其他</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="frow top"><label>行业工作经历：</label>
+          <div class="ctrls"><textarea class="inp" placeholder="请输入"></textarea></div>
+        </div>
+
+        <div class="submitbar">
+          <button class="btn primary lg" onclick="submitCert()">重新提交认证</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="tech-person-common.js"></script>
+<script>
+initTechPerson({ bread:['个人认证'], active:'个人认证', tabs:['个人认证'], tabActive:'个人认证' });
+
+/* 全选联动 */
+document.querySelectorAll('input[data-all]').forEach(all => {
+  const g = all.dataset.all;
+  const opts = () => Array.from(document.querySelectorAll('input[data-grp="' + g + '"]'));
+  all.addEventListener('change', () => opts().forEach(o => { o.checked = all.checked; }));
+  opts().forEach(o => o.addEventListener('change', () => {
+    const list = opts();
+    all.checked = list.every(x => x.checked);
+    all.indeterminate = !all.checked && list.some(x => x.checked);
+  }));
+  const list = opts();
+  all.checked = list.every(x => x.checked);
+});
+
+/* 删除证书 */
+function delCert(){
+  const chip = document.getElementById('certChip');
+  chip.innerHTML = '<span style="color:#9aa3b2">未上传</span> <a class="del" onclick="toast(\'请选择文件重新上传\')">上传</a>';
+  toast('已删除：安全生产许可证.jpg');
+}
+
+/* 提交 */
+function submitCert(){ toast('认证信息已重新提交，等待审核'); }
+</script>
+</body>
+</html>
