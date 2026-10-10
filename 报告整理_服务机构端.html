@@ -62,6 +62,7 @@
   .beditor{margin-top:6px}
   .barea{width:100%;min-height:90px;border:1px solid #dfe4ed;border-radius:6px;padding:8px;font-size:13px;font-family:inherit;line-height:1.6;resize:vertical}
   .bstat{font-size:13px;margin-top:6px}
+  .bcount{font-size:11px;color:#b9bfcc;text-align:right;margin-top:4px}
 
   /* 多选 / 照片状态 */
   .chkgrp{display:flex;flex:1;min-width:0;flex-wrap:wrap;gap:10px 12px;padding:2px 0;align-content:flex-start}
@@ -80,16 +81,24 @@
   .phstat.no{color:#e5484d}
   .btn.sm{height:30px;padding:0 12px;font-size:12px;border-radius:5px}
   .btn.sm.ai{background:#7c3aed;border-color:#7c3aed;color:#fff}
+  .btn:disabled{cursor:not-allowed;opacity:.6;background:#eef1f6;color:#9aa2b1;border-color:#e6eaef;box-shadow:none}
+  .btn.primary:disabled{background:#cdd5e2;color:#fff;border-color:#cdd5e2}
+  .rev-hint{margin-top:10px;font-size:12px;color:#8b91a0;display:flex;align-items:center;gap:6px}
+  .rev-hint::before{content:"!";display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:#f0a23a;color:#fff;font-size:11px;font-weight:700}
+  .fitem .airow{flex:0 0 100%;width:100%;display:flex;padding-left:150px;margin-top:8px}
 
   /* 隐患 / 风险 清单（读取自小程序端，可编辑） */
   .haz-meta{font-size:13px;color:#5d6879;margin:10px 0 8px}
   .haz-meta b{color:var(--brand);font-size:15px;margin:0 2px}
   .haz-wrap{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
   .haz-head,.haz-row{display:grid;gap:10px;align-items:center;padding:8px 12px;min-width:0}
-  .haz-hz .haz-head,.haz-hz .haz-row{grid-template-columns:40px minmax(170px,2.4fr) 120px 110px 140px 120px 56px}
+  .haz-hz .haz-head,.haz-hz .haz-row{grid-template-columns:40px minmax(150px,2fr) minmax(150px,2fr) minmax(150px,2fr) 92px 64px}
   .haz-rk .haz-head,.haz-rk .haz-row{grid-template-columns:34px minmax(130px,1.5fr) 90px 110px 140px 90px minmax(140px,2fr) 64px}
   .haz-rk .haz-head span{white-space:normal;line-height:1.25}
   .hz-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:#1f2329}
+  .haz-lv{justify-self:start;font-size:12px;line-height:20px;padding:0 8px;border-radius:4px;background:#f2f4f8;color:#5b6472;white-space:nowrap}
+  .haz-lv.lv-red{background:#fdecec;color:#d9363e}
+  .haz-lv.lv-blue{background:#eef4ff;color:#2b5ce6}
   .haz-act{gap:14px}
   .haz-edit{cursor:pointer;color:#3b7cff;font-size:15px;line-height:1;transition:color .15s}
   .haz-edit:hover{color:#2b6ce8}
@@ -113,6 +122,18 @@
   .echip.on{background:rgba(43,92,230,.10);border-color:var(--brand);color:var(--brand);font-weight:600}
   .aibtn{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 10px;border:none;background:#7c3aed;color:#fff;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
   .aibtn:hover{opacity:.92}
+  .aibtn.wide{width:100%;justify-content:center;height:30px;margin-top:2px}
+  .efield label .req{margin:0 3px 0 0}
+  .ehint{font-size:12px;color:#b3b9c6;line-height:1.5;margin:-2px 0 2px}
+  /* 大模型辨识隐患 · 备选列表 */
+  .ecand{margin-top:2px;border:1px solid #ece9f9;border-radius:10px;background:#faf9fe;overflow:hidden}
+  .ecand .cand-tip{font-size:12px;color:#7c3aed;padding:9px 12px;border-bottom:1px solid #ece9f9;line-height:1.5}
+  .ecand .cand-opt{display:flex;align-items:flex-start;gap:9px;padding:9px 12px;cursor:pointer;border-top:1px solid #f1eef9}
+  .ecand .cand-opt:first-of-type{border-top:none}
+  .ecand .cand-opt .box{flex:none;width:17px;height:17px;border-radius:5px;border:1.5px solid #c4bce8;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
+  .ecand .cand-opt.on{background:#f1ecfd}
+  .ecand .cand-opt.on .box{background:#7c3aed;border-color:#7c3aed}
+  .ecand .cand-opt .txt{font-size:13px;color:#1f2329;line-height:1.5}
   .efield .cnt{font-size:12px;color:#b9bfcc;text-align:right;margin-top:-2px}
   /* 风险等级自动计算 · 徽标与算式 */
   .level-row{display:flex;align-items:center;gap:10px}
@@ -148,7 +169,6 @@
   .haz-act{display:flex;justify-content:center;align-items:center}
   .haz-del{cursor:pointer;color:#c9ced9;font-size:15px;line-height:1;transition:color .15s}
   .haz-del:hover{color:#e5484d}
-  .haz-ops{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px}
 
   /* 底部操作区 */
   .revbox{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
@@ -186,7 +206,11 @@
   .pthumb .pth-del{position:absolute;top:2px;right:2px;width:20px;height:20px;border:none;border-radius:50%;background:rgba(20,28,46,.6);color:#fff;font-size:12px;line-height:20px;text-align:center;padding:0;opacity:0;transition:.12s}
   .pthumb:hover .pth-del{opacity:1}
   .phtip{font-size:12px;color:#9aa3b2}
-  /* 照片来源选择弹层（拍照 / 引用现场检查照片 / 手机相册） */
+  .prow{display:flex;flex-direction:column;gap:8px}
+  .prow .fctl{width:100%}
+  .prow .phstat{display:inline-flex;align-items:center}
+  .prow .pthumbs{margin-top:2px}
+  /* 照片来源选择弹层（本地上传 / 引用现场检查照片） */
   .psheet{width:min(560px,92vw);max-height:86vh;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);display:flex;flex-direction:column}
   .psheet-head{padding:14px 18px;border-bottom:1px solid var(--line);font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
   .psheet-x{border:none;background:#f1f3f7;width:26px;height:26px;border-radius:6px;cursor:pointer;color:#5d6879;font-size:13px}
@@ -260,7 +284,7 @@
 
       <!-- 工具栏 -->
       <div class="tbar">
-        <span class="tip">整理内容（模块与字段）与小程序端完全一致；整理完成后「生成报告 / 提交审核」，提交后自动进入「服务报告审核」待初审。</span>
+        <span class="tip"></span>
       </div>
 
       <!-- 列表 -->
@@ -303,6 +327,18 @@
     <div class="efoot">
       <button class="btn sm" type="button" onclick="closeRiskEdit()">取消</button>
       <button class="btn sm primary" type="button" onclick="saveRiskEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 隐患编辑弹窗 -->
+<div class="emask" id="hazEditMask">
+  <div class="emodal">
+    <div class="emhead"><span>编辑隐患信息</span><span class="x" onclick="closeHazardEdit()">✕</span></div>
+    <div class="embody" id="hazEditBody"></div>
+    <div class="efoot">
+      <button class="btn sm" type="button" onclick="closeHazardEdit()">取消</button>
+      <button class="btn sm primary" type="button" onclick="saveHazardEdit()">保存</button>
     </div>
   </div>
 </div>
@@ -398,7 +434,23 @@ function allPhotoNames(){
 function patrolKey(project){return 'patrol_'+project;}
 function patrolLoad(project){ let list=null; try{const s=localStorage.getItem(patrolKey(project)); if(s!=null)list=JSON.parse(s);}catch(e){} if(!Array.isArray(list)||!list.length)list=[{name:'现场用电类排查表'},{name:'安全管理类排查表'}]; return list.map(r=>({name:(r&&r.name)?r.name:String(r),done:true})); }
 function patrolSave(project,list){ try{localStorage.setItem(patrolKey(project),JSON.stringify(list));}catch(e){} }
-function loadHazards(project){ try{const s=localStorage.getItem('hazardlist_'+project); if(s)return JSON.parse(s);}catch(e){} return [{name:'消防通道被杂物堵塞，影响应急疏散',category:'消防安全类',owner:'张伟',deadline:'2026-09-30',status:'整改中',level:'重大隐患'},{name:'配电箱未上锁且缺少安全警示标识',category:'现场用电类',owner:'李强',deadline:'2026-10-15',status:'未整改',level:'一般隐患'},{name:'临时用电线缆拖地敷设未做防护',category:'现场用电类',owner:'王芳',deadline:'2026-09-28',status:'已整改',level:'一般隐患'},{name:'起重机限位装置失效，存在超限风险',category:'特种设备类',owner:'赵磊',deadline:'2026-10-08',status:'未整改',level:'重大隐患'}]; }
+function hazardSeed(){ return [{name:'消防通道被杂物堵塞，影响应急疏散',category:'消防安全类',owner:'张伟',deadline:'2026-09-30',status:'未整改',level:'重大隐患',basis:'《中华人民共和国消防法》第二十八条',accident:['火灾','中毒','窒息'],advice:'立即清理疏散通道内杂物，设置禁止堆放标识并纳入日常巡查，确保通道畅通。'},{name:'配电箱未上锁且缺少安全警示标识',category:'现场用电类',owner:'李强',deadline:'2026-10-15',status:'未整改',level:'一般隐患',basis:'GB/T 13869《用电安全导则》',accident:['触电','火灾','容器爆炸'],advice:'配电箱加装门锁并张贴“当心触电”警示标识，落实专人管理。'},{name:'临时用电线缆拖地敷设未做防护',category:'现场用电类',owner:'王芳',deadline:'2026-09-28',status:'已整改',level:'一般隐患',basis:'GB/T 13869《用电安全导则》',accident:['触电','火灾','容器爆炸'],advice:'线缆架空或穿管敷设，穿越通道处加设过线槽并做防碾压保护。'},{name:'起重机限位装置失效，存在超限风险',category:'特种设备类',owner:'赵磊',deadline:'2026-10-08',status:'未整改',level:'重大隐患',basis:'GB 6067.1《起重机械安全规程》',accident:['起重致害','容器爆炸','机械致害'],advice:'立即停用并维修限位装置，检验合格后投入使用，同时做好每日点检记录。'}]; }
+function loadHazards(project){
+  let list=null;
+  try{const s=localStorage.getItem('hazardlist_'+project); if(s){const a=JSON.parse(s); if(Array.isArray(a)&&a.length)list=a;}}catch(e){}
+  if(!list) return hazardSeed();
+  /* 老数据回填：补齐新增字段、并规整整改状态到枚举值（未整改 / 已整改） */
+  const seed=hazardSeed(); let changed=false;
+  list.forEach(x=>{ const sd=seed.find(d=>d.name===x.name); if(!sd)return;
+    if(x.basis==null){ x.basis=sd.basis; changed=true; }
+    if(x.advice==null){ x.advice=sd.advice; changed=true; }
+    if(x.accident==null){ x.accident=sd.accident.slice(); changed=true; }
+    if(x.status==null){ x.status=sd.status; changed=true; }
+  });
+  list.forEach(x=>{ if(HAZ_STATUS.indexOf(x.status)<0){ x.status='未整改'; changed=true; } });
+  if(changed) saveHazards(project,list);
+  return list;
+}
 function loadRisks(project){ try{const s=localStorage.getItem('risklist_'+project); if(s)return JSON.parse(s);}catch(e){} return [{name:'土堆塌方风险',img:'',kind:'场所区域',loc:'生产区域',accType:'坍塌、滑坡',method:'作业条件危险性评价法(D=LEC)',identify:'LEC',level:'重大风险',cause:'边坡未支护、土体失稳',advice:'加强工地巡逻'},{name:'土堆塌方风险',img:'',kind:'场所区域',loc:'生产区域',accType:'滑坡',method:'风险判定矩阵法（R=LS）',identify:'LS',level:'较大风险',cause:'降雨浸泡、坡度过大',advice:'加强工地巡逻'},{name:'土堆塌方风险',img:'',kind:'作业活动',loc:'辅助生产区域',accType:'高处坠落',method:'作业条件危险性评价法(D=LEC)',identify:'LEC',level:'一般风险',cause:'临边无防护栏杆',advice:'加强工地巡逻'},{name:'土堆塌方风险',img:'',kind:'设备设施',loc:'非生产区域',accType:'物体打击',method:'作业条件危险性评价法(D=LEC)',identify:'LEC',level:'低风险',cause:'物料堆放不稳固',advice:'加强工地巡逻'}]; }
 /* 读取小程序端「服务登记」填写的内容（按字段名），供报告整理预填/修改 */
 function loadSvcForm(no,project){ try{const s=localStorage.getItem('svcform_'+no+'_'+project); if(s)return JSON.parse(s)||{};}catch(e){} return {}; }
@@ -406,12 +458,12 @@ function loadSvcForm(no,project){ try{const s=localStorage.getItem('svcform_'+no
 /* ===== 与小程序端一致的整理内容定义（六大项目，内容各不相同） ===== */
 const PROJECT_DEF = {
   '安全生产标准化管理体系建设':{type:'blocks',blocks:[
-    {sec:'评审报告',mode:'pdf|ai',tag:'报告'},
-    {sec:'改进建议',mode:'pdf|ai',tag:'报告'},
-    {sec:'其他报告',mode:'doc',tag:'文档'},
+    {sec:'自评报告及改进建议',mode:'pdf|ai',tag:'报告'},
+    {sec:'评分明细',mode:'pdf|doc',tag:'文档',req:true},
+    {sec:'安标创建制度汇编',mode:'pdf|doc',tag:'文档'},
+    {sec:'其他文档',mode:'doc',tag:'文档'},
   ]},
   '生产安全重大事故隐患排查':{type:'cards',cards:[
-    {title:'现场排查表',kind:'patrol'},
     {title:'隐患',kind:'link',store:'hazard',label:'隐患总数'},
   ]},
   '安全风险辨识、评估、评价':{type:'cards',cards:[
@@ -422,20 +474,21 @@ const PROJECT_DEF = {
       {name:'培训形式',type:'single',opts:['线上培训','线下培训'],def:'线上培训',req:true},
       {name:'培训方式',type:'single',opts:['理论培训','实操培训','视频观摩'],def:'理论培训',req:true},
       {name:'组织人员',type:'text',max:50,ph:'请填写组织人员',req:true},
-      {name:'培训通知',type:'photo',req:true},
-      {name:'培训照片',type:'photo',max:6,req:true},
-      {name:'签到表',type:'photo',max:10,req:true},
+      {name:'培训通知',type:'photo',max:1,sources:['本地上传','引用现场检查照片'],req:true},
+      {name:'培训照片',type:'photo',max:6,sources:['本地上传','引用现场检查照片'],req:true},
+      {name:'签到表',type:'photo',max:10,sources:['本地上传','引用现场检查照片'],req:true},
       {name:'培训课件1',type:'pdf',note:'支持 PDF 上传',req:true},
       {name:'培训主题',type:'text',max:50,ph:'请填写培训主题',req:true},
       {name:'培训对象',type:'multi',opts:['全体人员','管理人员','作业人员','特种作业人员'],req:true},
       {name:'培训大纲',type:'area',max:200,ph:'请填写培训大纲（200字以内）',req:true},
-      {name:'培训纪要',type:'photo',max:9,note:'培训课件部分内容',req:true},
+      {name:'培训纪要',type:'photo',max:9,sources:['本地上传'],note:'培训课件部分内容',req:true},
       {name:'参与人数',type:'number',ph:'请输入参与人数',req:true},
       {name:'是否有考试',type:'single',opts:['否','是'],def:'否',key:'exam',req:true},
-      {name:'成绩汇总单',type:'photo',max:10,sources:['拍照','引用现场检查照片'],showIf:'exam=是',req:true},
-      {name:'考试试卷摘要',type:'photo',max:10,sources:['拍照','引用现场检查照片'],showIf:'exam=是',req:true},
+      {name:'成绩汇总单',type:'photo',max:10,sources:['本地上传','引用现场检查照片'],showIf:'exam=是',req:true},
+      {name:'考试试卷摘要',type:'photo',max:10,sources:['本地上传','引用现场检查照片'],showIf:'exam=是',req:true},
       {name:'培训效果评估',type:'single',opts:['实操','理论','满意度调查','无评估'],def:'实操',req:true},
-      {name:'培训效果反馈表',type:'photo',max:10,req:true},
+      {name:'培训效果反馈表',type:'photo',max:10,sources:['本地上传','引用现场检查照片'],req:true},
+      {name:'考试试卷',type:'doc',note:'支持 PDF / Word',req:false},
       {name:'其他文档',type:'docs',note:'支持 PDF / Word 多份',req:false},
     ]},
   ]},
@@ -453,9 +506,8 @@ const PROJECT_DEF = {
       {name:'演练场景',type:'area',max:500,ph:'请填写演练场景（500字以内）',req:true},
       {name:'演练物资',type:'area',max:500,ph:'请填写演练物资（500字以内）',req:true},
       {name:'演练方案',type:'pdf',note:'PDF 上传 / 大模型生成 Word',ai:'word',req:true},
-      {name:'签到表',type:'photo',max:9,req:true},
-      {name:'演练物资',type:'photo',max:9,req:true},
-      {name:'现场演练照片',type:'photo',max:9,req:true},
+      {name:'签到表',type:'photo',max:9,sources:['本地上传','引用现场检查照片'],req:true},
+      {name:'演练物资',type:'photo',max:9,sources:['本地上传','引用现场检查照片'],req:true},
     ]},
     {title:'演练评估',fields:[
       {name:'演练人数',type:'number',ph:'请输入演练人数',req:true},
@@ -472,6 +524,8 @@ const PROJECT_DEF = {
     ]},
   ]},
   '安全生产应急预案编制':{type:'blocks',blocks:[
+    {sec:'生产安全事故风险分析',mode:'text',tag:'报告',max:500},
+    {sec:'应急资源差距分析',mode:'text',tag:'报告',max:500},
     {sec:'应急资源调查报告',mode:'pdf|gen',tag:'报告'},
     {sec:'生产安全事故风险评估报告',mode:'pdf|gen',tag:'报告'},
     {sec:'应急预案',mode:'pdf|gen',tag:'报告'},
@@ -479,6 +533,17 @@ const PROJECT_DEF = {
   ]},
 };
 function idk(s){return String(s).replace(/[^\w一-龥]/g,'_');}
+/* 需要「现场服务照片」必填模块的服务项目（安全生产宣传教育培训除外，其照片在报告整理中采集） */
+const SERVICE_PHOTO_PROJECTS=['安全生产标准化管理体系建设','生产安全重大事故隐患排查','安全风险辨识、评估、评价','安全生产应急救援演练','安全生产应急预案编制'];
+function needServicePhoto(project){ return SERVICE_PHOTO_PROJECTS.indexOf(project)>=0; }
+/* 现场服务照片模块（卡片式，必填） */
+function servicePhotoHTML(){
+  return `<div class="rsec">现场服务照片 <i class="req">*</i></div>
+    <div class="bcard">
+      <div class="bhint">来源：引用现场检查照片，最多 6 张</div>
+      <div class="prow">${photoGroupHTML('现场服务照片',6,false,['引用现场检查照片'])}</div>
+    </div>`;
+}
 
 /* ===== 数据 ===== */
 const STORE_KEY='org_report_organize_v2';
@@ -487,11 +552,11 @@ let REPORTS=[],curNo='',curReport=null;
 function seedReports(){
   const base=[
     {no:'YF20260011',company:'福州无比欢信息科技有限公司',project:'安全生产标准化管理体系建设',date:'2025.01.01-2025.01.05',place:'福州马尾区海峡广场A座',contact:'张三',phone:'18000000000',staff:'王磊',start:'2025.01.01 09:00:00',end:'2025.01.05 17:30:00',status:'待整理'},
-    {no:'YF20260012',company:'福建蓝海石化有限公司',project:'安全风险辨识、评估、评价',date:'2025.02.10-2025.02.12',place:'泉州泉港区石化园区',contact:'陈敏',phone:'18100000001',staff:'李娜',start:'2025.02.10 08:30:00',end:'2025.02.12 18:00:00',status:'整理中'},
+    {no:'YF20260012',company:'福建蓝海石化有限公司',project:'安全风险辨识、评估、评价',date:'2025.02.10-2025.02.12',place:'泉州泉港区石化园区',contact:'陈敏',phone:'18100000001',staff:'李娜',start:'2025.02.10 08:30:00',end:'2025.02.12 18:00:00',status:'待整理'},
     {no:'YF20260013',company:'厦门云途物流有限公司',project:'安全生产宣传教育培训',date:'2025.03.01-2025.03.01',place:'厦门集美区物流园',contact:'林涛',phone:'18200000002',staff:'陈伟',start:'2025.03.01 09:30:00',end:'2025.03.01 16:00:00',status:'待整理'},
-    {no:'YF20260014',company:'龙岩恒基机械制造有限公司',project:'安全生产应急救援演练',date:'2025.03.15-2025.03.15',place:'龙岩新罗区经开区',contact:'黄蕾',phone:'18300000003',staff:'赵强',start:'2025.03.15 09:00:00',end:'2025.03.15 15:30:00',status:'整理中'},
+    {no:'YF20260014',company:'龙岩恒基机械制造有限公司',project:'安全生产应急救援演练',date:'2025.03.15-2025.03.15',place:'龙岩新罗区经开区',contact:'黄蕾',phone:'18300000003',staff:'赵强',start:'2025.03.15 09:00:00',end:'2025.03.15 15:30:00',status:'待整理'},
     {no:'YF20260015',company:'漳州绿源食品有限公司',project:'安全生产应急预案编制',date:'2025.04.02-2025.04.03',place:'漳州龙海区',contact:'吴静',phone:'18400000004',staff:'孙敏',start:'2025.04.02 10:00:00',end:'2025.04.03 16:30:00',status:'待整理'},
-    {no:'YF20260016',company:'莆田宏远纺织有限公司',project:'生产安全重大事故隐患排查',date:'2025.04.20-2025.04.22',place:'莆田秀屿区',contact:'郑凯',phone:'18500000005',staff:'周斌',start:'2025.04.20 09:00:00',end:'2025.04.22 17:00:00',status:'已提交审核'},
+    {no:'YF20260016',company:'莆田宏远纺织有限公司',project:'生产安全重大事故隐患排查',date:'2025.04.20-2025.04.22',place:'莆田秀屿区',contact:'郑凯',phone:'18500000005',staff:'周斌',start:'2025.04.20 09:00:00',end:'2025.04.22 17:00:00',status:'整理中'},
   ];
   return base.map(r=>{ r.form={}; return r; });
 }
@@ -577,7 +642,7 @@ function setSize(n){state.size=+n;state.page=1;renderTable();}
 /* ===== 整理 / 详情 ===== */
 function closeModal(){$('#mask').classList.remove('show');}
 $('#mask').addEventListener('click',e=>{if(e.target===$('#mask'))closeModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closePdfModal();closeNew();closePrev();closePhotoSheet();closeRefLib();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closePdfModal();closeNew();closePrev();closePhotoSheet();closeRefLib();closeHazardEdit();}});
 document.getElementById('mbody').addEventListener('change',applyShowIf);
 
 /* ===== 照片预览 / 增改删（存储真实图片，与 photo_<name> 计数同步） ===== */
@@ -599,7 +664,7 @@ function photoGroupHTML(name,max,need,sources,noBtn){
     addBtn=full?`<span class="phtip">已达上限 ${max} 张</span>`
       :(srcs.length
         ? `<button class="btn sm" type="button" onclick="openPhotoSheet(this)">${imgs.length?'继续添加':'+ 添加照片'}</button>`
-        : `<button class="btn sm" type="button" onclick="upPhoto('${esc(name)}')">${imgs.length?'继续上传':'上传照片'}</button><button class="btn sm" type="button" onclick="openRefLib(this)">从现场检查照片添加</button>`);
+        : `<button class="btn sm" type="button" onclick="openRefLib(this)">从现场检查照片添加</button>`);
   }
   const fileInp=noBtn?'':`<input type="file" id="pf_${idk(name)}" accept="image/*" multiple hidden onchange="onUpPhoto('${esc(name)}',this,${max})">`;
   const capInp=(!noBtn&&srcs.length)?`<input type="file" id="pc_${idk(name)}" accept="image/*" capture="environment" hidden onchange="onUpPhoto('${esc(name)}',this,${max})">`:'';
@@ -652,17 +717,16 @@ function delPhoto(name,idx){
   if(prevState.name===name){ prevState.list=arr; if(arr.length){ if(prevState.i>=arr.length)prevState.i=arr.length-1; renderPrev(); } else { closePrev(); } }
   if(curNo)openDetail(curNo); toast('已删除 1 张照片'); return true;
 }
-/* ===== 照片来源（拍照 / 引用现场检查照片 / 手机相册） ===== */
+/* ===== 照片来源（本地上传 / 引用现场检查照片） ===== */
 const PHOTO_SRC_STYLE={
-  '拍照':{tag:'拍',bg:'linear-gradient(135deg,#5b86f5,#3f6ef2)'},
+  '本地上传':{tag:'本',bg:'linear-gradient(135deg,#5b86f5,#3f6ef2)'},
   '引用现场检查照片':{tag:'引',bg:'linear-gradient(135deg,#f0a44a,#e0852a)'},
-  '手机相册':{tag:'册',bg:'linear-gradient(135deg,#34c3a0,#1f9e7e)'},
 };
 let psCtx={name:'',max:10,srcs:[]};
 function openPhotoSheet(btn){
   const box=btn.closest('.fctl'); if(!box)return;
   psCtx={name:box.dataset.pname||'',max:+box.dataset.pmax||10,srcs:(box.dataset.srcs||'').split('|').filter(Boolean)};
-  if(!psCtx.srcs.length)psCtx.srcs=['手机相册'];
+  if(!psCtx.srcs.length)psCtx.srcs=['本地上传'];
   renderSheetOpts();
   $('#psheet').classList.add('show');
 }
@@ -681,8 +745,7 @@ function renderSheetOpts(){
 function pickPhotoSrc(s){
   if(s==='引用现场检查照片'){ renderRefPick(); return; }
   closePhotoSheet();
-  const a=(s==='手机相册')?'pf_':'pc_', b=(s==='手机相册')?'pc_':'pf_';
-  const el=document.getElementById(a+idk(psCtx.name))||document.getElementById(b+idk(psCtx.name));
+  const el=document.getElementById('pf_'+idk(psCtx.name));
   if(el)el.click(); else toast('当前字段不支持该来源');
 }
 function refSourceImgs(){
@@ -732,13 +795,13 @@ function openRefLib(btn){
 }
 function closeRefLib(){ const m=$('#reflib'); if(m)m.classList.remove('show'); }
 function confirmRefLib(){
-  if(refCtx.mode==='risk'){
+  if(refCtx.mode==='risk'||refCtx.mode==='hazard'){
     const pick=document.querySelector('#reflibBody .refgrid input:checked');
     const src=refSourceImgs();
     closeRefLib();
     if(!pick)return;
     const d=src[+pick.value]; if(!d)return;
-    applyRiskImg(d);
+    if(refCtx.mode==='risk')applyRiskImg(d); else applyHazImg(d);
     return;
   }
   const picks=[...document.querySelectorAll('#reflibBody .refgrid input:checked')].map(x=>+x.value);
@@ -753,7 +816,8 @@ function confirmRefLib(){
   toast('已添加 '+n+' 张照片');
 }
 function photoBlockHTML(project){
-  const rows=PHOTOS.map(p=>`<div class="fitem"><label>${esc(p.name)}</label>${photoGroupHTML(p.name,p.max,p.need,null,p.noBtn)}</div>`).join('');
+  /* 「现场检查照片」不在此展示（仍作为引用来源保留在本地数据中） */
+  const rows=PHOTOS.filter(p=>p.name!=='现场检查照片').map(p=>`<div class="fitem"><label>${esc(p.name)}</label>${photoGroupHTML(p.name,p.max,p.need,null,p.noBtn)}</div>`).join('');
   return `<div class="rsec">现场照片</div><div class="form">${rows}</div>`;
 }
 function fieldHTML(f,form){
@@ -772,6 +836,7 @@ function fieldHTML(f,form){
     ctrl=`<input type="${f.type==='number'?'number':'text'}" data-k="${esc(f.name)}"${kAt} value="${esc(val)}" placeholder="${esc(f.ph||'')}">`;
   } else if(f.type==='area'){
     ctrl=`<textarea data-k="${esc(f.name)}"${kAt} placeholder="${esc(f.ph||'')}">${esc(val)}</textarea>`;
+    if(f.ai==='summary') ctrl+=`<div class="airow"><button class="btn sm ai" type="button" onclick="genSummaryField('${esc(f.name)}')">✦ 大模型生成</button></div>`;
   } else if(f.type==='photo'){
     ctrl=photoGroupHTML(f.name,f.max||20,false,f.sources);
   } else if(f.type==='pdf'){
@@ -784,6 +849,12 @@ function fieldHTML(f,form){
     }
     if(f.ai) ctrl+=`<button class="btn sm ai" type="button" onclick="genField('${esc(f.name)}')">大模型生成</button>`;
     ctrl+=`<input type="file" id="ff_${idk(f.name)}" accept="application/pdf" hidden onchange="onUpField('${esc(f.name)}',this)">`;
+  } else if(f.type==='doc'){
+    const st=(form[f.name])||{};
+    const docAccept='.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    ctrl=`<span class="phstat ${st?'ok':'no'}">${st?('已上传 '+st):'未上传'}</span>`;
+    ctrl+=`<button class="btn sm" type="button" onclick="upField('${esc(f.name)}')">上传文件</button>`;
+    ctrl+=`<input type="file" id="ff_${idk(f.name)}" accept="${docAccept}" hidden onchange="onUpFieldDoc('${esc(f.name)}',this)">`;
   } else if(f.type==='docs'){
     const list=(val&&typeof val==='string')?val.split('、').filter(Boolean):[];
     ctrl=`<div class="docs" data-doc="${esc(f.name)}"><button class="btn sm" type="button" onclick="pickDocOrg(this)">添加文档</button><div class="doclist">${list.map(n=>`<div class="docitem"><span class="docname">${esc(n)}</span><span class="docx" onclick="removeDocOrg(this)">×</span></div>`).join('')}</div></div>`;
@@ -793,22 +864,25 @@ function fieldHTML(f,form){
 }
 function blockHTML(b,form){
   const st=(form.blocks&&form.blocks[b.sec])||{};
-  const hasAI=b.mode.indexOf('ai')>=0||b.mode.indexOf('gen')>=0;
-  const isDoc=b.mode==='doc';
+  const isText=b.mode==='text';
+  const hasAI=b.mode.indexOf('ai')>=0||b.mode.indexOf('gen')>=0||isText;
+  const isDoc=b.mode==='doc'||b.mode.indexOf('doc')>=0;
+  const max=b.max||0;
   const fileShown=st.mode==='pdf'?'':'display:none';
-  const areaShown=(st.mode==='gen'||st.mode==='ai')?'':'display:none';
-  const statusTxt=st.mode?(st.mode==='pdf'?('已上传 PDF：'+(st.name||'')):(st.mode==='gen'?'已生成并编辑（'+(st.text||'').length+' 字）':'已编辑')):'未整理';
+  const areaShown=(isText||st.mode==='gen'||st.mode==='ai')?'':'display:none';
+  const statusTxt=st.mode?(st.mode==='pdf'?('已上传 PDF：'+(st.name||'')):(st.mode==='gen'?(isText?('已填写（'+(st.text||'').length+' 字）'):('已生成并编辑（'+(st.text||'').length+' 字）')):'已编辑')):(isText?'未填写':'未整理');
   const kid=idk(b.sec);
-  return `<div class="rsec">${esc(b.sec)}</div>
+  return `<div class="rsec">${esc(b.sec)}${b.req?' <i class="req">*</i>':''}</div>
    <div class="bcard">
-     <div class="bhint">${b.tag==='文档'?'文档上传（PDF / Word）':'PDF 上传 或 大模型生成'}</div>
-     <div class="bacts">
+     <div class="bhint">${b.tag==='文档'?'文档上传（PDF / Word）':(isText?('手动输入 或 大模型生成（'+(max||500)+' 字以内）'):'PDF 上传 或 大模型生成')}</div>
+     ${isText?'':`<div class="bacts">
        ${st.mode==='pdf'?`<button class="btn sm" type="button" onclick="previewFile('${esc(st.data||'')}','${esc(st.name||'文件.pdf')}')">预览</button><button class="btn sm" type="button" onclick="upBlock('${esc(b.sec)}')">替换</button>`:`<button class="btn sm" type="button" onclick="upBlock('${esc(b.sec)}')">PDF 上传</button>`}
        ${hasAI?`<button class="btn sm ai" type="button" onclick="genBlock('${esc(b.sec)}')">✦ 大模型生成</button>`:''}
-     </div>
-     <input type="file" id="bf_${kid}" ${isDoc?'accept=".pdf,.doc,.docx"':'accept="application/pdf"'} hidden onchange="onUpBlock('${esc(b.sec)}',this)">
+     </div>`}
+     ${isText&&hasAI?`<div class="bacts"><button class="btn sm ai" type="button" onclick="genBlock('${esc(b.sec)}')">✦ 大模型生成</button></div>`:''}
+     <input type="file" id="bf_${kid}" ${isDoc?'accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"':'accept="application/pdf"'} ${isText?'style="display:none"':''} hidden onchange="onUpBlock('${esc(b.sec)}',this)">
      <div class="bfile" id="bfile_${kid}" style="${fileShown}"><span class="ok">✓</span><span class="fname">${esc(st.name||'')}</span></div>
-     ${hasAI?`<div class="beditor" id="beditor_${kid}" style="${areaShown}"><textarea class="barea" id="barea_${kid}">${esc(st.text||'')}</textarea><button class="btn sm" type="button" onclick="saveBlock('${esc(b.sec)}')">保存编辑</button></div>`:''}
+     ${hasAI?`<div class="beditor" id="beditor_${kid}" style="${areaShown}"><textarea class="barea" id="barea_${kid}" ${max?('maxlength="'+max+'"'):''} oninput="blockCnt('${esc(b.sec)}')" placeholder="${isText?'请手动输入，或点击「大模型生成」':'请人工补充完善'}">${esc(st.text||'')}</textarea><div class="bcount" id="bcount_${kid}">${(st.text||'').length}/${max||500}</div><button class="btn sm" type="button" onclick="saveBlock('${esc(b.sec)}')">保存编辑</button></div>`:''}
      <div class="bstat">状态：<span class="${st.mode?'ok':'no'}">${esc(statusTxt)}</span></div>
    </div>`;
 }
@@ -833,16 +907,21 @@ function cardHTML(c,project){
     const store=c.store, isH=store==='hazard';
     const list=isH?loadHazards(project):loadRisks(project);
     const head=isH
-      ? `<div class="haz-head"><span class="haz-idx">#</span><span>隐患名称</span><span>隐患等级</span><span>责任人</span><span>整改期限</span><span>整改状态</span><span class="haz-op">操作</span></div>`
+      ? `<div class="haz-head"><span class="haz-idx">#</span><span>隐患描述</span><span>检查依据</span><span>整改建议</span><span>隐患级别</span><span class="haz-op">操作</span></div>`
       : `<div class="haz-head"><span class="haz-idx">#</span><span>风险点名称</span><span>风险点种类</span><span>风险位置</span><span>可能导致的事故种类</span><span>风险等级</span><span>管控措施</span><span class="haz-op">操作</span></div>`;
     const rows=list.map((x,i)=> isH?hazardRowHTML(x,i,project):riskRowHTML(x,i,project)).join('')
-      || `<div class="haz-row"><span class="haz-idx">—</span><span class="muted" style="grid-column:2/-1">暂无数据，可点击下方按钮添加</span></div>`;
+      || `<div class="haz-row"><span class="haz-idx">—</span><span class="muted" style="grid-column:2/-1">暂无数据</span></div>`;
     return `<div class="rsec">${esc(c.title)}</div>
       <div class="haz-meta">${isH?'隐患':'风险'}总数 <b>${list.length}</b> 条 <span class="muted">· 读取自小程序端，可在此修改</span></div>
-      <div class="haz-wrap ${isH?'haz-hz':'haz-rk'}">${head}${rows}</div>
-      <div class="haz-ops">
-        <button class="btn sm" type="button" onclick="addListItem('${esc(store)}','${esc(project)}')">+ 添加${isH?'隐患':'风险'}</button>
-        ${isH?`<button class="btn sm" type="button" onclick="saveList('${esc(store)}','${esc(project)}')">保存${isH?'隐患':'风险'}修改</button>`:''}
+      <div class="haz-wrap ${isH?'haz-hz':'haz-rk'}">${head}${rows}</div>`;
+  }
+  if(c.kind==='photo'){
+    const max=c.max||6;
+    const srcTxt=(c.sources&&c.sources.length)?('来源：'+c.sources.join(' / ')+'，'):'';
+    return `<div class="rsec">${esc(c.title)}</div>
+      <div class="bcard">
+        <div class="bhint">${esc(srcTxt+'最多 '+max+' 张')}</div>
+        <div class="prow">${photoGroupHTML(c.title,max,false,c.sources)}</div>
       </div>`;
   }
   return '';
@@ -871,14 +950,17 @@ function savePatrolItems(no,name){
   saveInspect(no,name,items); toast('已保存逐项排查明细');
 }
 function hazardRowHTML(x,i,project){
+  const lv=x.level==='重大隐患'?'lv-red':'lv-blue';
   return `<div class="haz-row" data-hi="${i}">
     <span class="haz-idx">${i+1}</span>
-    <input data-f="name" value="${esc(x.name||'')}" placeholder="隐患名称">
-    <select data-f="level"><option ${x.level==='重大隐患'?'selected':''}>重大隐患</option><option ${x.level==='一般隐患'?'selected':''}>一般隐患</option></select>
-    <input data-f="owner" value="${esc(x.owner||'')}" placeholder="责任人">
-    <input data-f="deadline" value="${esc(x.deadline||'')}" placeholder="如 2026-09-30">
-    <select data-f="status"><option ${x.status==='整改中'?'selected':''}>整改中</option><option ${x.status==='未整改'?'selected':''}>未整改</option><option ${x.status==='已整改'?'selected':''}>已整改</option></select>
-    <span class="haz-act"><span class="haz-del" title="删除该行" onclick="delListItem('hazard','${esc(project)}',${i})">✕</span></span>
+    <span class="hz-t" title="${esc(x.name||'')}">${esc(x.name||'')}</span>
+    <span class="hz-t" title="${esc(x.basis||'')}">${esc(x.basis||'')}</span>
+    <span class="hz-t" title="${esc(x.advice||'')}">${esc(x.advice||'')}</span>
+    <span class="haz-lv ${x.level?lv:''}">${esc(x.level||'—')}</span>
+    <span class="haz-act">
+      <span class="haz-edit" title="修改该条隐患" onclick="openHazardEdit('${esc(project)}',${i})">&#9998;</span>
+      <span class="haz-del" title="删除该行" onclick="delListItem('hazard','${esc(project)}',${i})">✕</span>
+    </span>
   </div>`;
 }
 function riskRowHTML(x,i,project){
@@ -1108,6 +1190,149 @@ function saveRiskEdit(){
   toast('已保存风险信息');
 }
 function closeRiskEdit(){ const m=$('#riskEditMask'); if(m)m.classList.remove('show'); }
+/* ===== 隐患编辑弹窗 ===== */
+let curHazProject='', curHazIdx=-1;
+/* 大模型示例库（与小程序端「新增隐患 / 隐患详情」一致） */
+const HAZ_CAND_DESC={
+  '安全管理类':['安全管理制度未落实，隐患排查治理台账缺失','从业人员未按要求佩戴劳动防护用品','安全培训记录不完整、流于形式','应急预案未定期演练或更新','安全责任制未逐级签订落实'],
+  '现场用电类':['临时用电线缆拖地敷设未做穿管防护','配电箱未上锁且缺少安全警示标识','用电设备未做保护接地（接零）','漏电保护装置失效或未按期检测','私拉乱接、一闸多机现象'],
+  '消防安全类':['消防通道被杂物堵塞，影响应急疏散','灭火器过期或配置数量不足','疏散指示标志缺失或失效','易燃物堆放区未配备防火设施','消防控制室无人值守'],
+  '特种设备类':['起重机限位装置失效，存在超限风险','压力容器未定期检验、超期运行','电梯未按期维护保养','特种设备作业人员无证上岗','叉车制动性能不良'],
+  '危化品类':['危化品未按要求分区分类存放','易燃液体库房通风不良、未防爆','危化品泄漏收集设施缺失','剧毒化学品未落实双人双锁','危险化学品安全周知卡缺失'],
+  '工贸类':['机械设备旋转部位防护罩缺失','冲压设备双手启动装置失效','作业平台临边防护栏杆缺失','物料堆放超高、堵塞通道','砂轮机等工具防护不当'],
+  '建筑施工类':['高处作业人员未系挂安全带','脚手架连墙件缺失、搭设不规范','临边洞口防护不到位','深基坑边坡支护不符合方案','模板支撑体系超载'],
+  '矿山类':['采场边坡出现裂缝、有滑坡征兆','矿井通风不良、有害气体超标','支护滞后、空顶作业','提升设备安全保护装置失效','井下排水系统能力不足']
+};
+const HAZ_ACCIDENT_MAP={
+  '安全管理类':['物体打击','高处坠落','其他'],
+  '现场用电类':['触电','火灾','容器爆炸'],
+  '消防安全类':['火灾','中毒','窒息'],
+  '特种设备类':['起重致害','容器爆炸','机械致害'],
+  '危化品类':['火灾','可燃气体爆炸','中毒','泄漏'],
+  '工贸类':['机械致害','物体打击','触电'],
+  '建筑施工类':['高处坠落','坍塌','物体打击'],
+  '矿山类':['坍塌','中毒','滑坡']
+};
+const HAZ_LEVELS=['重大隐患','一般隐患'];
+const HAZ_STATUS=['未整改','已整改'];
+/* 行业类别字段已去除，大模型生成统一使用通用（安全管理类）示例库 */
+const HAZ_INDUSTRY='安全管理类';
+function hazHasImg(){ const hid=document.getElementById('he_img'); return !!(hid&&hid.value); }
+function hazGenIdentify(){
+  const box=document.getElementById('he_candBox'); if(!box)return;
+  const pool=(HAZ_CAND_DESC[HAZ_INDUSTRY]||HAZ_CAND_DESC['安全管理类']).slice();
+  box.innerHTML=`<div class="cand-tip">大模型已辨识出以下 5 条备选隐患，请人工选择（可多选，已选内容将填入隐患描述）</div>`+
+    pool.map(t=>`<div class="cand-opt" onclick="pickHazCand(this)"><span class="box">✓</span><span class="txt">${esc(t)}</span></div>`).join('');
+  box.style.display='block';
+  toast(hazHasImg()?'已基于图片辨识隐患':'已辨识隐患');
+}
+function pickHazCand(el){
+  el.classList.toggle('on');
+  const sel=[...document.querySelectorAll('#he_candBox .cand-opt.on .txt')].map(e=>e.textContent);
+  const d=document.getElementById('he_name'); if(d)d.value=sel.join('；');
+}
+/* 大模型一键生成：依据隐患描述回填 检查依据、事故种类、整改建议（均可编辑） */
+function hazGenAll(){
+  const d=($('#he_name').value||'').trim();
+  if(!d){ toast('请先填写或辨识隐患描述'); return; }
+  $('#he_basis').value=`依据《安全生产事故隐患排查治理暂行规定》及相关标准规范，针对「${d}」开展现场隐患排查，确认不符合项并按期整改闭环。`;
+  const list=HAZ_ACCIDENT_MAP[HAZ_INDUSTRY]||[];
+  const box=document.getElementById('he_accident'); let n=0;
+  if(box)box.querySelectorAll('.echip').forEach(c=>{ const on=list.indexOf(c.textContent)>=0; c.classList.toggle('on',on); if(on)n++; });
+  $('#he_advice').value=`针对「${d}」，建议：立即采取临时管控措施，明确整改责任人并限期闭环；完善相关安全管理制度与现场防护，整改完成后组织复查验收，防止同类隐患反复出现。`;
+  toast(n?`已生成检查依据、整改建议，并勾选 ${n} 项事故种类`:'已生成检查依据、整改建议');
+}
+/* 隐患图片：从现场检查照片库选择 / 本地上传 */
+function openHazPhotoLib(){
+  refCtx={mode:'hazard',name:'',max:1};
+  const list=refSourceImgs();
+  const hid=document.getElementById('he_img'); const cur=hid?hid.value:'';
+  $('#reflibTitle').textContent='现场检查照片库（选择 1 张作为隐患图片）';
+  const body=$('#reflibBody');
+  if(!list.length){ body.innerHTML='<div class="muted" style="padding:8px 2px">暂无现场检查照片，请先在「现场照片 · 现场检查照片」中采集。</div>'; }
+  else { body.innerHTML='<div class="refgrid">'+list.map((s,i)=>`<label class="refitem"><img src="${esc(s)}" alt=""><input type="radio" name="refpick" value="${i}" ${cur&&cur===s?'checked':''}></label>`).join('')+'</div>'; }
+  $('#reflib').classList.add('show');
+}
+function onHazEditImg(inp){
+  const f=inp.files&&inp.files[0]; if(!f)return;
+  fileToDataURL(f,d=>{ if(!d){ toast('图片读取失败，请换一张'); return; } applyHazImg(d); },480);
+}
+function upHazImg(){ const el=document.getElementById('he_imgFile'); if(el)el.click(); }
+function applyHazImg(d){
+  const hid=document.getElementById('he_img'); if(hid)hid.value=d;
+  refreshHazImg(); toast('已选择隐患图片');
+}
+function clearHazImg(){
+  const hid=document.getElementById('he_img'); if(hid)hid.value='';
+  refreshHazImg();
+}
+function refreshHazImg(){
+  const hid=document.getElementById('he_img'); const d=hid?hid.value:'';
+  const box=document.getElementById('he_imgBox');
+  if(box)box.innerHTML=d?`<img src="${esc(d)}" alt="">`:'<span>+ 选择</span>';
+  const rm=document.getElementById('he_imgRm'); if(rm)rm.style.display=d?'':'none';
+}
+function buildHazardEditForm(x){
+  const desc=x.name||'', basis=x.basis||'', advice=x.advice||'', level=x.level||'一般隐患';
+  const owner=x.owner||'', deadline=x.deadline||'', status=x.status||'未整改';
+  const acc=Array.isArray(x.accident)?x.accident.join('、'):String(x.accident||'');
+  const imgBox=`<div class="rk-imgpick">
+      <div class="box" id="he_imgBox" title="从现场检查照片库选择" onclick="openHazPhotoLib()">${x.img?`<img src="${esc(x.img)}" alt="">`:'<span>+ 选择</span>'}</div>
+      <div class="ops">
+        <span class="lnk" onclick="openHazPhotoLib()">从现场检查照片库选择</span>
+        <span class="lnk del" id="he_imgRm" style="${x.img?'':'display:none'}" onclick="clearHazImg()">移除图片</span>
+        <span class="tip" onclick="upHazImg()">或上传本地图片</span>
+      </div>
+    </div>
+    <input type="hidden" id="he_img" value="${esc(x.img||'')}">
+    <input type="file" id="he_imgFile" accept="image/*" hidden onchange="onHazEditImg(this)">`;
+  return `
+    <div class="efield"><label><i class="req">*</i>隐患图片</label><div class="ehint">上传 1 张现场照片，可用于大模型隐患辨识</div>${imgBox}</div>
+    <div class="efield"><label class="with"><span><i class="req">*</i>隐患描述</span><button type="button" class="aibtn" onclick="hazGenIdentify()">✦ 大模型辨识隐患</button></label>
+      <textarea id="he_name" maxlength="200" placeholder="请手动填写隐患描述（200字以内），或上传图片后点击「大模型辨识隐患」">${esc(desc)}</textarea>
+      <div class="ecand" id="he_candBox" style="display:none"></div>
+      <button type="button" class="aibtn wide" onclick="hazGenAll()">✦ 大模型生成（一键回填检查依据 / 事故种类 / 整改建议）</button>
+    </div>
+    <div class="efield"><label><i class="req">*</i>检查依据</label><textarea id="he_basis" maxlength="200" placeholder="请手动填写检查依据">${esc(basis)}</textarea></div>
+    <div class="efield"><label><i class="req">*</i>事故种类</label><div class="ehint">27 项可多选；或点击上方「大模型生成」按隐患描述自动勾选</div>${chipsHTML('he_accident',ACCIDENT_TYPES,acc,true)}</div>
+    <div class="efield"><label><i class="req">*</i>整改建议</label><textarea id="he_advice" maxlength="200" placeholder="请手动填写整改建议">${esc(advice)}</textarea></div>
+    <div class="efield"><label><i class="req">*</i>隐患级别</label>${chipsHTML('he_level',HAZ_LEVELS,level,false)}</div>
+    <div class="efield"><label>整改责任人</label><input id="he_owner" maxlength="20" value="${esc(owner)}" placeholder="请填写整改责任人（非必填）"></div>
+    <div class="efield"><label>整改期限</label><input type="date" id="he_deadline" value="${esc(deadline)}"></div>
+    <div class="efield"><label>整改状态</label>${chipsHTML('he_status',HAZ_STATUS,status,false)}</div>`;
+}
+function openHazardEdit(project,idx){
+  const x=loadHazards(project)[idx]; if(!x)return;
+  curHazProject=project; curHazIdx=idx;
+  $('#hazEditBody').innerHTML=buildHazardEditForm(x);
+  $('#hazEditMask').classList.add('show');
+}
+function saveHazardEdit(){
+  const list=loadHazards(curHazProject); const x=list[curHazIdx]; if(!x)return;
+  const desc=($('#he_name').value||'').trim(), basis=($('#he_basis').value||'').trim(), advice=($('#he_advice').value||'').trim();
+  const acc=chipVal('he_accident'), level=chipVal('he_level');
+  const miss=[];
+  if(!desc)   miss.push('隐患描述');
+  if(!basis)  miss.push('检查依据');
+  if(!advice) miss.push('整改建议');
+  if(!acc)    miss.push('事故种类');
+  if(!level)  miss.push('隐患级别');
+  if(miss.length){ toast('请完善：'+miss.join('、')); return; }
+  x.name=desc;
+  x.basis=basis;
+  x.advice=advice;
+  x.accident=acc?acc.split('、'):[];
+  x.level=level;
+  x.owner=($('#he_owner').value||'').trim();
+  x.deadline=($('#he_deadline').value||'').trim();
+  x.status=chipVal('he_status');
+  x.img=document.getElementById('he_img').value;
+  saveHazards(curHazProject,list);
+  closeHazardEdit();
+  openDetail(curNo);
+  toast('已保存隐患信息');
+}
+function closeHazardEdit(){ const m=$('#hazEditMask'); if(m)m.classList.remove('show'); }
 function addListItem(store,project){
   const isH=store==='hazard';
   const list=isH?loadHazards(project):loadRisks(project);
@@ -1119,12 +1344,6 @@ function addListItem(store,project){
   openDetail(curNo);
 }
 function delListItem(store,project,i){ const list=store==='hazard'?loadHazards(project):loadRisks(project); list.splice(i,1); if(store==='hazard')saveHazards(project,list); else saveRisks(project,list); openDetail(curNo); }
-function saveList(store,project){
-  const list=store==='hazard'?loadHazards(project):loadRisks(project);
-  document.querySelectorAll('.haz-row').forEach(el=>{ const i=+el.dataset.hi; if(!list[i])return; el.querySelectorAll('[data-f]').forEach(f=>{ list[i][f.dataset.f]=f.value; }); });
-  if(store==='hazard')saveHazards(project,list); else saveRisks(project,list);
-  toast('已保存'+(store==='hazard'?'隐患':'风险')+'修改'); openDetail(curNo);
-}
 function contentHtml(project,form){
   const def=PROJECT_DEF[project];
   if(def.type==='blocks') return def.blocks.map(b=>blockHTML(b,form)).join('');
@@ -1158,16 +1377,26 @@ function openDetail(no){
        </div>
      </div>
      ${photoBlockHTML(r.project)}
+     ${needServicePhoto(r.project)?servicePhotoHTML():''}
      ${contentHtml(r.project,r.form)}
      <div class="revbox">
        <div class="rev-actions">
          <button class="btn" onclick="saveOrganize()">保存整理</button>
          <button class="btn" onclick="previewPDF()">生成报告 / 预览</button>
-         <button class="btn primary" onclick="submitAudit()">提交审核</button>
+         <button class="btn primary" id="submitAuditBtn" onclick="submitAudit()" disabled>提交审核</button>
        </div>
+       <div class="rev-hint" id="submitHint">请先点击「生成报告 / 预览」生成报告后，再提交审核</div>
      </div>`;
   applyShowIf();
   $('#mask').classList.add('show');
+  refreshSubmitBtn(r);
+}
+function refreshSubmitBtn(r){
+  const b=document.getElementById('submitAuditBtn'); if(!b)return;
+  const ok=!!(r&&r.generated);
+  b.disabled=!ok;
+  b.title= ok?'':'请先生成报告后再提交审核';
+  const h=document.getElementById('submitHint'); if(h) h.style.display= ok?'none':'';
 }
 
 /* 收集（写入 form） */
@@ -1184,7 +1413,7 @@ function collectSections(form,project){
       let arr=[]; if(grp)grp.querySelectorAll('input[type=checkbox]:checked').forEach(c=>arr.push(c.value));
       if(f.type==='multi-other'){const o=document.querySelector('#mbody [data-k="'+f.name+'__other"]'); if(o&&o.value.trim())arr.push('其他：'+o.value.trim());}
       form[f.name]=arr.join('、');
-    }     else if(f.type==='photo'||f.type==='pdf'){ /* 状态由各自上传/生成处理器写入 */ }
+    }     else if(f.type==='photo'||f.type==='pdf'||f.type==='doc'){ /* 状态由各自上传/生成处理器写入 */ }
     else if(f.type==='docs'){ const box=document.querySelector('#mbody [data-doc="'+f.name+'"]'); const names=box?[...box.querySelectorAll('.docname')].map(d=>d.textContent):[]; form[f.name]=names.join('、'); }
     else { const el=document.querySelector('#mbody [data-k="'+f.name+'"]'); if(el)form[f.name]=el.value; }
   }));
@@ -1195,6 +1424,7 @@ function upPhoto(name){const el=document.getElementById('pf_'+idk(name)); if(el)
 function upField(name){const el=document.getElementById('ff_'+idk(name)); if(el)el.click();}
 function readFileDataURL(file,cb){const fr=new FileReader();fr.onload=()=>cb(fr.result);fr.onerror=()=>cb('');fr.readAsDataURL(file);}
 function onUpField(name,inp){const f=inp.files&&inp.files[0]; if(!f)return; readFileDataURL(f,d=>{curReport.form[name]={mode:'pdf',name:f.name,data:d}; saveReports(); openDetail(curNo); toast('已上传文件');});}
+function onUpFieldDoc(name,inp){const f=inp.files&&inp.files[0]; if(!f)return; curReport.form[name]=f.name; saveReports(); openDetail(curNo); toast('已上传文件');}
 function pickDocOrg(btn){
   const input=document.getElementById('docInputOrg');
   input._box=btn.closest('.docs');
@@ -1213,6 +1443,22 @@ function removeDocOrg(el){ el.parentElement.remove(); }
 function previewFile(dataURL,name){ if(!dataURL){toast('暂无可预览的文件');return;} openPdfModal(); const f=$('#pdfframe'); f.src=dataURL; f.style.display='block'; $('#pdfload').style.display='none'; const dl=$('#pdfDl'); dl.style.display=''; dl.onclick=()=>downloadDataURL(dataURL,name||'文件.pdf'); $('#pdfmask')._fileMode=true; }
 function downloadDataURL(dataURL,name){ try{const a=document.createElement('a');a.href=dataURL;a.download=name;document.body.appendChild(a);a.click();a.remove();}catch(e){toast('下载失败');} }
 function genField(name){curReport.form[name]={mode:'gen',text:(name==='演练方案'?'已根据演练信息生成演练方案大纲，请人工补充完善。':'已根据前项内容生成，请人工编辑完善。')}; saveReports(); openDetail(curNo); toast('已生成，可人工编辑');}
+/* 演练总结：大模型根据演练评估字段生成（对齐小程序端 genSummary） */
+function genSummaryField(name){
+  collectAll();
+  const fm=curReport.form||{};
+  const g=k=>(fm[k]!=null&&fm[k]!=='')?String(fm[k]):'—';
+  const title=g('演练主题'), num=g('演练人数');
+  const dims=['方案编制','人员分工','组织协调','事故报告','人员配合','应急处置','医疗救护'];
+  const detail=dims.map(k=>`${k}${g(k)}`).join('，');
+  const eff=g('效果评价');
+  let tail;
+  if(eff==='达到既定目标') tail='演练达到预期目标，预案科学可行、组织协同高效，建议固化经验并形成标准化流程。';
+  else if(eff==='基本达到既定目标') tail='演练基本达到预期，但个别环节衔接不够顺畅，建议针对薄弱项加强培训与复盘。';
+  else tail='演练未达既定目标，暴露出预案与实战脱节问题，须立即整改并组织补训演练。';
+  fm[name]=`本次「${title}」应急救援演练共 ${num} 人参与。经综合评估：${detail}；整体效果评价${eff}。${tail}`;
+  saveReports(); openDetail(curNo); toast('已根据评估字段生成演练总结');
+}
 function upBlock(sec){const el=document.getElementById('bf_'+idk(sec)); if(el)el.click();}
 function onUpBlock(sec,inp){const f=inp.files&&inp.files[0]; if(!f)return; readFileDataURL(f,d=>{curReport.form.blocks=curReport.form.blocks||{}; curReport.form.blocks[sec]={mode:'pdf',name:f.name,data:d}; saveReports(); openDetail(curNo); toast('已上传文件');});}
 function genBlock(sec){curReport.form.blocks=curReport.form.blocks||{}; curReport.form.blocks[sec]={mode:'gen',text:genBlockText(sec)}; saveReports(); openDetail(curNo); toast('已生成，可人工编辑');}
@@ -1220,16 +1466,25 @@ function genBlockText(sec){
   if(sec==='应急资源调查报告')return '已根据企业基本情况生成应急资源调查报告，请人工补充完善。';
   if(sec==='生产安全事故风险评估报告')return '已根据风险辨识评估结果生成风险评估报告，请人工补充完善。';
   if(sec==='应急预案')return '已根据应急资源与风险评估生成应急预案，请人工补充完善。';
+  if(sec==='生产安全事故风险分析')return '已根据企业生产工艺与危险有害因素辨识，生成生产安全事故风险分析，请人工补充完善。';
+  if(sec==='应急资源差距分析')return '已根据现有应急资源与可能事故类型对比，生成应急资源差距分析，请人工补充完善。';
   return '已根据前项内容生成，请人工编辑完善。';
 }
 function saveBlock(sec){const t=document.getElementById('barea_'+idk(sec)).value; curReport.form.blocks=curReport.form.blocks||{}; curReport.form.blocks[sec]={mode:'gen',text:t}; saveReports(); openDetail(curNo); toast('已保存编辑');}
+function blockCnt(sec){const ta=document.getElementById('barea_'+idk(sec)); const c=document.getElementById('bcount_'+idk(sec)); if(ta&&c)c.textContent=(ta.value.length)+'/'+(ta.getAttribute('maxlength')||500);}
 function addPatrol(project){const inp=document.getElementById('patrolAdd'); const v=inp&&inp.value.trim(); if(!v)return toast('请输入排查表名称'); const list=patrolLoad(project); list.push({name:v,done:true}); patrolSave(project,list); openDetail(curNo); toast('已添加排查表');}
 
 /* 保存 / 提交 */
 function saveOrganize(){ collectAll(); if(curReport.status==='待整理')curReport.status='整理中'; saveReports();renderTable(); toast('已保存整理内容'); }
 function submitAudit(){
   const r=curReport;if(!r)return;
-  collectAll(); r.status='已提交审核'; saveReports(); pushToReview(r); renderTable(); closeModal();
+  collectAll();
+  const def=PROJECT_DEF[r.project];
+  const missing=[];
+  if(def&&def.type==='blocks') def.blocks.forEach(b=>{ if(b.req && !((r.form.blocks&&r.form.blocks[b.sec])||{}).mode) missing.push(b.sec); });
+  if(needServicePhoto(r.project) && photoCount('现场服务照片')<=0) missing.push('现场服务照片');
+  if(missing.length){ openDetail(curNo); toast('请先完成必填项：'+missing.join('、')); return; }
+  r.status='已提交审核'; saveReports(); pushToReview(r); renderTable(); closeModal();
   toast('已提交审核，进入「服务报告审核」待初审');
 }
 function pushToReview(r){
@@ -1242,7 +1497,7 @@ function pushToReview(r){
 }
 function reportSectionsForReview(r){
   const form=r.form||{}; const def=PROJECT_DEF[r.project]; const out=[];
-  if(def.type==='blocks'){ def.blocks.forEach(b=>{const st=(form.blocks&&form.blocks[b.sec])||{}; const s=st.mode?(st.mode==='pdf'?('已上传PDF：'+(st.name||'')):'大模型生成并编辑'):'未整理'; out.push({title:esc(b.sec),rows:[['整理状态',s]]});}); }
+  if(def.type==='blocks'){ def.blocks.forEach(b=>{const st=(form.blocks&&form.blocks[b.sec])||{}; const s=st.mode?(st.mode==='pdf'?('已上传PDF：'+(st.name||'')):(b.mode==='text'?('已填写（'+(st.text||'').length+' 字）'):'大模型生成并编辑')):'未整理'; out.push({title:esc(b.sec),rows:[['整理状态',s]]});}); }
   else if(def.type==='sections'){ def.sections.forEach(sec=>{const rows=sec.fields.filter(f=>f.type!=='photo').map(f=>[f.name, form[f.name]!=null?form[f.name]:(f.def!=null?f.def:'—')]); out.push({title:esc(sec.title),rows});}); }
   else if(def.type==='cards'){ def.cards.forEach(c=>{ if(c.kind==='patrol'){const list=patrolLoad(r.project); out.push({title:esc(c.title),rows:list.map((x,i)=>[(i+1)+'', x.name+'（已完成）'])});} else {const list=c.store==='hazard'?loadHazards(r.project):loadRisks(r.project); out.push({title:esc(c.title),rows:list.map((x,i)=>[(i+1)+'', c.store==='hazard'?((x.name||'')+' · '+(x.level||'')):((x.name||'')+' · '+(x.accType||x.effect||'')+' · '+(x.level||''))])});} }); }
   return out;
@@ -1270,7 +1525,7 @@ function buildPdfHtml(r){
   const def=PROJECT_DEF[r.project];
   let body='';
   if(def.type==='blocks'){
-    body=def.blocks.map(b=>{const st=(form.blocks&&form.blocks[b.sec])||{}; const s=st.mode?(st.mode==='pdf'?('已上传 PDF：'+(st.name||'')):'大模型生成并编辑（'+(st.text||'').length+' 字）'):'未整理'; return `<h3>${esc(b.sec)}</h3><table class="kv"><tr><td class="k">整理状态</td><td>${esc(s)}</td></tr></table>`;}).join('');
+    body=def.blocks.map(b=>{const st=(form.blocks&&form.blocks[b.sec])||{}; const s=st.mode?(st.mode==='pdf'?('已上传 PDF：'+(st.name||'')):(b.mode==='text'?('已填写（'+(st.text||'').length+' 字）'):('大模型生成并编辑（'+(st.text||'').length+' 字）'))):'未整理'; return `<h3>${esc(b.sec)}</h3><table class="kv"><tr><td class="k">整理状态</td><td>${esc(s)}</td></tr></table>`;}).join('');
   } else if(def.type==='sections'){
     body=def.sections.map(sec=>`<h3>${esc(sec.title)}</h3><table class="kv">`+sec.fields.filter(f=>f.type!=='photo').map(f=>{let v=form[f.name]; if(v==null)v=(f.def!=null?f.def:'—'); if(!v)v='—'; return `<tr><td class="k">${esc(f.name)}</td><td>${esc(v)}</td></tr>`;}).join('')+`</table>`).join('');
   } else if(def.type==='cards'){
@@ -1328,6 +1583,7 @@ async function previewPDF(){
     $('#pdfmask')._url=url;
     const f=$('#pdfframe');f.src=url;f.style.display='block';
     $('#pdfload').style.display='none';$('#pdfDl').style.display='';$('#pdfDl').onclick=downloadPDF;
+    curReport.generated=true; saveReports(); refreshSubmitBtn(curReport);
     toast('报告已生成');
   }catch(e){$('#pdfload').textContent='PDF 生成失败：'+(e&&e.message||e);}
 }
@@ -1359,7 +1615,7 @@ renderTable();
     </div>
   </div>
 </div>
-<!-- 照片来源选择（拍照 / 引用现场检查照片 / 手机相册） -->
+<!-- 照片来源选择（本地上传 / 引用现场检查照片） -->
 <div class="mask" id="psheet" onclick="if(event.target===this)closePhotoSheet()">
   <div class="psheet">
     <div class="psheet-head"><span id="psheetTitle">选择照片来源</span><button class="psheet-x" type="button" onclick="closePhotoSheet()">✕</button></div>

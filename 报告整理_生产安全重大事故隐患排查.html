@@ -254,7 +254,7 @@ function patrolSave(list){ try{ localStorage.setItem(patrolKey(), JSON.stringify
 function loadHazards(){
   try{ const s = localStorage.getItem('hazardlist_'+project); if(s) return JSON.parse(s); }catch(e){}
   return [
-    {name:'消防通道被杂物堵塞，影响应急疏散', category:'消防安全类', owner:'张伟', deadline:'2026-09-30', status:'整改中', level:'重大隐患'},
+    {name:'消防通道被杂物堵塞，影响应急疏散', category:'消防安全类', owner:'张伟', deadline:'2026-09-30', status:'未整改', level:'重大隐患'},
     {name:'配电箱未上锁且缺少安全警示标识', category:'现场用电类', owner:'李强', deadline:'2026-10-15', status:'未整改', level:'一般隐患'},
     {name:'临时用电线缆拖地敷设未做防护', category:'现场用电类', owner:'王芳', deadline:'2026-09-28', status:'已整改', level:'一般隐患'},
     {name:'起重机限位装置失效，存在超限风险', category:'特种设备类', owner:'赵磊', deadline:'2026-10-08', status:'未整改', level:'重大隐患'},
