@@ -100,11 +100,15 @@
           </div>
         </div>
         <div class="fitem">
-          <label>演练类型<span class="req">*</span></label>
+          <label>演练形式<span class="req">*</span></label>
           <div class="opts" id="dtype">
             <label class="rad"><input type="radio" name="dtype" value="综合应急演练">综合应急演练</label>
             <label class="rad"><input type="radio" name="dtype" value="专项应急演练">专项应急演练</label>
           </div>
+        </div>
+        <div class="fitem">
+          <label>指导专家<span class="hint">（根据当前技术服务人员自动生成）</span></label>
+          <input type="text" id="dexpert" readonly style="background:#f7f8fa">
         </div>
         <div class="fitem">
           <label>演练方式<span class="req">*</span></label>
@@ -118,8 +122,8 @@
           <input type="text" id="dlocation" maxlength="30" placeholder="请输入演练地点">
         </div>
         <div class="fitem">
-          <label>演练名称<span class="req">*</span><span class="hint">（50字以内）</span></label>
-          <input type="text" id="dname" maxlength="50" placeholder="请输入演练名称">
+          <label>演练主题<span class="req">*</span><span class="hint">（50字以内）</span></label>
+          <input type="text" id="dname" maxlength="50" placeholder="请输入演练主题">
         </div>
         <div class="fitem">
           <label>总指挥<span class="req">*</span><span class="hint">（50字以内）</span></label>
@@ -289,6 +293,8 @@ function detail(id){ toast('查看详情：' + id); }
 function openDrill(id){
   document.getElementById('drillForm').reset();
   document.getElementById('dorgsOther').style.display = 'none';
+  const r = ALL.find(x => x.id === id);
+  document.getElementById('dexpert').value = (r && r.tech && r.tech !== '-') ? r.tech : '';
   document.getElementById('drillId').textContent = id ? '· ' + id : '';
   document.getElementById('dmask').classList.add('show');
 }
@@ -300,9 +306,10 @@ function genWord(){
   const orgs = getChk('dorgs').filter(v => v !== '其他');
   const other = g('dorgsOther'); if (other) orgs.push('其他：' + other);
   const data = [
-    ['演练名称',   g('dname') || '（未填写）'],
+    ['演练主题',   g('dname') || '（未填写）'],
     ['演练目的',   getChk('purpose').join('、') || '（未填写）'],
-    ['演练类型',   (document.querySelector('input[name=dtype]:checked') || {}).value || '（未填写）'],
+    ['演练形式',   (document.querySelector('input[name=dtype]:checked') || {}).value || '（未填写）'],
+    ['指导专家',   g('dexpert') || '（未填写）'],
     ['演练方式',   (document.querySelector('input[name=dway]:checked') || {}).value || '（未填写）'],
     ['演练地点',   g('dlocation') || '（未填写）'],
     ['总指挥',     g('dcommander') || '（未填写）'],
@@ -328,10 +335,10 @@ function saveDrill(){
   const g = id => (document.getElementById(id).value || '').trim();
   const checks = [
     [[...document.querySelectorAll('#purpose input:checked')].length > 0, '请选择演练目的'],
-    [!!document.querySelector('input[name=dtype]:checked'), '请选择演练类型'],
+    [!!document.querySelector('input[name=dtype]:checked'), '请选择演练形式'],
     [g('dlocation'), '请填写演练地点'],
     [!!document.querySelector('input[name=dway]:checked'), '请选择演练方式'],
-    [g('dname'), '请填写演练名称'],
+    [g('dname'), '请填写演练主题'],
     [g('dcommander'), '请填写总指挥'],
     [[...document.querySelectorAll('#dorgs input:checked')].length > 0, '请选择应急组织架构'],
     [g('dprocess'), '请填写演练流程'],

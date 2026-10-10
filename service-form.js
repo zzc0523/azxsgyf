@@ -63,40 +63,22 @@ const SCHEMA = {
    ]},
  ],
  '安全生产应急救援演练': [
-   {title:'演练信息', rows:[
+   {title:'演练准备', rows:[
      {t:'multi',name:'演练目的',opts:['检验预案','完善准备','锻炼队伍','磨合机制','科普宣教']},
      {t:'single',name:'演练形式',opts:['综合应急演练','专项应急演练']},
+     {t:'tech',name:'指导专家'},
      {t:'text',name:'演练地点',max:30},
      {t:'single',name:'演练方式',opts:['桌面推演','实战演练']},
      {t:'text',name:'演练主题',max:50},
      {t:'text',name:'总指挥',max:50},
-     {t:'number',name:'演练人数'},
-     {t:'single',name:'效果评价',opts:['达到既定目标','基本达到既定目标','未达到既定目标']},
-   ]},
-   {title:'演练方案与准备', rows:[
      {t:'multi',name:'应急组织架构',opts:['指挥部','抢险救援组','警戒疏散组','医疗救护组','通讯联络组','后勤保障组','其他']},
      {t:'text',name:'演练流程',max:500,area:true},
      {t:'text',name:'演练场景',max:500,area:true},
      {t:'text',name:'演练物资',max:500,area:true},
-     {t:'pdf',name:'演练方案'},
-   ]},
-   {title:'演练评估（C11 三档评级）', rows:[
-     {t:'rate',name:'方案编制',opts:['符合','基本符合','不符合'],def:'符合'},
-     {t:'rate',name:'人员分工',opts:['符合','基本符合','不符合'],def:'符合'},
-     {t:'rate',name:'组织协调',opts:['符合','基本符合','不符合'],def:'符合'},
-     {t:'rate',name:'事故报告',opts:['符合','基本符合','不符合'],def:'符合'},
-     {t:'rate',name:'人员配合',opts:['符合','基本符合','不符合'],def:'符合'},
-     {t:'rate',name:'应急处置',opts:['符合','基本符合','不符合'],def:'符合'},
-     {t:'rate',name:'医疗救护',opts:['符合','基本符合','不符合'],def:'符合'},
-     {t:'ai',name:'演练总结',max:500,ai:'文本生成'},
-   ]},
-   {title:'演练影像（C3）', rows:[
-     {t:'photo',name:'签到表',max:9},
-     {t:'photo',name:'演练物资照片',max:9},
-     {t:'photo',name:'现场演练照片',max:9},
-   ]},
- ],
- '安全生产标准化管理体系建设': [
+     {t:'docgen',name:'演练方案'},
+     ]},
+     ],
+     '安全生产标准化管理体系建设': [
    {title:'标准化评分', rows:[
      {t:'single',name:'选用评分表',opts:['金属冶炼','工贸通用','危化品','建筑施工'],hint:'按行业自动固定评分表'},
      {t:'number',name:'标准总分',key:'standard'},
@@ -123,6 +105,8 @@ const SCHEMA = {
 
 const PIN = '<svg viewBox="0 0 12 15" width="11" height="14" style="vertical-align:-2px;margin-right:4px"><path d="M6 0a6 6 0 0 0-6 6c0 4.2 6 9 6 9s6-4.8 6-9A6 6 0 0 0 6 0Zm0 8.2A2.2 2.2 0 1 1 6 3.8a2.2 2.2 0 0 1 0 4.4Z" fill="#2b5ce6"/></svg>';
 const TEL = '<svg viewBox="0 0 15 15" width="13" height="13" style="vertical-align:-2px;margin-right:4px"><path d="M3.1 1C2.5 1 1.9 1.6 1.9 2.3c0 6.5 4.3 10.8 10.8 10.8.7 0 1.3-.6 1.3-1.2v-1.9c0-.5-.3-.9-.7-1l-2.1-.7c-.4-.1-.8 0-1 .3l-.6.8a8.9 8.9 0 0 1-3.3-3.3l.8-.6c.3-.2.4-.6.3-1l-.7-2.1c-.1-.5-.5-.7-1-.7H3.1Z" fill="#2b5ce6"/></svg>';
+/* 当前技术服务人员（指导专家自动生成依据）：优先取技术人员端全局 TECH_USER，未加载时兜底 */
+function currentTech(){ return (typeof window.TECH_USER!=='undefined' && window.TECH_USER) ? window.TECH_USER : '张工'; }
 
 /* ===== 渲染 ===== */
 function fieldHTML(f){
@@ -159,6 +143,18 @@ function fieldHTML(f){
         <div class="ltxt">${f.name}</div>
         <div class="right"><span class="file">未上传</span><span class="go">›</span></div>
         <input type="file" accept="${f.t==='pdf'?'application/pdf':'*'}" hidden onchange="onFile(this)"></div>`;
+    case 'tech': return `
+      <div class="frow"><div class="flabel">${f.name}</div>
+      <input class="inp" data-key="${esc(f.name)}" value="${esc(currentTech())}" readonly placeholder="自动生成"></div>`;
+    case 'docgen': return `
+      <div class="frow"><div class="flabel">${f.name}</div>
+        <div class="lrow" onclick="this.querySelector('input').click()">
+          <div class="ltxt">${f.name}（PDF 上传）</div>
+          <div class="right"><span class="file">未上传</span><span class="go">›</span></div>
+          <input type="file" accept="application/pdf" hidden onchange="onFile(this)">
+        </div>
+        <button class="aibtn" type="button" onclick="aiGen('文档生成')">✦ 大模型生成 Word 文档（C5）</button>
+      </div>`;
     case 'ai': return `
       <div class="frow"><div class="flabel">${f.name} ${f.max?`<span class="cnt" id="${id}">0/${f.max}</span>`:''} ${f.doc?`<span class="tagdoc">文档</span>`:''}</div>
         ${f.doc?'':`<textarea class="ta" data-key="${esc(f.name)}" ${attrs} placeholder="由大模型生成或手动填写"></textarea>`}
@@ -281,6 +277,14 @@ function deductObj(){
 }
 function deductSum(){ return deductObj().entries.reduce((s,e)=>s+(parseFloat(e.deduct)||0),0); }
 function deductSumText(){ const n=deductSum(); return (n>0?('-'+n):'0')+' 分'; }
+/* 空项明细（安全生产标准化管理体系建设专用，与扣分明细并列）
+   独立存储于 localStorage 'kong_'+project，内容为数组 [{first,sub,val}] */
+function kongObj(){
+  try{ const a=JSON.parse(localStorage.getItem('kong_'+project)||'null'); if(Array.isArray(a)) return a; }catch(e){}
+  return [];
+}
+function kongSum(){ return kongObj().reduce((s,e)=>s+(parseFloat(e.val)||0),0); }
+function kongSumText(){ const n=kongSum(); return (n>0?n:0)+' 分'; }
 function saveStdScore(v){
   const o=deductObj(); o.standard=v;
   try{ localStorage.setItem('deduct_'+project, JSON.stringify(o)); }catch(e){}
@@ -290,6 +294,8 @@ function deductEntryCard(){
   const o=deductObj();
   const hrefList='扣分明细列表.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent(project);
   const hrefAdd ='新增扣分.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent(project);
+  const hrefKongList='空项明细列表.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent(project);
+  const hrefKongAdd ='新增空项.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent(project);
   return `<div class="sec">评分情况</div><div class="card">
     <div class="frow">
       <div class="flabel"><span class="req">*</span>标准总分</div>
@@ -299,8 +305,15 @@ function deductEntryCard(){
       <div class="ltxt">扣分明细</div>
       <div class="right"><span class="rcount" id="deductSum">${deductSumText()}</span><span class="go">›</span></div>
     </div>
+    <div class="frow lrow" onclick="location.href='${hrefKongList}'">
+      <div class="ltxt">空项明细</div>
+      <div class="right"><span class="rcount" id="kongSum">${kongSumText()}</span><span class="go">›</span></div>
+    </div>
     <div class="frow">
       <button class="addbtn" type="button" onclick="location.href='${hrefAdd}'">＋ 新增扣分</button>
+    </div>
+    <div class="frow">
+      <button class="addbtn" type="button" onclick="location.href='${hrefKongAdd}'">＋ 新增空项</button>
     </div>
   </div>`;
 }
@@ -514,7 +527,7 @@ document.addEventListener('click', e=>{
     const g = box.dataset.group;
     if(g) applyShow(g, c.textContent);
   } else {
-    if(c.dataset.other){ c.classList.toggle('on'); c.nextElementSibling.style.display = c.classList.contains('on')?'block':'none'; return; }
+    if(c.dataset.other){ c.classList.toggle('on'); const inp=box.nextElementSibling; if(inp) inp.style.display = c.classList.contains('on')?'block':'none'; return; }
     c.classList.toggle('on');
   }
 });

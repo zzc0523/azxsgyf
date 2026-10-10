@@ -108,7 +108,11 @@
   .chip{border:1px solid #dde2ec;color:#5b6472;background:#fff;padding:7px 13px;border-radius:18px;font-size:13px;cursor:pointer;transition:.12s}
   .chip.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:500}
   .chip.bad.on{background:var(--red);border-color:var(--red);color:#fff}
+  .chip.ok.on{background:#17a34a;border-color:#17a34a;color:#fff}
   .chip.sm{padding:5px 10px;font-size:12px}
+
+  .dateinp{width:100%;height:40px;border:1px solid #e6e9f0;border-radius:8px;padding:0 10px;font-size:13.5px;color:var(--val);background:#fff;font-family:inherit;outline:none;box-sizing:border-box}
+  .dateinp:focus{border-color:var(--blue)}
 
   .ta{width:100%;min-height:60px;border:1px solid #e6e9f0;border-radius:8px;padding:9px;font-size:13.5px;outline:none;resize:vertical;font-family:inherit;box-sizing:border-box;color:var(--val)}
   .ta:focus{border-color:var(--blue)}
@@ -274,7 +278,7 @@ CATEGORIES.forEach((c,ci)=> c.items.forEach((it,k)=> ITEMS.push({
 })));
 
 /* 逐项排查状态 */
-function blankState(){ return {status:'', nature:'', photo:'', photoConform:'', hazardDesc:'', basis:'', accidents:[], advice:'', law:'', detailOpen:false}; }
+function blankState(){ return {status:'', nature:'', rectifyStatus:'未整改', deadline:'', photo:'', photoConform:'', hazardDesc:'', basis:'', accidents:[], advice:'', law:'', detailOpen:false}; }
 let STATE = ITEMS.map(()=>blankState());
 function loadState(){
   const key = 'inspect_' + encodeURIComponent(ORDER + '_' + NAME);
@@ -400,6 +404,8 @@ let hzCur = -1;
 function openHazard(i){
   hzCur=i; const it=ITEMS[i], s=STATE[i];
   if(!s.nature) s.nature = it.level==='重大'?'重大隐患':'一般隐患';
+  if(!s.rectifyStatus) s.rectifyStatus = '未整改';
+  if(!s.deadline) s.deadline = defDeadline();
   const accSel=Array.isArray(s.accidents)?s.accidents:[];
   const accChips=ACCIDENT.map(a=>`<span class="chip sm ${accSel.indexOf(a)>=0?'on':''}" data-acc="${esc(a)}">${esc(a)}</span>`).join('');
   const candHtml=s.hazardDescCands?s.hazardDescCands.map((t,k)=>`<div class="c" onclick="pickHazard(${i},${k})"><span class="dot">${k+1}</span><span>${esc(t)}</span></div>`).join(''):'';
@@ -409,14 +415,6 @@ function openHazard(i){
     <div class="card"><div class="qline">${it.level?`<span class="qlv ${esc(it.level)}">${esc(it.level)}</span>`:''}<span class="qno">${it.no}.</span>${esc(it.content)}</div></div>
 
     <div class="qfield">${phBox(i,'photo','隐患图片')}</div>
-
-    <div class="qfield">
-      <div class="qtop"><span class="qlbl">隐患等级</span></div>
-      <div class="chips" style="margin-top:6px">
-        <span class="chip ${s.nature==='一般隐患'?'on':''}" data-v="一般隐患" onclick="setHzNature(${i},'一般隐患',this)">一般隐患</span>
-        <span class="chip bad ${s.nature==='重大隐患'?'on':''}" data-v="重大隐患" onclick="setHzNature(${i},'重大隐患',this)">重大隐患</span>
-      </div>
-    </div>
 
     <div class="qfield">
       <div class="qtop"><span class="qlbl">隐患描述</span>
@@ -441,10 +439,40 @@ function openHazard(i){
       <div class="qtop"><span class="qlbl">整改建议</span>
         <button class="aibtn" onclick="genAdv(${i})">✦ 大模型生成</button></div>
       <textarea class="ta" id="ad_${i}" placeholder="手动输入，或大模型根据「隐患描述」生成" oninput="STATE[${i}].advice=this.value;persist()">${esc(s.advice)}</textarea>
+    </div>
+
+    <div class="qfield">
+      <div class="qtop"><span class="qlbl">隐患等级</span></div>
+      <div class="chips" style="margin-top:6px">
+        <span class="chip ${s.nature==='一般隐患'?'on':''}" data-v="一般隐患" onclick="setHzNature(${i},'一般隐患',this)">一般隐患</span>
+        <span class="chip bad ${s.nature==='重大隐患'?'on':''}" data-v="重大隐患" onclick="setHzNature(${i},'重大隐患',this)">重大隐患</span>
+      </div>
+    </div>
+
+    <div class="qfield">
+      <div class="qtop"><span class="qlbl">整改状态</span></div>
+      <div class="chips" style="margin-top:6px">
+        <span class="chip ${s.rectifyStatus==='未整改'?'on':''}" data-v="未整改" onclick="setRectifyStatus(${i},'未整改',this)">未整改</span>
+        <span class="chip ok ${s.rectifyStatus==='已整改'?'on':''}" data-v="已整改" onclick="setRectifyStatus(${i},'已整改',this)">已整改</span>
+      </div>
+    </div>
+
+    <div class="qfield">
+      <div class="qtop"><span class="qlbl">整改期限<span class="opt">（默认30日历日）</span></span></div>
+      <input type="date" class="dateinp" id="dl_${i}" value="${esc(s.deadline)}" min="${todayStr()}" onchange="STATE[${i}].deadline=this.value;persist()">
     </div>`;
   document.getElementById('hzpage').classList.add('show');
   const b=document.getElementById('hzbody'); if(b) b.scrollTop=0;
 }
+function setRectifyStatus(i,v,el){
+  STATE[i].rectifyStatus=v; persist();
+  const box=el.closest('.chips');
+  box.querySelectorAll('.chip').forEach(x=>{x.classList.remove('on'); if(x.dataset.v==='已整改')x.classList.remove('ok');});
+  el.classList.add('on'); if(v==='已整改') el.classList.add('ok');
+}
+function fmtDate(d){ const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+function todayStr(){ return fmtDate(new Date()); }
+function defDeadline(){ const d=new Date(); d.setDate(d.getDate()+30); return fmtDate(d); }
 function setHzNature(i,v,el){
   STATE[i].nature=v; persist();
   const box=el.closest('.chips');

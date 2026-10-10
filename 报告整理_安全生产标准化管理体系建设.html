@@ -140,6 +140,25 @@
   .refitem img{width:100%;height:100%;object-fit:cover;display:block}
   .refitem input{position:absolute;right:3px;top:3px;width:18px;height:18px;accent-color:#2b5ce6}
   .refempty{text-align:center;color:var(--sub);font-size:13px;padding:20px 0}
+
+  /* 评分情况模块（自包含：回显服务登记内容，支持修改） */
+  .scsec{font-size:15px;font-weight:700;color:#1f2329;padding:18px 16px 8px;display:flex;align-items:center}
+  .scsec::before{content:"";width:3px;height:15px;background:#2b5ce6;border-radius:2px;margin-right:8px}
+  .sccard{background:#fff;border-radius:14px;margin:0 16px;padding:4px 16px;box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .scbox{border-bottom:1px solid #eef0f5;padding:12px 0}
+  .scbox:last-child{border-bottom:none}
+  .sclabel{color:#9aa0ad;font-size:13.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .sclabel .req{color:#e5484d}
+  .scinp{width:100%;border:none;outline:none;font-size:14px;color:#3a4050;background:transparent}
+  .scinp::placeholder{color:#c2c8d4}
+  .scrow{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #eef0f5;padding:13px 0;cursor:pointer;transition:background .12s}
+  .scrow:active{background:#f7f9fd}
+  .scrow .scl{color:#1f2329;font-size:13.5px;font-weight:500;flex:1;min-width:0}
+  .scr{display:flex;align-items:center;gap:8px;justify-content:flex-end;flex:none}
+  .scr .rcount{color:#e5484d;font-size:16px;font-weight:700;line-height:1}
+  .scr .scgo{color:#bcc3d0;font-size:16px}
+  .scbtn{width:100%;height:42px;border:1px solid #2b5ce6;background:#fff;color:#2b5ce6;border-radius:9px;font-size:14.5px;font-weight:600;cursor:pointer}
+  .scbtn:active{background:#f1f5ff}
 </style>
 </head>
 <body>
@@ -334,6 +353,7 @@ function render(){
   document.getElementById('body').innerHTML =
     infoCard() +
     photoCard() +
+    scoreCard() +
     servicePhotoCard() +
     blockHTML('selfassess') +
     blockHTML('scores') +
@@ -423,6 +443,53 @@ function confirmPhRef(){
   picks.forEach(i=>{ if(imgs.length<SRV_PHOTO_MAX && src[i]){ imgs.push(src[i]); n++; } });
   setPhotoImgs(SRV_PHOTO_NAME, imgs.slice(0,SRV_PHOTO_MAX));
   closePhSheet(); render(); toast('已引用 '+n+' 张照片');
+}
+
+/* ===== 评分情况（回显服务登记填写内容；标准总分、扣分/空项可修改） ===== */
+function deductObj(){
+  try{
+    const o = JSON.parse(localStorage.getItem('deduct_'+project) || 'null');
+    if(o && typeof o === 'object') return {standard:o.standard||'', entries:Array.isArray(o.entries)?o.entries:[]};
+  }catch(e){}
+  return {standard:'', entries:[]};
+}
+function saveDeductObj(o){ try{ localStorage.setItem('deduct_'+project, JSON.stringify(o)); }catch(e){} }
+function kongObj(){
+  try{ const a = JSON.parse(localStorage.getItem('kong_'+project) || 'null'); if(Array.isArray(a)) return a; }catch(e){}
+  return [];
+}
+function deductSum(){ return deductObj().entries.reduce((s,e)=>s+(parseFloat(e.deduct)||0),0); }
+function kongSum(){ return kongObj().reduce((s,e)=>s+(parseFloat(e.val)||0),0); }
+function setStdScore(v){
+  const o = deductObj(); o.standard = v; saveDeductObj(o);
+}
+function scoreSummary(){
+  const o = deductObj(); const ds = deductSum(); const ks = kongSum();
+  const std = o.standard ? ('标准总分 ' + o.standard + ' ｜ ') : '';
+  return std + '扣分 -' + (ds>0?ds:0) + ' 分 ｜ 空项 ' + (ks>0?ks:0) + ' 分';
+}
+function scoreCard(){
+  const o = deductObj(); const ds = deductSum(); const ks = kongSum();
+  const hList = '扣分明细列表.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent(project);
+  const hAdd  = '新增扣分.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent(project);
+  const hKList= '空项明细列表.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent(project);
+  const hKAdd = '新增空项.html?no='+encodeURIComponent(orderNo)+'&project='+encodeURIComponent(project);
+  return `<div class="scsec">评分情况</div><div class="sccard">
+    <div class="scbox">
+      <div class="sclabel"><span class="req">*</span>标准总分</div>
+      <input class="scinp" id="stdScore" type="number" placeholder="请输入标准总分" value="${esc(o.standard)}" oninput="setStdScore(this.value)">
+    </div>
+    <div class="scrow" onclick="location.href='${hList}'">
+      <div class="scl">扣分明细</div>
+      <div class="scr"><span class="rcount" id="scDeductSum">${ds>0?('-'+ds):'0'} 分</span><span class="scgo">›</span></div>
+    </div>
+    <div class="scrow" onclick="location.href='${hKList}'">
+      <div class="scl">空项明细</div>
+      <div class="scr"><span class="rcount" id="scKongSum">${ks>0?ks:0} 分</span><span class="scgo">›</span></div>
+    </div>
+    <div class="scbox"><button class="scbtn" type="button" onclick="location.href='${hAdd}'">＋ 新增扣分</button></div>
+    <div class="scbox"><button class="scbtn" type="button" onclick="location.href='${hKAdd}'">＋ 新增空项</button></div>
+  </div>`;
 }
 
 /* ===== 交互 ===== */
@@ -525,6 +592,7 @@ function generateReport(){
     '<div class="pv-row"><div class="pv-k">企业名称</div><div class="pv-v">'+esc(COMPANY)+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">服务项目</div><div class="pv-v">'+esc(project)+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">现场服务照片</div><div class="pv-v">'+(spCount?spCount+' 张（页内拍照 / 引用）':'未上传')+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">评分情况</div><div class="pv-v">'+esc(scoreSummary())+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">评分明细</div><div class="pv-v">'+sub('scores')+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">自评报告及改进建议</div><div class="pv-v">'+sub('selfassess')+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">附件上传</div><div class="pv-v">'+sub('attach')+'</div></div>'+

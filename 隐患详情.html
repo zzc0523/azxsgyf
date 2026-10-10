@@ -119,20 +119,6 @@
       </div>
 
       <div class="field">
-        <div class="flbl"><span class="req">*</span>行业类别</div>
-        <div class="chips" data-key="industry" data-type="single">
-          <span class="chip" data-v="安全管理类">安全管理类</span>
-          <span class="chip" data-v="现场用电类">现场用电类</span>
-          <span class="chip" data-v="消防安全类">消防安全类</span>
-          <span class="chip" data-v="特种设备类">特种设备类</span>
-          <span class="chip" data-v="危化品类">危化品类</span>
-          <span class="chip" data-v="工贸类">工贸类</span>
-          <span class="chip" data-v="建筑施工类">建筑施工类</span>
-          <span class="chip" data-v="矿山类">矿山类</span>
-        </div>
-      </div>
-
-      <div class="field">
         <div class="flbl"><span class="req">*</span>隐患描述</div>
         <textarea class="inp area" id="f_desc" maxlength="200" placeholder="请手动填写隐患描述（200字以内），或上传图片后点击「大模型辨识隐患」"></textarea>
         <div class="ai-row">
@@ -151,7 +137,7 @@
 
       <div class="field">
         <div class="flbl"><span class="req">*</span>事故种类</div>
-        <div class="hint">27 项可多选；或点击「大模型生成」按行业与描述自动勾选</div>
+        <div class="hint">27 项可多选；或点击「大模型生成」按隐患描述自动勾选</div>
         <div class="chips" data-key="accident" data-type="multi" id="accidentChips">
           <span class="chip" data-v="物体打击">物体打击</span>
           <span class="chip" data-v="厂（场）内车辆致害">厂（场）内车辆致害</span>
@@ -216,7 +202,6 @@
         <div class="flbl">整改状态</div>
         <div class="chips" data-key="status" data-type="single">
           <span class="chip" data-v="未整改">未整改</span>
-          <span class="chip" data-v="整改中">整改中</span>
           <span class="chip" data-v="已整改">已整改</span>
         </div>
       </div>
@@ -301,7 +286,6 @@ function pickSrc(src){
 function closeSheet(){ document.getElementById('mask').classList.remove('show'); document.getElementById('sheet').classList.remove('show'); }
 
 /* ===== 大模型（示例数据，后续对接真实接口） ===== */
-const INDUSTRY = ['安全管理类','现场用电类','消防安全类','特种设备类','危化品类','工贸类','建筑施工类','矿山类'];
 const CAND_DESC = {
   '安全管理类':['安全管理制度未落实，隐患排查治理台账缺失','从业人员未按要求佩戴劳动防护用品','安全培训记录不完整、流于形式','应急预案未定期演练或更新','安全责任制未逐级签订落实'],
   '现场用电类':['临时用电线缆拖地敷设未做穿管防护','配电箱未上锁且缺少安全警示标识','用电设备未做保护接地（接零）','漏电保护装置失效或未按期检测','私拉乱接、一闸多机现象'],
@@ -324,32 +308,32 @@ const ACCIDENT_MAP = {
 };
 
 function hasPhoto(){ return document.getElementById('photos').querySelectorAll('.thumb').length > 0; }
-function industry(){ return selKey('industry') || '安全管理类'; }
+/* 行业类别字段已去除，大模型生成统一使用通用（安全管理类）示例库 */
+function industry(){ return '安全管理类'; }
 
-/* 隐患辨识：图片或行业 → 5 条备选，人工选择（可多选） */
+/* 隐患辨识：图片或描述 → 5 条备选，人工选择（可多选） */
 function genIdentify(btn){
   const pool = (CAND_DESC[industry()] || CAND_DESC['安全管理类']).slice();
   const box = document.getElementById('candBox');
   box.innerHTML = `<div class="cand-tip">大模型已辨识出以下 5 条备选隐患，请人工选择（可多选，已选内容将填入隐患描述）</div>` +
     pool.map(t=>`<div class="cand-opt"><span class="box">✓</span><span class="txt">${t}</span></div>`).join('');
   box.style.display = 'block';
-  toast(hasPhoto() ? '已基于图片辨识隐患' : '已基于行业类别辨识隐患');
+  toast(hasPhoto() ? '已基于图片辨识隐患' : '已辨识隐患');
 }
 function syncDescFromCand(){
   const sel = [...document.querySelectorAll('#candBox .cand-opt.on .txt')].map(e=>e.textContent);
   document.getElementById('f_desc').value = sel.join('；');
 }
 
-/* 排查依据：依据行业类别 + 隐患描述 */
+/* 排查依据：依据隐患描述 */
 function genBasis(btn){
-  const ind = industry();
-  const d = val('f_desc') || ind + '现场';
+  const d = val('f_desc') || '现场检查发现的不符合项';
   document.getElementById('f_basis').value =
-    `依据《安全生产事故隐患排查治理暂行规定》及${ind}相关标准规范，针对「${d}」开展现场隐患排查，确认不符合项并按期整改闭环。`;
+    `依据《安全生产事故隐患排查治理暂行规定》及相关标准规范，针对「${d}」开展现场隐患排查，确认不符合项并按期整改闭环。`;
   toast('已生成排查依据');
 }
 
-/* 事故种类：依据行业类别 + 隐患描述 自动勾选 */
+/* 事故种类：依据隐患描述 自动勾选 */
 function genAccident(btn){
   const list = ACCIDENT_MAP[industry()] || [];
   const chips = document.querySelectorAll('#accidentChips .chip');
@@ -394,7 +378,6 @@ function collectHazard(){
   const photos = [...document.querySelectorAll('#photos .thumb .tag')].map(t=>t.textContent);
   return {
     name:     val('f_desc'),
-    category: selKey('industry'),
     basis:    val('f_basis'),
     accident: acc,
     advice:   val('f_advice'),
@@ -434,7 +417,6 @@ function fillForm(d){
   setVal('f_advice', d.advice);
   setVal('f_owner', d.owner);
   setVal('f_deadline', d.deadline || defaultDeadline(30));
-  setKey('industry', d.category);
   setKey('level', d.level);
   setKey('status', d.status);
   setMultiAcc(d.accident);
@@ -445,7 +427,6 @@ function saveDetail(){
   const desc=val('f_desc');    if(!desc)    miss.push('隐患描述');
   const basis=val('f_basis');  if(!basis)   miss.push('排查依据');
   const advice=val('f_advice');if(!advice)  miss.push('整改建议');
-  if(!selKey('industry'))  miss.push('行业类别');
   if(!selKey('level'))     miss.push('隐患等级');
   const acc=[...document.querySelectorAll('#accidentChips .chip.on')].map(c=>c.dataset.v);
   if(!acc.length) miss.push('事故种类');

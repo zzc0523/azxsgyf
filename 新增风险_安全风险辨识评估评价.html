@@ -74,6 +74,30 @@
   .ai-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 16px;border:none;
     background:#7c3aed;color:#fff;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer}
   .ai-btn:active{opacity:.9}
+  .ai-btn.wide{width:100%;justify-content:center;margin-top:8px}
+
+  /* 判定标准提示标识 & 弹窗 */
+  .info-ic{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;margin-left:6px;flex:none;
+    border-radius:50%;background:#e7f0ff;color:var(--blue);font-size:11px;font-weight:700;line-height:1;cursor:pointer;border:1px solid #b9d0ff}
+  .info-ic::after{content:"?"}
+  .info-ic:active{background:#d6e6ff}
+  .info-mask{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:70;display:none}
+  .info-mask.show{display:block}
+  .info-dlg{position:absolute;left:14px;right:14px;top:50%;z-index:71;background:#fff;border-radius:14px;overflow:hidden;
+    max-height:76%;display:flex;flex-direction:column;opacity:0;transform:translateY(-50%) scale(.96);transition:.2s;pointer-events:none}
+  .info-dlg.show{opacity:1;transform:translateY(-50%) scale(1);pointer-events:auto}
+  .info-hd{flex:none;display:flex;align-items:center;padding:14px 16px 11px;font-size:14.5px;font-weight:700;color:var(--text);border-bottom:1px solid var(--line)}
+  .info-hd .x{margin-left:auto;font-size:20px;line-height:1;color:#b9bfcc;cursor:pointer;padding-left:10px}
+  .info-bd{flex:1;overflow-y:auto;padding:12px 14px 16px;font-size:12.5px;color:var(--val)}
+  .info-bd::-webkit-scrollbar{display:none}
+  .std-tb{width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.55}
+  .std-tb th,.std-tb td{border:1px solid #dfe4ee;padding:7px 8px;vertical-align:top;text-align:left}
+  .std-tb th{background:#f4f6fb;color:var(--text);font-weight:700;text-align:center}
+  .std-tb td.lv{width:40px;text-align:center;font-weight:700;color:var(--blue);background:#fafbfe}
+  .std-tb.s{font-size:11.5px}
+  .std-tb.s th,.std-tb.s td{padding:6px 5px}
+  .std-tb.s td.lv{width:26px}
+  .info-note{margin-top:10px;color:var(--sub);font-size:11.5px;line-height:1.6}
 
   /* 风险计算 & 等级 */
   .risk-calc{font-size:13px;color:#3a4050;background:#f6f8fc;border:1px solid #e3e8f2;border-radius:8px;padding:10px 12px;line-height:1.6}
@@ -132,6 +156,12 @@
     <button class="sheet-cancel" onclick="closeSheet()">取消</button>
   </div>
 
+  <div class="info-mask" id="infoMask" onclick="closeInfo()"></div>
+  <div class="info-dlg" id="infoDlg">
+    <div class="info-hd"><span id="infoTitle"></span><span class="x" onclick="closeInfo()">×</span></div>
+    <div class="info-bd" id="infoBody"></div>
+  </div>
+
   <div class="home-ind"></div>
   <div class="toast" id="toast"></div>
 </div>
@@ -165,12 +195,13 @@ const SECTIONS = [
     {type:'text', name:'风险点名称', max:20, ph:'请填写风险点名称（20字以内）', req:true},
     {type:'single', name:'风险点种类', opts:['设备设施','场所区域','作业活动'], def:'设备设施', req:true},
     {type:'single', name:'风险位置', opts:['生产区域','辅助生产区域','非生产区域'], def:'生产区域', req:true},
-    {type:'multi', name:'可能导致的事故种类', opts:ACCIDENT, req:true},
     {type:'single', name:'选用评价方法', opts:['风险判定矩阵法（R=LS）','作业条件危险性评价法(D=LEC)'], key:'method', def:'风险判定矩阵法（R=LS）', req:true},
+    {type:'ai-all'},
+    {type:'multi', name:'可能导致的事故种类', opts:ACCIDENT, req:true},
 
     {type:'group-title', name:'风险判定矩阵法', showIf:'method=风险判定矩阵法（R=LS）'},
-    {type:'single', name:'事故发生的可能性(L)', opts:MATRIX_L, fid:'Lm', showIf:'method=风险判定矩阵法（R=LS）', req:true},
-    {type:'single', name:'危害事件发生的严重程度(S)', opts:MATRIX_S, fid:'Sm', showIf:'method=风险判定矩阵法（R=LS）', req:true},
+    {type:'single', name:'事故发生的可能性(L)', opts:MATRIX_L, fid:'Lm', info:'Lm', showIf:'method=风险判定矩阵法（R=LS）', req:true},
+    {type:'single', name:'危害事件发生的严重程度(S)', opts:MATRIX_S, fid:'Sm', info:'Sm', showIf:'method=风险判定矩阵法（R=LS）', req:true},
     {type:'risk-result', method:'matrix', showIf:'method=风险判定矩阵法（R=LS）'},
 
     {type:'group-title', name:'作业条件危险性评价法', showIf:'method=作业条件危险性评价法(D=LEC)'},
@@ -181,8 +212,8 @@ const SECTIONS = [
 
     {type:'risk-level', name:'风险等级', req:true},
 
-    {type:'area', name:'事故诱因', max:100, ph:'请填写事故诱因（100字以内），或点击「大模型生成」', ai:'cause', req:true},
-    {type:'area', name:'管控措施', max:100, ph:'请填写管控措施（100字以内），或点击「大模型生成」', ai:'measure', req:true},
+    {type:'area', name:'事故诱因', max:100, ph:'请填写事故诱因（100字以内）', req:true},
+    {type:'area', name:'管控措施', max:100, ph:'请填写管控措施（100字以内）', req:true},
   ]},
 ];
 
@@ -224,11 +255,14 @@ function fieldHTML(f){
     inner = `<div class="risk-calc" id="${f.method==='matrix'?'riskCalcMatrix':'riskCalcLec'}">请选择对应参数</div>`;
   } else if(f.type==='risk-level'){
     inner = `<div class="risk-badge" id="riskLevelBadge" data-level="">待计算</div>`;
+  } else if(f.type==='ai-all'){
+    inner = `<button class="ai-btn wide" type="button" onclick="genRiskAll(this)">✦ 大模型生成</button>`;
   }
   const req = f.req?'<span class="req">*</span>':'';
   const cls = f.showIf?' cond':'';
   const showAttr = f.showIf?` data-showif="${f.showIf}"`:'';
-  const lbl = f.name ? `<div class="flbl">${req}${f.name}</div>` : '';
+  const ic = f.info ? `<span class="info-ic" onclick="showInfo('${f.info}')"></span>` : '';
+  const lbl = f.name ? `<div class="flbl">${req}${f.name}${ic}</div>` : '';
   return `<div class="field${cls}"${showAttr}>${lbl}${inner}</div>`;
 }
 
@@ -352,6 +386,92 @@ function genMeasure(btn){
   const kind=g('风险点种类'), acc=g('可能导致的事故种类'), lv=g('风险等级');
   const accs = acc==='—' ? '相关事故' : acc;
   fillArea(btn, `针对评定为${stripLv(lv)}的「${accs}」风险，建议：落实${kind||'该'}风险分级管控，设置警示标识、配齐防护装备，加强日常巡检与应急演练，明确责任人并定期复核措施有效性。`);
+}
+
+/* 矩阵法判定标准（提示弹窗内容） */
+const STD_INFO = {
+  Lm:{
+    title:'事故发生的可能性（L）判定标准',
+    head:['等级','标准'],
+    rows:[
+      [1,'有充分、有效的防范、控制、监测、保护措施，或员工安全卫生意识相当高，严格执行操作规程。极不可能发生事故或事件。'],
+      [2,'危害一旦发生能及时发现，并定期进行监测，或现场有防范控制措施，并能有效执行，或过去偶尔发生事故或事件。'],
+      [3,'没有保护措施（如没有保护装置、没有个人防护用品等），或未严格按操作程序执行，或危害的发生容易被发现（现场有监测系统），或曾经作过监测，或过去曾经发生类似事故或事件。'],
+      [4,'危害的发生不容易被发现，现场没有检测系统，也未发生过任何监测，或在现场有控制措施，但未有效执行或控制措施不当，或危害发生或预期情况下发生。'],
+      [5,'在现场没有采取防范、监测、保护、控制措施，或危害的发生不能被发现（没有监测系统），或在正常情况下经常发生此类事故或事件。'],
+    ]
+  },
+  Sm:{
+    title:'危害事件发生的严重程度（S）判定标准',
+    head:['等级','人员','直接经济损失','停工','企业形象'],
+    small:true,
+    rows:[
+      [1,'无伤亡','无损失','没有停工','形象没有受损'],
+      [2,'轻微受伤、间歇不舒服','1万元以下','受影响不大，几乎不停工','公司及周边范围'],
+      [3,'截肢、骨折、听力丧失、慢性病','10万元以上','1套装置停工或设备','地区影响'],
+      [4,'丧失劳动能力','20万元以上','2套装置停工、或设备停工','行业内、省内影响'],
+      [5,'死亡','50万元以上','部分装置（>2套）或设备','国内影响'],
+    ]
+  }
+};
+function showInfo(key){
+  const d = STD_INFO[key]; if(!d) return;
+  document.getElementById('infoTitle').textContent = d.title;
+  const head = d.head.map(h=>`<th>${h}</th>`).join('');
+  const rows = d.rows.map(r=>`<tr><td class="lv">${r[0]}</td>${r.slice(1).map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+  document.getElementById('infoBody').innerHTML =
+    `<table class="std-tb${d.small?' s':''}"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>`;
+  document.getElementById('infoMask').classList.add('show');
+  document.getElementById('infoDlg').classList.add('show');
+}
+function closeInfo(){
+  document.getElementById('infoMask').classList.remove('show');
+  document.getElementById('infoDlg').classList.remove('show');
+}
+
+/* 按字段名定位 .field */
+function fieldByName(name){
+  let t=null;
+  document.querySelectorAll('#body .field').forEach(f=>{
+    const flbl=f.querySelector('.flbl'); if(flbl && flbl.textContent.replace('*','').trim()===name) t=f;
+  });
+  return t;
+}
+/* 勾选单选 chips（按 fid 与 data-v） */
+function setSingleChip(fid, v){
+  const box=document.querySelector(`.chips[data-fid="${fid}"]`); if(!box) return;
+  box.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', c.dataset.v===String(v)));
+}
+/* 勾选多选 chips（按字段名与值集合） */
+function setMultiByName(name, vals){
+  const f=fieldByName(name); if(!f) return;
+  const box=f.querySelector('.chips'); if(!box) return;
+  const set=new Set(vals);
+  box.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', set.has(c.dataset.v)));
+}
+/* 按字段名回填 textarea（限制字数） */
+function fillAreaByName(name, text){
+  const f=fieldByName(name); if(!f) return;
+  const ta=f.querySelector('textarea'); if(!ta) return;
+  ta.value = text.length>100?text.slice(0,100):text; updCount(ta);
+}
+/* 大模型一键生成：回显事故种类、评价细项、风险等级、诱因、措施（均为可编辑） */
+function genRiskAll(btn){
+  const g = n => getFieldVal(n);
+  const name=g('风险点名称'), kind=g('风险点种类'), loc=g('风险位置');
+  const m = document.querySelector('.chips[data-key="method"] .chip.on');
+  const mv = m ? m.dataset.v : '风险判定矩阵法（R=LS）';
+  /* —— 以下为调用大模型接口后的返回示例（演示用本地模拟） —— */
+  const acc = ['物体打击','高处坠落','触电','机械伤害','火灾'];   // 接口按风险点返回可能事故种类
+  setMultiByName('可能导致的事故种类', acc);
+  if(mv==='风险判定矩阵法（R=LS）'){ setSingleChip('Lm',3); setSingleChip('Sm',3); }
+  else { setSingleChip('Ll',3); setSingleChip('El',3); setSingleChip('Cl',15); }
+  applyShowIf(); computeRisk();                                // 重新计算风险等级
+  const lv = g('风险等级');
+  const accs = acc.join('、');
+  fillAreaByName('事故诱因', `因${loc||'相关区域'}内${kind||'作业'}环节的「${name||'该风险点'}」，受${accs}因素影响，易引发相应事故；当前评定为${stripLv(lv)}，需重点辨识诱因并落实管控。`);
+  fillAreaByName('管控措施', `针对评定为${stripLv(lv)}的「${accs}」风险，建议：落实风险分级管控，设置警示标识、配齐防护装备，加强日常巡检与应急演练，明确责任人并定期复核措施有效性。`);
+  toast('已根据大模型生成，可手动修改');
 }
 
 function collectRisk(){
