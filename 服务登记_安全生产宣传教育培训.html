@@ -116,7 +116,7 @@
   <div class="body" id="body"></div>
 
   <div class="footer">
-    <button class="btn-main" onclick="toast('服务登记已提交')">提交服务登记</button>
+    <button class="btn-main" onclick="submitRegister()">提交服务登记</button>
   </div>
   <div class="toast" id="toast"></div>
 </div>
@@ -125,6 +125,7 @@
 <script>
   /* 安全生产宣传教育培训 专用服务登记页 */
   init('安全生产宣传教育培训');
+  function submitRegister(){ toast('服务登记已提交'); setTimeout(()=>{ location.href = '签退.html?project=' + encodeURIComponent(project); }, 1200); }
 </script>
 </body>
 </html>

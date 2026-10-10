@@ -116,7 +116,7 @@
   <div class="body" id="body"></div>
 
   <div class="footer">
-    <button class="btn-main" onclick="toast('服务登记已提交')">提交服务登记</button>
+    <button class="btn-main" onclick="submitRegister()">提交服务登记</button>
   </div>
   <div class="toast" id="toast"></div>
 </div>
@@ -125,6 +125,11 @@
 <script>
   const q = new URLSearchParams(location.search);
   init(q.get('project'));
+  function submitRegister(){
+    toast('服务登记已提交');
+    const p = q.toString();
+    setTimeout(()=>{ location.href = '签退.html' + (p ? ('?' + p) : ''); }, 900);
+  }
 </script>
 </body>
 </html>

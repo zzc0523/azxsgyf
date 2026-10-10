@@ -175,7 +175,8 @@ function getLocation(manual){
 function confirmSign(){
   if(!located){ toast('请先获取签退位置'); return; }
   toast('签退成功');
-  setTimeout(()=>{ history.back(); }, 1200);
+  const p = q.toString();
+  setTimeout(()=>{ location.href = '服务确认.html' + (p ? ('?' + p) : ''); }, 1200);
 }
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}

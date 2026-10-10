@@ -215,6 +215,7 @@ function submitConfirm(){
   if(signed < 2){ toast('请完成服务人员与现场负责人签字'); return; }
   if(ratings.some(v=>v===0)){ toast('请完成全部服务评价'); return; }
   toast('服务确认已提交');
+  setTimeout(()=>{ location.href = '事故预防服务.html?tab=3'; }, 1200);
 }
 function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1600); }
 
