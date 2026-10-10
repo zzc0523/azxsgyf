@@ -64,18 +64,18 @@ const SCHEMA = {
  ],
  '安全生产应急救援演练': [
    {title:'演练准备', rows:[
-     {t:'multi',name:'演练目的',opts:['检验预案','完善准备','锻炼队伍','磨合机制','科普宣教']},
-     {t:'single',name:'演练形式',opts:['综合应急演练','专项应急演练']},
-     {t:'tech',name:'指导专家'},
-     {t:'text',name:'演练地点',max:30},
-     {t:'single',name:'演练方式',opts:['桌面推演','实战演练']},
-     {t:'text',name:'演练主题',max:50},
-     {t:'text',name:'总指挥',max:50},
-     {t:'multi',name:'应急组织架构',opts:['指挥部','抢险救援组','警戒疏散组','医疗救护组','通讯联络组','后勤保障组','其他']},
-     {t:'text',name:'演练流程',max:500,area:true},
-     {t:'text',name:'演练场景',max:500,area:true},
-     {t:'text',name:'演练物资',max:500,area:true},
-     {t:'docgen',name:'演练方案'},
+     {t:'multi',name:'演练目的',opts:['检验预案','完善准备','锻炼队伍','磨合机制','科普宣教'],req:true},
+     {t:'single',name:'演练形式',opts:['综合应急演练','专项应急演练'],req:true},
+     {t:'tech',name:'指导专家',req:true},
+     {t:'text',name:'演练地点',max:30,req:true},
+     {t:'single',name:'演练方式',opts:['桌面推演','实战演练'],req:true},
+     {t:'text',name:'演练主题',max:50,req:true},
+     {t:'text',name:'总指挥',max:50,req:true},
+     {t:'multi',name:'应急组织架构',opts:['指挥部','抢险救援组','警戒疏散组','医疗救护组','通讯联络组','后勤保障组','其他'],req:true},
+     {t:'text',name:'演练流程',max:500,area:true,req:true},
+     {t:'text',name:'演练场景',max:500,area:true,req:true},
+     {t:'text',name:'演练物资',max:500,area:true,req:true},
+     {t:'docgen',name:'演练方案',req:true},
      ]},
      ],
      '安全生产标准化管理体系建设': [
@@ -112,27 +112,28 @@ function currentTech(){ return (typeof window.TECH_USER!=='undefined' && window.
 function fieldHTML(f){
   const id = 'f'+Math.random().toString(36).slice(2,7);
   const attrs = f.max ? `maxlength="${f.max}" oninput="cnt(this,'${id}')"` : '';
+  const req = f.req ? '<span class="req">*</span>' : '';
   switch(f.t){
     case 'text': return `
       <div class="frow">
-        <div class="flabel">${f.name} ${f.max?`<span class="cnt" id="${id}">0/${f.max}</span>`:''}</div>
+        <div class="flabel">${req}${f.name} ${f.max?`<span class="cnt" id="${id}">0/${f.max}</span>`:''}</div>
         ${f.area
           ? `<textarea class="ta" data-key="${esc(f.name)}" ${attrs} placeholder="请输入"></textarea>`
           : `<input class="inp" data-key="${esc(f.name)}" ${attrs} placeholder="请输入">`}
       </div>`;
     case 'number': return `
-      <div class="frow"><div class="flabel">${f.name}</div>
+      <div class="frow"><div class="flabel">${req}${f.name}</div>
       <input class="inp" type="number" data-key="${esc(f.name)}" oninput="recompute()" placeholder="0"></div>`;
     case 'single': return `
-      <div class="frow"><div class="flabel">${f.name} ${f.hint?`<span class="hint">${f.hint}</span>`:''}</div>
+      <div class="frow"><div class="flabel">${req}${f.name} ${f.hint?`<span class="hint">${f.hint}</span>`:''}</div>
       <div class="chips" data-kind="single" data-key="${esc(f.name)}">${f.opts.map(o=>`<span class="chip">${o}</span>`).join('')}</div></div>`;
     case 'multi': return `
-      <div class="frow"><div class="flabel">${f.name} ${f.hint?`<span class="hint">${f.hint}</span>`:''}</div>
+      <div class="frow"><div class="flabel">${req}${f.name} ${f.hint?`<span class="hint">${f.hint}</span>`:''}</div>
       <div class="chips" data-kind="multi" data-key="${esc(f.name)}">${f.opts.map(o=>`<span class="chip">${o}</span>`).join('')}
         <span class="chip other" data-other="1">其他</span></div>
       <input class="inp" style="margin-top:8px;display:none" data-key="${esc(f.name)}__other" placeholder="其他（手动填写）"></div>`;
     case 'location': return `
-      <div class="frow"><div class="flabel">${f.name}</div>
+      <div class="frow"><div class="flabel">${req}${f.name}</div>
       <div class="row2"><input class="inp" data-key="${esc(f.name)}" placeholder="点击右侧获取定位"><button class="mini" onclick="getLoc(this)">获取定位</button></div></div>`;
     case 'photo': return `
       <div class="frow lrow"${f.showIf?` data-showof="${f.showIf.split('=')[0]}" data-showval="${f.showIf.split('=')[1]}" style="display:none"`:''} onclick="goPhoto('${encodeURIComponent(f.name)}',${f.max})">
@@ -144,11 +145,11 @@ function fieldHTML(f){
         <div class="right"><span class="file">未上传</span><span class="go">›</span></div>
         <input type="file" accept="${f.t==='pdf'?'application/pdf':'*'}" hidden onchange="onFile(this)"></div>`;
     case 'tech': return `
-      <div class="frow"><div class="flabel">${f.name}</div>
+      <div class="frow"><div class="flabel">${req}${f.name}</div>
       <input class="inp" data-key="${esc(f.name)}" value="${esc(currentTech())}" readonly placeholder="自动生成"></div>`;
     case 'docgen': return `
-      <div class="frow"><div class="flabel">${f.name}</div>
-        <div class="lrow" onclick="this.querySelector('input').click()">
+      <div class="frow"><div class="flabel">${req}${f.name}</div>
+        <div class="lrow" data-key="${esc(f.name)}" onclick="this.querySelector('input').click()">
           <div class="ltxt">${f.name}（PDF 上传）</div>
           <div class="right"><span class="file">未上传</span><span class="go">›</span></div>
           <input type="file" accept="application/pdf" hidden onchange="onFile(this)">
@@ -156,12 +157,12 @@ function fieldHTML(f){
         <button class="aibtn" type="button" onclick="aiGen('文档生成')">✦ 大模型生成 Word 文档（C5）</button>
       </div>`;
     case 'ai': return `
-      <div class="frow"><div class="flabel">${f.name} ${f.max?`<span class="cnt" id="${id}">0/${f.max}</span>`:''} ${f.doc?`<span class="tagdoc">文档</span>`:''}</div>
+      <div class="frow"><div class="flabel">${req}${f.name} ${f.max?`<span class="cnt" id="${id}">0/${f.max}</span>`:''} ${f.doc?`<span class="tagdoc">文档</span>`:''}</div>
         ${f.doc?'':`<textarea class="ta" data-key="${esc(f.name)}" ${attrs} placeholder="由大模型生成或手动填写"></textarea>`}
         <button class="aibtn" onclick="aiGen('${f.ai}')">✦ 大模型${f.ai}（C5）</button></div>`;
     case 'rate': return `
       <div class="frow" ${f.showIf?`data-showof="${f.showIf.split('=')[0]}" data-showval="${f.showIf.split('=')[1]}"`:''}>
-        <div class="flabel">${f.name}</div>
+        <div class="flabel">${req}${f.name}</div>
         <div class="chips" data-kind="single" data-group="${f.key||''}" data-key="${esc(f.name)}">${f.opts.map(o=>`<span class="chip ${o===f.def?'on':''}">${o}</span>`).join('')}</div></div>`;
     case 'calc': return `
       <div class="frow"><div class="calc">
@@ -565,8 +566,40 @@ function recompute(){
 }
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1600);}
+
+/* 校验当前项目 schema 中标为 req:true 的字段是否已填写；返回未填字段名数组 */
+function validateReq(){
+  const miss=[];
+  (SCHEMA[project]||[]).forEach(s=>s.rows.forEach(f=>{
+    if(!f.req) return;
+    const key=esc(f.name);
+    if(f.t==='docgen'){
+      const lr=document.querySelector('#body [data-key="'+key+'"]');
+      const file=lr&&lr.querySelector('.file');
+      if(!file||!file.classList.contains('ok')) miss.push(f.name);
+      return;
+    }
+    const el=document.querySelector('#body [data-key="'+key+'"]');
+    if(!el) return;
+    if(el.classList.contains('chips')){
+      if(!el.querySelector('.chip.on')) miss.push(f.name);
+    } else if(el.tagName==='TEXTAREA'||el.tagName==='INPUT'){
+      if(!el.value.trim()) miss.push(f.name);
+    }
+  }));
+  return miss;
+}
+let _blockSave=false;
+/* 提交服务登记：先校验必填项，未填则阻断并提示 */
+function submitReg(){
+  _blockSave=true;
+  const miss=validateReq();
+  if(miss.length){ toast('请完善必填项：'+miss.join('、')); return; }
+  saveSvcForm();
+  toast('服务登记已提交');
+}
 /* 提交服务登记时，把填写内容写入共享键 svcform_<工单>_<项目>，供服务机构端读取 */
-document.addEventListener('click', e=>{ const b=e.target.closest('.btn-main'); if(b){ saveSvcForm(); } });
+document.addEventListener('click', e=>{ const b=e.target.closest('.btn-main'); if(b){ if(_blockSave){_blockSave=false;return;} saveSvcForm(); } });
 
 /* ===== 初始化（由各 HTML 调用） ===== */
 function init(projectName, lite, entry, risk, hazard, patrol, score, deduct){

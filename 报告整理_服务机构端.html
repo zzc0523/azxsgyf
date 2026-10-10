@@ -436,7 +436,7 @@ const PROJECT_DEF = {
       {name:'考试试卷摘要',type:'photo',max:10,sources:['拍照','引用现场检查照片'],showIf:'exam=是',req:true},
       {name:'培训效果评估',type:'single',opts:['实操','理论','满意度调查','无评估'],def:'实操',req:true},
       {name:'培训效果反馈表',type:'photo',max:10,req:true},
-      {name:'附件上传',type:'docs',note:'支持 PDF / Word 多份',req:false},
+      {name:'其他文档',type:'docs',note:'支持 PDF / Word 多份',req:false},
     ]},
   ]},
   '安全生产应急救援演练':{type:'sections',sections:[
@@ -468,7 +468,7 @@ const PROJECT_DEF = {
       {name:'医疗救护',type:'single',opts:['符合','基本符合','不符合'],def:'符合',req:true},
       {name:'效果评价',type:'single',opts:['达到既定目标','基本达到既定目标','未达到既定目标'],def:'达到既定目标',req:true},
       {name:'演练总结',type:'area',max:500,ph:'请填写演练总结（500字以内），或点击「AI 生成」',ai:'summary',req:true},
-      {name:'附件上传',type:'docs',note:'支持 PDF / Word 多份',req:false},
+      {name:'其他文档',type:'docs',note:'支持 PDF / Word 多份',req:false},
     ]},
   ]},
   '安全生产应急预案编制':{type:'blocks',blocks:[

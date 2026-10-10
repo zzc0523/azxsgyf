@@ -141,7 +141,7 @@
   .refitem input{position:absolute;right:3px;top:3px;width:18px;height:18px;accent-color:#2b5ce6}
   .refempty{text-align:center;color:var(--sub);font-size:13px;padding:20px 0}
 
-  /* 附件上传（统一上传样式） */
+  /* 其他文档（统一上传样式） */
   .flbl{display:flex;align-items:center;color:var(--sub);font-size:13.5px;margin-bottom:10px}
   .flbl .note{margin-left:auto;color:#b9bfcc;font-size:12px;font-weight:400}
   .upload{display:flex;align-items:center;gap:10px}
@@ -398,7 +398,7 @@ function confirmPhRef(){
   closePhSheet(); render(); toast('已引用 '+n+' 张照片');
 }
 
-/* ===== 附件上传（PDF / Word 多份） ===== */
+/* ===== 其他文档（PDF / Word 多份） ===== */
 const ATTACH_KEY = 'hazard_report_attach';
 function loadAttach(){ try{ return JSON.parse(localStorage.getItem(ATTACH_KEY))||[]; }catch(e){ return []; } }
 function saveAttach(a){ try{ localStorage.setItem(ATTACH_KEY, JSON.stringify(a)); }catch(e){} }
@@ -407,7 +407,7 @@ function attachCard(){
   const items = files.map((f,i)=>`<div class="docitem"><span class="docname">${esc(f)}</span><span class="docx" onclick="delAttach(${i})">×</span></div>`).join('');
   const upIcon = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2b5ce6" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   return `<div class="card gap">
-    <div class="flbl">附件上传<span class="note">支持 PDF / Word 多份</span></div>
+    <div class="flbl">其他文档<span class="note">支持 PDF / Word 多份</span></div>
     <div class="docs">
       <button class="up-btn" type="button" onclick="document.getElementById('file_attach').click()">${upIcon}添加文档</button>
       <div class="doclist">${items}</div>
@@ -544,7 +544,7 @@ function buildReportDOM(meta, data){
     `<div class="rpt-sec">三、隐患清单（共 ${data.list.length} 项）</div>${riskBlocks}`+
     `<div class="rpt-sec">四、现场服务照片与附件</div>`+
     `<div class="rpt-row"><div class="rpt-k">现场服务照片</div><div class="rpt-v">${esc(data.srvPhoto?data.srvPhoto+' 张（页内拍照 / 引用）':'未上传')}</div></div>`+
-    `<div class="rpt-row"><div class="rpt-k">附件上传</div><div class="rpt-v">${esc(data.attach.length?data.attach.join('、'):'未上传')}</div></div>`;
+    `<div class="rpt-row"><div class="rpt-k">其他文档</div><div class="rpt-v">${esc(data.attach.length?data.attach.join('、'):'未上传')}</div></div>`;
 }
 async function generateReport(){
   const data = collect();

@@ -224,7 +224,7 @@ const SECTIONS = [
     {type:'pdf', name:'演练方案', note:'PDF 上传 / 大模型生成 Word', ai:'word', req:true},
     {type:'photo', name:'签到表', max:9, sources:['拍照','引用现场检查照片','手机相册'], req:true},
     {type:'photo', name:'演练物资', max:9, sources:['拍照','引用现场检查照片'], req:true},
-    {type:'photo', name:'现场演练照片', max:9, sources:['拍照','引用现场检查照片'], req:true},
+    {type:'photo', name:'现场服务照片', max:6, sources:['拍照','引用现场检查照片'], req:true},
   ]},
   { title:'演练评估', fields:[
     {type:'number', name:'演练人数', ph:'请输入演练人数', req:true},
@@ -237,7 +237,7 @@ const SECTIONS = [
     {type:'single', name:'医疗救护', opts:['符合','基本符合','不符合'], def:'符合', req:true},
     {type:'single', name:'效果评价', opts:['达到既定目标','基本达到既定目标','未达到既定目标'], def:'达到既定目标', req:true},
     {type:'text', name:'演练总结', max:500, area:true, ph:'请填写演练总结（500字以内），或点击「AI 生成」', ai:'summary', req:true},
-    {type:'docs', name:'附件上传', note:'支持 PDF / Word 多份', req:false},
+    {type:'docs', name:'其他文档', note:'支持 PDF / Word 多份', req:false},
   ]},
 ];
 

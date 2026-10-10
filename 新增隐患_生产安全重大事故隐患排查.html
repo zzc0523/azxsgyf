@@ -68,6 +68,7 @@
   .ai-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 16px;border:none;
     background:#7c3aed;color:#fff;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer}
   .ai-btn:active{opacity:.9}
+  .ai-btn.wide{width:100%;justify-content:center;margin-top:10px}
 
   /* AI 辨识候选（5 条备选隐患） */
   .cand{margin-top:10px;border:1px solid #ece9f9;border-radius:10px;background:#faf9fe;overflow:hidden}
@@ -133,19 +134,17 @@
           <button class="ai-btn" onclick="genIdentify(this)">✦ 大模型辨识隐患</button>
         </div>
         <div class="cand" id="candBox" style="display:none"></div>
+        <button class="ai-btn wide" type="button" onclick="genHazardAll(this)">✦ 大模型生成（一键回填排查依据 / 事故种类 / 整改建议）</button>
       </div>
 
       <div class="field">
         <div class="flbl"><span class="req">*</span>排查依据</div>
-        <textarea class="inp area" id="f_basis" maxlength="200" placeholder="请手动填写排查依据，或点击「大模型生成」"></textarea>
-        <div class="ai-row">
-          <button class="ai-btn" onclick="genBasis(this)">✦ 大模型生成排查依据</button>
-        </div>
+        <textarea class="inp area" id="f_basis" maxlength="200" placeholder="请手动填写排查依据"></textarea>
       </div>
 
       <div class="field">
         <div class="flbl"><span class="req">*</span>事故种类</div>
-        <div class="hint">27 项可多选；或点击「大模型生成」按隐患描述自动勾选</div>
+        <div class="hint">27 项可多选；或点击上方「大模型生成」按隐患描述自动勾选</div>
         <div class="chips" data-key="accident" data-type="multi" id="accidentChips">
           <span class="chip" data-v="物体打击">物体打击</span>
           <span class="chip" data-v="厂（场）内车辆致害">厂（场）内车辆致害</span>
@@ -175,17 +174,11 @@
           <span class="chip" data-v="泄漏">泄漏</span>
           <span class="chip" data-v="其他">其他</span>
         </div>
-        <div class="ai-row">
-          <button class="ai-btn" onclick="genAccident(this)">✦ 大模型生成事故种类</button>
-        </div>
       </div>
 
       <div class="field">
         <div class="flbl"><span class="req">*</span>整改建议</div>
-        <textarea class="inp area" id="f_advice" maxlength="200" placeholder="请手动填写整改建议，或点击「大模型生成」"></textarea>
-        <div class="ai-row">
-          <button class="ai-btn" onclick="genAdvice(this)">✦ 大模型生成整改建议</button>
-        </div>
+        <textarea class="inp area" id="f_advice" maxlength="200" placeholder="请手动填写整改建议"></textarea>
       </div>
 
       <div class="field">
@@ -328,31 +321,23 @@ function syncDescFromCand(){
   document.getElementById('f_desc').value = sel.join('；');
 }
 
-/* 排查依据：依据隐患描述 */
-function genBasis(btn){
-  const d = val('f_desc') || '现场检查发现的不符合项';
+/* 大模型一键生成：依据隐患描述回填 排查依据、事故种类、整改建议（均可编辑） */
+function genHazardAll(btn){
+  const d = val('f_desc');
+  if(!d){ toast('请先填写或辨识隐患描述'); return; }
+  // 排查依据
   document.getElementById('f_basis').value =
     `依据《安全生产事故隐患排查治理暂行规定》及相关标准规范，针对「${d}」开展现场隐患排查，确认不符合项并按期整改闭环。`;
-  toast('已生成排查依据');
-}
-
-/* 事故种类：依据隐患描述 自动勾选 */
-function genAccident(btn){
+  // 事故种类：按隐患描述自动勾选
   const list = ACCIDENT_MAP[industry()] || [];
   const chips = document.querySelectorAll('#accidentChips .chip');
   chips.forEach(c=>c.classList.remove('on'));
   let n = 0;
   chips.forEach(c=>{ if(list.includes(c.dataset.v)){ c.classList.add('on'); n++; } });
-  toast(n ? `已自动勾选 ${n} 项事故种类` : '未匹配到事故种类');
-}
-
-/* 整改建议：依据隐患描述 */
-function genAdvice(btn){
-  const d = val('f_desc');
-  if(!d){ toast('请先填写或辨识隐患描述'); return; }
+  // 整改建议
   document.getElementById('f_advice').value =
     `针对「${d}」，建议：立即采取临时管控措施，明确整改责任人并限期闭环；完善相关安全管理制度与现场防护，整改完成后组织复查验收，防止同类隐患反复出现。`;
-  toast('已生成整改建议');
+  toast(n ? `已生成排查依据、整改建议，并勾选 ${n} 项事故种类` : '已生成排查依据、整改建议');
 }
 
 function collectHazard(){

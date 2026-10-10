@@ -197,6 +197,7 @@
 
 <input type="file" id="pdfInput" accept="application/pdf" style="display:none">
 <input type="file" id="docInput" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple style="display:none">
+<input type="file" id="doc1Input" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none">
 
 <script src="html2canvas.min.js"></script>
 <script src="jspdf.umd.min.js"></script>
@@ -220,7 +221,8 @@ const SECTIONS = [
     {type:'photo', name:'考试试卷摘要', max:10, sources:['拍照','引用现场检查照片'], showIf:'exam=是', req:true},
     {type:'single', name:'培训效果评估', opts:['实操','理论','满意度调查','无评估'], def:'实操', req:true},
     {type:'photo', name:'培训效果反馈表', max:10, sources:['拍照','引用现场检查照片'], req:true},
-    {type:'docs', name:'附件上传', note:'支持 PDF / Word 多份', req:false},
+    {type:'doc', name:'考试试卷', note:'支持 PDF / Word', req:false},
+    {type:'docs', name:'其他文档', note:'支持 PDF / Word 多份', req:false},
   ]},
 ];
 
@@ -306,6 +308,8 @@ function fieldHTML(f){
     inner = `<div class="upload"><span class="up-btn" onclick="pickPDF(this)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2b5ce6" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>上传 PDF</span><span class="fname">未选择文件</span></div>`;
   } else if(f.type==='docs'){
     inner = `<div class="docs"><button class="up-btn" type="button" onclick="pickDoc(this)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2b5ce6" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>添加文档</button><div class="doclist"></div></div>`;
+  } else if(f.type==='doc'){
+    inner = `<div class="upload"><span class="up-btn" type="button" onclick="pickDoc1(this)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2b5ce6" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>添加文档</span><span class="fname">未选择文件</span></div>`;
   }
   const req = f.req?'<span class="req">*</span>':'';
   const note = (f.type!=='photo' && f.note)?`<span class="note">${f.note}</span>`:'';
@@ -387,6 +391,16 @@ function pickPDF(btn){
   input._fname = btn.parentElement.querySelector('.fname');
   input.onchange = ()=>{
     if(input.files && input.files[0]) input._fname.textContent = input.files[0].name;
+  };
+  input.click();
+}
+
+function pickDoc1(btn){
+  const input = document.getElementById('doc1Input');
+  input._fname = btn.parentElement.querySelector('.fname');
+  input.onchange = ()=>{
+    if(input.files && input.files[0]) input._fname.textContent = input.files[0].name;
+    input.value = '';
   };
   input.click();
 }

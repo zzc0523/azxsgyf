@@ -265,7 +265,7 @@ function render(){
   const otherNames = other && other.names ? other.names.join('、') : '';
   document.getElementById('body').innerHTML = infoCard() + photoCard() + entryCard() + preDocHTML() + html + `
     <div class="card">
-      <div class="card-title"><i></i>附件上传</div>
+      <div class="card-title"><i></i>其他文档</div>
       <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">文档上传（PDF、Word 多份）</div>
       <div class="upload">
         <span class="up-btn" onclick="uploadOther()">
@@ -351,7 +351,7 @@ function generateReport(){
     '<div class="pv-row"><div class="pv-k">生产安全事故风险分析</div><div class="pv-v">'+esc(state.__riskAnalysis||'—')+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">应急资源差距分析</div><div class="pv-v">'+esc(state.__gapAnalysis||'—')+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">现场服务照片</div><div class="pv-v">'+esc((state.__sitePhotos&&state.__sitePhotos.length)?state.__sitePhotos.map(p=>p.name).join('、'):'—')+'</div></div>'+
-    '<div class="pv-row"><div class="pv-k">附件上传</div><div class="pv-v">'+esc((state.__other&&state.__other.names&&state.__other.names.length)?state.__other.names.join('、'):'—')+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">其他文档</div><div class="pv-v">'+esc((state.__other&&state.__other.names&&state.__other.names.length)?state.__other.names.join('、'):'—')+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">现场照片</div><div class="pv-v">'+esc(PHOTOS.map(p=>p.name+' '+photoCount(p.name)+'张').join('、'))+'</div></div>';
   document.getElementById('previewSub').textContent = '工单号 '+orderNo+' · '+proj;
   document.getElementById('preview').classList.add('show');

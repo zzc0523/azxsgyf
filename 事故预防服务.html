@@ -50,6 +50,7 @@
   .badge.overdue{background:#fdeaea;color:#e5484d}
   .badge.done{background:#e9f6ef;color:#2f9e6b}
   .badge.review{background:#eaf0fe;color:#2b5ce6}
+  .badge.returned{background:#fff3e0;color:#e8830c}
   .divider{height:1px;background:var(--line);margin:0 -14px 11px}
   .row{display:flex;font-size:13px;line-height:1.95}
   .lbl{color:var(--sub);flex:none}
@@ -186,6 +187,14 @@ const SAMPLE_REVIEW = {
   place: '福州台江区金融街万达广场C座',
   status: '审核中'
 };
+/* 待整理示例数据：一条报告被审核退回、可重新报告整理的工单（状态存于 sg_report_status） */
+const SAMPLE_RETURNED = {
+  no: 'YF2132088',
+  company: '福州联众精密制造有限公司',
+  project: '安全生产标准化管理体系建设',
+  date: '2025.01.08-2025.01.12',
+  place: '福州晋安区福兴投资区'
+};
 
 /* 工单状态流转持久化：确认→待执行（移入待执行）、拒绝→退回机构端（从待确认移除） */
 function getMoved(){ try{ return JSON.parse(localStorage.getItem('sg_moved_orders') || '[]'); }catch(e){ return []; } }
@@ -205,7 +214,7 @@ function buildOrders(tabIndex){
     overdue: !!(tab.overdue && tab.overdue.includes(i)),
     done: !!tab.done
   }));
-  if(tabIndex === 3){ orders.unshift({ ...SAMPLE_REVIEW }); }
+  if(tabIndex === 3){ orders.unshift({ ...SAMPLE_RETURNED }); orders.unshift({ ...SAMPLE_REVIEW }); }
   const moved = getMoved(), rejected = getRejected();
   if(tabIndex === 0){
     // 待确认：已确认、已拒绝的都不再展示
@@ -236,6 +245,7 @@ function renderList(){
     const st = o.status || status[o.no];
     let badge = '', actions = TABS[current].actions;
     if(st === '审核中'){ badge = '<span class="badge review">审核中</span>'; actions = [{t:'查看报告', cls:'ghost'}]; }
+    else if(st === '已退回'){ badge = '<span class="badge returned">已退回</span>'; actions = [{t:'重新报告整理', cls:'primary'}]; }
     else if(o.overdue){ badge = '<span class="badge overdue">逾期</span>'; }
     else if(o.done){ badge = '<span class="badge done">已完成</span>'; }
     return `
@@ -300,7 +310,7 @@ function act(action, no, project, overdue, company, date, place){
     }
     return;
   }
-  if(action==='报告整理'){
+  if(action==='报告整理' || action==='重新报告整理'){
     // 有独立报告页的项目走专用页，其余暂未配置
     const REPORT = { '安全生产宣传教育培训':'报告整理_安全生产宣传教育培训.html', '安全生产应急救援演练':'报告整理_安全生产应急救援演练.html', '安全生产应急预案编制':'报告整理_安全生产应急预案编制.html', '安全风险辨识、评估、评价':'报告整理_安全风险辨识评估评价.html', '生产安全重大事故隐患排查':'报告整理_生产安全重大事故隐患排查.html', '安全生产标准化管理体系建设':'报告整理_安全生产标准化管理体系建设.html' };
     if(REPORT[project]){
@@ -354,6 +364,14 @@ function confirmModal(){
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
   clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1700);}
+
+/* 首次进入时，若示例退回工单尚未在状态表中，则写入「已退回」 */
+(function seedReturned(){
+  try{
+    const s = JSON.parse(localStorage.getItem('sg_report_status') || '{}');
+    if(s[SAMPLE_RETURNED.no] === undefined){ s[SAMPLE_RETURNED.no] = '已退回'; localStorage.setItem('sg_report_status', JSON.stringify(s)); }
+  }catch(e){}
+})();
 
 renderTabs();
 renderList();
