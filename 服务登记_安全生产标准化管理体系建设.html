@@ -74,7 +74,7 @@
   .file{color:var(--sub);font-size:12.5px}
   .file.ok{color:var(--blue)}
 
-  /* 现场评分表 */
+  /* 现场清单列表表头（排查/评分列表共用） */
   .phead{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line)}
   .ptitle{font-size:15px;font-weight:700;color:var(--text)}
   .plus{font-size:21px;line-height:1;color:#3a4050;cursor:pointer;padding:0 2px}
@@ -100,7 +100,7 @@
   .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:40;display:none;max-width:74%;text-align:center;line-height:1.6}
   .toast.show{display:block}
 
-  /* 评分表选择弹层（从机构端评分表管理选用“启用”的表） */
+  /* 检查表选择弹层（从机构端隐患检查表管理选用“启用”的表） */
   .as-mask{position:absolute;inset:0;z-index:60;display:none;background:rgba(15,22,36,.4);align-items:flex-end}
   .as-mask.show{display:flex}
   .as-panel{width:100%;background:#fff;border-radius:16px 16px 0 0;overflow:hidden;animation:asUp .2s ease}
@@ -145,7 +145,7 @@
 <script src="service-form.js"></script>
 <script>
   /* 安全生产标准化管理体系建设 专用服务登记页（基本信息 + 现场照片） */
-  init('安全生产标准化管理体系建设', true, null, false, false, false, false, true);
+  init('安全生产标准化管理体系建设', true, null, false, false, false, true);
   function submitRegister(){ toast('服务登记已提交'); setTimeout(()=>{ location.href = '签退.html?project=' + encodeURIComponent(project); }, 1200); }
 </script>
 </body>

@@ -13,20 +13,19 @@ let _toastT;
 function toast(m){const t=$('#toast');if(!t)return;t.textContent=m;t.classList.add('show');clearTimeout(_toastT);_toastT=setTimeout(()=>t.classList.remove('show'),1800);}
 
 /* 菜单路由：已实现的页面在此登记 菜单文本 -> html 文件名（未登记则提示未开放） */
-const INS_ROUTES={'投保查询':'投保查询.html','保单管理':'保单管理.html','服务计划管理':'服务计划管理.html','服务报告审核':'服务报告审核.html','事故预防服务需求':'事故预防服务需求.html','评分表管理':'评分表管理.html','隐患检查表管理':'检查表管理.html'};
+const INS_ROUTES={'保单管理':'保单管理.html','服务计划管理':'服务计划管理.html','服务报告审核':'服务报告审核.html','事故预防服务需求':'事故预防服务需求.html','隐患检查表管理':'检查表管理.html'};
 
 /* ===== 侧栏菜单数据：后续统一在此修改 ===== */
 const MENUS=[
   {k:'home',t:'首页',d:'<path d="M2.4 6.9 8 2.6l5.6 4.3V13a.7.7 0 0 1-.7.7H3.1a.7.7 0 0 1-.7-.7z"/>'},
   {k:'cert',t:'企业认证',d:'<path d="M8 1.7 13 3.5v4c0 3-2.1 5.5-5 6.6C5.1 12.9 3 10.5 3 7.5v-4z"/><path d="m5.9 7.9 1.5 1.5 2.7-2.8"/>'},
   {k:'product',t:'产品备案管理',d:'<path d="M4 1.8h4.6l3.4 3.4V14a.7.7 0 0 1-.7.7H4a.7.7 0 0 1-.7-.7V2.5A.7.7 0 0 1 4 1.8z"/><path d="M9 1.9V5.2H12.3"/>'},
-  {k:'biz',t:'保险业务管理',open:true,d:'<path d="M1.8 4.3h3.8l1.4 1.5h7.2v7a.7.7 0 0 1-.7.7H2.5a.7.7 0 0 1-.7-.7z"/>',children:['保单管理','投保查询','理赔管理']},
+  {k:'biz',t:'保险业务管理',open:true,d:'<path d="M1.8 4.3h3.8l1.4 1.5h7.2v7a.7.7 0 0 1-.7.7H2.5a.7.7 0 0 1-.7-.7z"/>',children:['保单管理','理赔管理']},
   {k:'tech',t:'技术人员管理',d:'<circle cx="8" cy="5.1" r="2.6"/><path d="M3.1 14c0-2.6 2.1-4.3 4.9-4.3s4.9 1.7 4.9 4.3"/>'},
   {k:'service',t:'事故预防服务管理',d:'<path d="M8 14.3s4.2-4.2 4.2-7.3A4.2 4.2 0 0 0 3.8 7c0 3.1 4.2 7.3 4.2 7.3z"/><circle cx="8" cy="7" r="1.4"/>',children:['事故预防服务需求','事故预防服务查询','服务计划管理','服务报告审核']},
   {k:'hidden',t:'隐患整改跟踪',d:'<path d="M8 2.1 14.3 13H1.7z"/><path d="M8 6.3v3"/><circle cx="8" cy="11.3" r=".7" fill="currentColor" stroke="none"/>'},
   {k:'risk',t:'风险整改跟踪',d:'<path d="M8 1.8s3.6 3 3.6 6.3A3.6 3.6 0 0 1 8 14a3.6 3.6 0 0 1-3.6-5.9c.5.9 1.4 1.3 2 .9.9-.6.4-2.4 1.6-7.2z"/>'},
-  {k:'check',t:'隐患检查表管理',d:'<rect x="2" y="2" width="12" height="12" rx="2"/><path d="m5.4 8.2 1.8 1.8 3.5-3.6"/>'},
-  {k:'score',t:'评分表管理',d:'<rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 6h6M5 9h6M5 12h3"/>'}
+  {k:'check',t:'隐患检查表管理',d:'<rect x="2" y="2" width="12" height="12" rx="2"/><path d="m5.4 8.2 1.8 1.8 3.5-3.6"/>'}
 ];
 
 function renderNav(active){

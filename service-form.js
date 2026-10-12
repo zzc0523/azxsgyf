@@ -3,7 +3,7 @@
 
 const ACCIDENT = ['物体打击','厂（场）内车辆致害','道路（轨道）车辆致害','机械致害','起重致害','触电','淹溺','灼烫','火灾','高处坠落','跌落','坍塌','水害','容器爆炸','管道爆炸','可燃气体爆炸','可燃液体蒸气爆炸','粉尘爆炸','民用爆炸物品爆炸','烟花爆竹爆炸','其他可燃固体爆炸','高温熔融物爆炸','中毒','窒息','滑坡','泄漏','其他'];
 
-let orderNo, project, OVERDUE, PLACE, COMPANY, COMPANY_INDUSTRY='', LITE=false, ENTRY='', RISK=false, HAZARD=false, PATROL=false, SCORE=false, DEDUCT=false;
+let orderNo, project, OVERDUE, PLACE, COMPANY, COMPANY_INDUSTRY='', LITE=false, ENTRY='', RISK=false, HAZARD=false, PATROL=false, DEDUCT=false;
 
 /* ===== 六大项目字段 schema（来自功能清单.md） ===== */
 const SCHEMA = {
@@ -322,11 +322,6 @@ function deductEntryCard(){
 /* 现场清单（现场排查 / 现场评分，表可自定义增删） */
 const LIST_META = {
   patrol: {sec:'现场排查', title:'现场排查表', key:'patrol_', types:['安全管理类排查表','现场用电类排查表','消防安全类排查表','特种设备类排查表','危化品类排查表','工贸类排查表','建筑施工类排查表','矿山类排查表']},
-  score:  {sec:'现场评分', title:'评分表', key:'score_',  types:['安全管理类评分表','现场用电类评分表','消防安全类评分表','特种设备类评分表','危化品类评分表','工贸类评分表','建筑施工类评分表','矿山类评分表'],
-    defaults:[
-      {name:'企业安全生产标准化评分表', done:true, tableId:'T1', code:'PF-2026-001'},
-      {name:'危化品企业专项评分表',     done:true, tableId:'T3', code:'PF-2025-018'},
-    ]},
 };
 function listKey(kind){ return LIST_META[kind].key + project; }
 function defaultList(kind){
@@ -335,17 +330,11 @@ function defaultList(kind){
   const t = meta.types;
   return [{name:t[0],done:true},{name:t[1],done:false}];
 }
-/* 旧默认（仅现场评分：两条通用类型名且无 tableId）自动迁移为新默认 */
-function isLegacyScoreDefault(list){
-  const legacy = ['安全管理类评分表','现场用电类评分表'];
-  return Array.isArray(list) && list.length === 2
-      && list.every(r=>!r.tableId && legacy.indexOf(r.name) >= 0);
-}
+
 function listLoad(kind){
   let list = null;
   try{ const s = localStorage.getItem(listKey(kind)); if(s != null) list = JSON.parse(s); }catch(e){}
   if(!Array.isArray(list) || !list.length){ const def = defaultList(kind); listSave(kind, def); return def; }
-  if(kind === 'score' && isLegacyScoreDefault(list)){ const def = defaultList(kind); listSave(kind, def); return def; }
   return list;
 }
 function listSave(kind,list){ try{ localStorage.setItem(listKey(kind), JSON.stringify(list)); }catch(e){} }
@@ -358,7 +347,7 @@ function listCard(kind){
       <div class="right"><span class="pstat ${r.done?'ok':'gray'}">${r.done?'已完成':'未完成'}</span><span class="go">›</span></div>
     </div>`).join('');
   return `<div class="sec">${meta.sec}</div><div class="card">
-    <div class="phead"><div class="ptitle">${meta.title}</div><span class="plus" onclick="${kind==='score'?'scoreAdd()':(kind==='patrol'?'patrolAdd()':'listAdd(\'patrol\')')}">＋</span></div>
+    <div class="phead"><div class="ptitle">${meta.title}</div><span class="plus" onclick="${kind==='patrol'?'patrolAdd()':'listAdd(\'patrol\')'}">＋</span></div>
     ${rows}</div>`;
 }
 function listAdd(kind){
@@ -367,7 +356,7 @@ function listAdd(kind){
   const t = LIST_META[kind].types;
   let next = t.find(x=>used.indexOf(x)<0);
   if(!next){
-    const nm = window.prompt('请输入自定义'+(kind==='score'?'评分表':'排查表')+'名称');
+    const nm = window.prompt('请输入自定义排查表名称');
     if(!nm || !nm.trim()) return;
     next = nm.trim();
   }
@@ -378,57 +367,12 @@ function listRemove(kind,i){
 }
 function listOpen(kind,i){
   const r = listLoad(kind)[i]; if(!r) return;
-  if(kind === 'score'){
-    location.href = '现场评分.html?no=' + encodeURIComponent(orderNo)
-                 + '&project=' + encodeURIComponent(project)
-                 + '&name=' + encodeURIComponent(r.name);
-  } else {
-    location.href = '现场排查表.html?no=' + encodeURIComponent(orderNo)
-                 + '&project=' + encodeURIComponent(project)
-                 + '&name=' + encodeURIComponent(r.name);
-  }
+  location.href = '现场排查表.html?no=' + encodeURIComponent(orderNo)
+               + '&project=' + encodeURIComponent(project)
+               + '&name=' + encodeURIComponent(r.name);
 }
 
-/* 现场评分表：从保险机构端「评分表管理」中选取状态为“启用”的评分表添加 */
-function insTables(){
-  try{ const s = localStorage.getItem('ins_score_tables'); const a = s ? JSON.parse(s) : []; return Array.isArray(a) ? a : []; }catch(e){ return []; }
-}
-let SCORE_AVAIL = [];   // 当前弹层可选的（机构端启用、且未添加）评分表
-function scoreAdd(){
-  const enabled = insTables().filter(t => t.status === '启用');
-  const used = listLoad('score').map(r => r.tableId || null).filter(Boolean);
-  SCORE_AVAIL = enabled.filter(t => used.indexOf(t.id) < 0);
-  if(!SCORE_AVAIL.length){ toast('机构端暂无可选（启用）的评分表'); return; }
-  const box = document.getElementById('scoreSheet');
-  if(!box){ toast('暂不支持选择'); return; }
-  const qEl = document.getElementById('scoreSheetQ'); if(qEl) qEl.value = '';
-  renderScoreSheet('');
-  box.classList.add('show');
-}
-function renderScoreSheet(kw){
-  kw = (kw || '').trim().toLowerCase();
-  const list = SCORE_AVAIL.filter(t =>
-    !kw || String(t.name || '').toLowerCase().indexOf(kw) >= 0 || String(t.code || '').toLowerCase().indexOf(kw) >= 0);
-  document.getElementById('scoreSheetList').innerHTML = list.length ? list.map(t =>
-    `<div class="as-item" onclick="scorePick('${t.id}')">
-       <div style="flex:1;min-width:0">
-         <div class="ai-name">${esc(t.name)}</div>
-         <div class="ai-code">${esc(t.code)}</div>
-       </div>
-     </div>`).join('') : `<div class="as-empty">未找到匹配的评分表</div>`;
-}
-function scoreFilter(){ const q = document.getElementById('scoreSheetQ'); renderScoreSheet(q ? q.value : ''); }
-function scorePick(id){
-  const t = insTables().find(x => x.id === id); if(!t){ closeScoreSheet(); return; }
-  const list = listLoad('score');
-  if(list.some(r => (r.tableId || '') === id)){ toast('该评分表已添加'); closeScoreSheet(); return; }
-  list.push({name:t.name, done:false, tableId:t.id, code:t.code, org:t.org});
-  listSave('score', list);
-  closeScoreSheet();
-  renderBody();
-  toast('已添加：' + t.name);
-}
-function closeScoreSheet(){ const b = document.getElementById('scoreSheet'); if(b) b.classList.remove('show'); }
+
 
 /* 现场排查表：从保险机构端「检查表管理」中选取状态为“启用”、且「适用行业」与企业行业一致的检查表添加 */
 /* 机构端「检查表管理」示例数据：当浏览器中还没有 ins_patrol_tables（未打开过机构端页面）时兜底，保证演示环境可用 */
@@ -602,7 +546,7 @@ function submitReg(){
 document.addEventListener('click', e=>{ const b=e.target.closest('.btn-main'); if(b){ if(_blockSave){_blockSave=false;return;} saveSvcForm(); } });
 
 /* ===== 初始化（由各 HTML 调用） ===== */
-function init(projectName, lite, entry, risk, hazard, patrol, score, deduct){
+function init(projectName, lite, entry, risk, hazard, patrol, deduct){
   const q = new URLSearchParams(location.search);
   orderNo  = q.get('no') || 'YF2131900';
   project  = projectName || q.get('project') || '安全风险辨识、评估、评价';
@@ -612,7 +556,6 @@ function init(projectName, lite, entry, risk, hazard, patrol, score, deduct){
   RISK     = !!risk;
   HAZARD   = !!hazard;
   PATROL   = !!patrol;
-  SCORE    = !!score;
   DEDUCT   = !!deduct;
   PLACE    = '福州马尾区海峡广场A座';
   COMPANY  = '福州无比欢信息科技有限公司';
@@ -622,11 +565,10 @@ function init(projectName, lite, entry, risk, hazard, patrol, score, deduct){
 function renderBody(){
   const entryHTML  = ENTRY ? entryCard(ENTRY) : '';
   const patrolHTML = PATROL ? listCard('patrol') : '';
-  const scoreHTML  = SCORE ? listCard('score') : '';
   const riskHTML   = RISK ? countEntryCard('risk') : '';
   const hazardHTML = HAZARD ? countEntryCard('hazard') : '';
   const deductHTML  = DEDUCT ? deductEntryCard() : '';
-  document.getElementById('body').innerHTML = infoCard() + photoCard() + entryHTML + patrolHTML + scoreHTML + riskHTML + hazardHTML + deductHTML + (LITE ? '' : projectCard());
+  document.getElementById('body').innerHTML = infoCard() + photoCard() + entryHTML + patrolHTML + riskHTML + hazardHTML + deductHTML + (LITE ? '' : projectCard());
   /* 回填「评分情况 · 标准总分」 */
   const si=document.getElementById('stdScore'); if(si) si.value = deductObj().standard || '';
   applyShow('deduct', (document.querySelector('[data-group="deduct"] .chip.on')||{}).textContent || '无问题');
@@ -634,4 +576,4 @@ function renderBody(){
   calcRisk();
   recompute();
 }
-window.addEventListener('pageshow',function(e){if(e.persisted)init(project, LITE, ENTRY, RISK, HAZARD, PATROL, SCORE, DEDUCT);});
+window.addEventListener('pageshow',function(e){if(e.persisted)init(project, LITE, ENTRY, RISK, HAZARD, PATROL, DEDUCT);});

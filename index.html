@@ -23,6 +23,17 @@
   .item .t{font-size:14px;font-weight:600;}
   .item .sub{font-size:12px;color:var(--sub);margin-top:3px;word-break:break-all;}
   .foot{text-align:center;color:var(--sub);font-size:12px;margin-top:18px;}
+  /* ===== 版本说明 ===== */
+  .ver{max-width:1180px;margin:22px auto 0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px;box-shadow:0 6px 18px rgba(30,50,110,.06);}
+  .ver-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .ver-title{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;}
+  .ver-acts{display:flex;gap:8px;}
+  .vbtn{border:1px solid var(--brand);background:#fff;color:var(--brand);border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer;transition:.12s;}
+  .vbtn:hover{background:#eef3ff;}
+  .vbtn.primary{background:var(--brand);color:#fff;}
+  .vbtn.primary:hover{background:var(--brand-d);}
+  .ver-body{font-size:13.5px;line-height:1.9;color:#3a4050;white-space:pre-wrap;word-break:break-word;}
+  .ver-edit{display:none;width:100%;min-height:340px;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13.5px;line-height:1.8;font-family:inherit;outline:none;resize:vertical;box-sizing:border-box;color:#3a4050;}
 </style>
 </head>
 <body>
@@ -33,6 +44,18 @@
     <p>综合风险减量服务平台 — 全部页面统一入口</p>
   </div>
 </div>
+<div class="ver">
+  <div class="ver-head">
+    <div class="ver-title">📌 版本说明</div>
+    <div class="ver-acts">
+      <button class="vbtn" id="verEdit" type="button" onclick="verEdit()">编辑</button>
+      <button class="vbtn primary" id="verSave" type="button" onclick="verSave()" style="display:none">保存</button>
+      <button class="vbtn" id="verCancel" type="button" onclick="verCancel()" style="display:none">取消</button>
+    </div>
+  </div>
+  <div class="ver-body" id="verBody"></div>
+  <textarea class="ver-edit" id="verEditArea"></textarea>
+</div>
 <div class="wrap" id="wrap"></div>
 <div class="foot">点击任意卡片即可跳转到对应页面</div>
 
@@ -41,9 +64,7 @@
 const GROUPS=[
   {name:'保险机构端（管理后台）', items:[
     {t:'隐患检查表管理', u:'检查表管理.html', ic:'📋'},
-    {t:'评分表管理', u:'评分表管理.html', ic:'⭐'},
     {t:'保单管理', u:'保单管理.html', ic:'📑'},
-    {t:'投保查询', u:'投保查询.html', ic:'🔍'},
     {t:'服务计划管理', u:'服务计划管理.html', ic:'📅'},
     {t:'服务报告审核', u:'服务报告审核.html', ic:'✅'},
     {t:'事故预防服务需求', u:'事故预防服务需求.html', ic:'📨'},
@@ -96,7 +117,6 @@ const GROUPS=[
     {t:'人脸活体检测', u:'人脸活体检测.html', ic:'🙂'},
     {t:'照片采集', u:'照片采集.html', ic:'📷'},
     {t:'现场排查表', u:'现场排查表.html', ic:'📋'},
-    {t:'现场评分', u:'现场评分.html', ic:'⭐'},
     {t:'应急预案编制信息采集', u:'应急预案编制信息采集.html', ic:'🧾'},
   ]},
 ];
@@ -107,6 +127,80 @@ wrap.innerHTML=GROUPS.map(g=>{
   const cards=g.items.map(it=>`<a class="item" href="${it.u}"><div class="ic">${it.ic}</div><div><div class="t">${it.t}</div><div class="sub">${it.u}</div></div></a>`).join('');
   return `<div class="group"><h2>${g.name}</h2><div class="grid">${cards}</div></div>`;
 }).join('');
+
+/* ===== 版本说明（可编辑，后续修改按日期追加） ===== */
+const VER_KEY='index_ver_notes';
+const VER_DEFAULT=`【2026-10-12 初始化版本说明】
+全局：
+1、服务项目：增加"安全生产应急救援演练、安全生产应急预案编制及安全生产标准化管理体系建设"三项
+
+一、管理端
+1、新增：隐患检查表管理（功能同保险机构端）
+
+二、保险机构端
+1、新增：保单管理
+2、服务计划管理-创建计划：
+   2.1所需服务项目，原来的基础上增加"安全生产应急救援演练、安全生产应急预案编制及安全生产标准化管理体系建设"三项
+   2.2安全生产宣传教育培训，是否必做 改为 否。
+3、新增：服务报告审核
+4、新增：隐患检查表管理
+
+三、服务机构端
+1、新增：报告整理（可整理本机构的所有数据）
+2、新增：服务报告审核
+3、事故预防服务管理：服务内容为"安全生产应急救援演练"时，增加 演练准备功能
+4、新增：隐患检查表管理（功能同保险机构端）
+
+四、服务人员端(PC端）
+1、个人认证：安全业务相关信息：增加：证书名称 字段； 主要服务项目：增加"安全生产应急救援演练、安全生产应急预案编制及安全生产标准化管理体系建设"三项
+2、新增：报告整理（可整理本人的所有数据）
+
+五、小程序端
+全局：
+1、拍照，需添加水印，水印内容：企业名称、服务专家、拍摄时间、 拍摄地点
+2、事故预防服务：新增"待整理"标签：待整理：报告整理；审核中：查看报告；已退回：重新整理报告
+3、打卡、签退签到：定位只记录打卡位置、时间，不进行距离校验；
+4、服务登记：六大服务项目
+   安全生产宣传教育培训（新增）
+   生产安全重大事故隐患排查（重构）
+   安全风险辨识、评估、评价（重构）
+   安全生产应急救援演练（新增）
+   安全生产应急预案编制（新增）
+   安全生产标准化管理体系建设（新增）
+5、报告整理：六大服务项目内容
+   安全生产宣传教育培训（新增）
+   生产安全重大事故隐患排查（新增）
+   安全风险辨识、评估、评价（新增）
+   安全生产应急救援演练（新增）
+   安全生产应急预案编制（新增）
+   安全生产标准化管理体系建设（新增）
+`;
+function verStored(){ try{ return localStorage.getItem(VER_KEY); }catch(e){ return null; } }
+function renderVer(){ const el=document.getElementById('verBody'); if(el) el.textContent = verStored() || VER_DEFAULT; }
+function verEdit(){
+  const a=document.getElementById('verEditArea');
+  a.value = verStored() || VER_DEFAULT;
+  document.getElementById('verBody').style.display='none';
+  a.style.display='block';
+  document.getElementById('verEdit').style.display='none';
+  document.getElementById('verSave').style.display='inline-block';
+  document.getElementById('verCancel').style.display='inline-block';
+  a.focus();
+}
+function verCancel(){
+  const a=document.getElementById('verEditArea');
+  a.style.display='none';
+  document.getElementById('verBody').style.display='block';
+  document.getElementById('verEdit').style.display='inline-block';
+  document.getElementById('verSave').style.display='none';
+  document.getElementById('verCancel').style.display='none';
+}
+function verSave(){
+  const a=document.getElementById('verEditArea');
+  try{ localStorage.setItem(VER_KEY, a.value); }catch(e){}
+  verCancel(); renderVer();
+}
+renderVer();
 
 </script>
 </body>

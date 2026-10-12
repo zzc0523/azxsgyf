@@ -226,16 +226,6 @@ const BLOCKS = {
   attach:     {sec:'其他文档',          doc:true,  accept:'.pdf,.doc,.docx', sub:'支持 PDF / Word 多份', multi:true},
 };
 
-/* ===== 前项内容（现场评分）汇总，供大模型生成引用 ===== */
-function prevContent(){
-  let tables = [];
-  try{ const s = localStorage.getItem('score_'+project); if(s) tables = JSON.parse(s); }catch(e){}
-  if(!Array.isArray(tables) || !tables.length) tables = [{name:'安全管理类评分表'},{name:'现场用电类评分表'},{name:'消防安全类评分表'}];
-  const names = tables.map(t=>(t&&t.name)||t).join('、');
-  const done  = tables.filter(t=>t && t.done).length;
-  return {names, done, total: tables.length};
-}
-
 /* ===== 本地存储的状态 ===== */
 function stateKey(){ return 'report_std_' + orderNo; }
 function loadState(){
@@ -530,10 +520,9 @@ function delAttach(key, i){
 }
 
 function aiGen(key){
-  const c = prevContent();
   const text = `安全生产标准化管理体系建设 · 自评报告及改进建议
 一、服务概况
-受 ${COMPANY} 委托，于 ${DATE} 在 ${PLACE} 开展安全生产标准化现场评审服务。本次引用评分表：${c.names}（共 ${c.total} 项，已完成 ${c.done} 项）。
+受 ${COMPANY} 委托，于 ${DATE} 在 ${PLACE} 开展安全生产标准化现场评审服务。
 二、评审依据
 《企业安全生产标准化基本规范》（GB/T 33000）及企业所属行业安全生产标准化评定标准。
 三、评审内容（含评分明细）
