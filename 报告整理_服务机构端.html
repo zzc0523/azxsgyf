@@ -888,7 +888,7 @@ function blockHTML(b,form){
 }
 /* ===== 读取并编辑小程序端：现场排查表逐项明细 / 隐患·风险清单 ===== */
 function inspectKey(no,name){ return 'inspect_'+encodeURIComponent(no+'_'+name); }
-function loadInspect(no,name){ try{const s=localStorage.getItem(inspectKey(no,name)); if(s){const a=JSON.parse(s); if(Array.isArray(a))return a;}}catch(e){} return []; }
+function loadInspect(no,name){ try{const s=localStorage.getItem(inspectKey(no,name)); if(s){const a=JSON.parse(s); if(Array.isArray(a)){ a.forEach(x=>{ if(x){ if(x.status==='符合')x.status='无问题'; else if(x.status==='不符合')x.status='有问题'; } }); return a; }}}catch(e){} return []; }
 function saveInspect(no,name,items){ try{localStorage.setItem(inspectKey(no,name),JSON.stringify(items));}catch(e){} }
 function saveHazards(project,list){ try{localStorage.setItem('hazardlist_'+project,JSON.stringify(list));}catch(e){} }
 function saveRisks(project,list){ try{localStorage.setItem('risklist_'+project,JSON.stringify(list));}catch(e){} }
@@ -932,7 +932,7 @@ function patrolDetailHTML(no,name){
   const body=items.map((s,i)=>`
     <div class="pitem" style="border:1px solid #eef0f5;border-radius:8px;padding:8px 10px;margin:8px 0" data-tb="${esc(name)}" data-i="${i}">
       <div style="font-weight:600;margin-bottom:6px">${esc(s.content||('第'+(i+1)+'项'))}</div>
-      <div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span style="width:72px;color:#9aa0ad">排查状态</span><select data-f="status" style="flex:1">${['符合','不符合','不涉及'].map(o=>`<option ${s.status===o?'selected':''}>${o}</option>`).join('')}</select></div>
+      <div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span style="width:72px;color:#9aa0ad">排查状态</span><select data-f="status" style="flex:1">${['无问题','有问题','不涉及'].map(o=>`<option ${s.status===o?'selected':''}>${o}</option>`).join('')}</select></div>
       <div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span style="width:72px;color:#9aa0ad">隐患描述</span><textarea data-f="hazardDesc" style="flex:1;min-height:38px">${esc(s.hazardDesc||'')}</textarea></div>
       <div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span style="width:72px;color:#9aa0ad">排查依据</span><textarea data-f="basis" style="flex:1;min-height:38px">${esc(s.basis||'')}</textarea></div>
       <div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span style="width:72px;color:#9aa0ad">整改建议</span><textarea data-f="advice" style="flex:1;min-height:38px">${esc(s.advice||'')}</textarea></div>

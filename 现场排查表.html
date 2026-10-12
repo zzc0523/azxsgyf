@@ -282,7 +282,7 @@ function blankState(){ return {status:'', nature:'', rectifyStatus:'未整改', 
 let STATE = ITEMS.map(()=>blankState());
 function loadState(){
   const key = 'inspect_' + encodeURIComponent(ORDER + '_' + NAME);
-  try{ const s = localStorage.getItem(key); if(s){ const a = JSON.parse(s); if(Array.isArray(a)){ for(let i=0;i<ITEMS.length;i++){ STATE[i] = Object.assign(blankState(), a[i]||{}); if(!Array.isArray(STATE[i].accidents)) STATE[i].accidents=[]; } } } }catch(e){}
+  try{ const s = localStorage.getItem(key); if(s){ const a = JSON.parse(s); if(Array.isArray(a)){ for(let i=0;i<ITEMS.length;i++){ STATE[i] = Object.assign(blankState(), a[i]||{}); if(!Array.isArray(STATE[i].accidents)) STATE[i].accidents=[]; if(STATE[i].status==='符合')STATE[i].status='无问题'; else if(STATE[i].status==='不符合')STATE[i].status='有问题'; } } } }catch(e){}
 }
 function persist(){
   const key = 'inspect_' + encodeURIComponent(ORDER + '_' + NAME);
@@ -299,9 +299,9 @@ const COLLAPSED = new Set();
 /* ===== 渲染 ===== */
 function headSumHtml(){
   let checked=0, bad=0;
-  STATE.forEach(s=>{ if(s.status) checked++; if(s.status==='不符合') bad++; });
+  STATE.forEach(s=>{ if(s.status) checked++; if(s.status==='有问题') bad++; });
   return `<div class="headsum"><div class="ht">检查进度</div>
-    <div class="hn">当前已检查 <b>${checked}</b> 项，其中不符合 <b class="bad">${bad}</b> 项</div></div>`;
+    <div class="hn">当前已检查 <b>${checked}</b> 项，其中有问题 <b class="bad">${bad}</b> 项</div></div>`;
 }
 function render(){
   let html = headSumHtml();
@@ -327,11 +327,11 @@ function renderCard(i){
     <div class="qline">${lv?`<span class="qlv ${esc(lv)}">${esc(lv)}</span>`:''}<span class="qno">${it.no}.</span>${esc(it.content)}</div>
     <span class="detail-link" onclick="openDetail(${i})">查看详情 ››</span>
     <div class="stbtns" data-i="${i}">
-      ${btn('符合','ok','符合')}
-      ${btn('不符合','bad','不符合')}
+      ${btn('无问题','ok','无问题')}
+      ${btn('有问题','bad','有问题')}
       ${btn('不涉及','na','不涉及')}
     </div>
-    ${st==='符合'?`<div class="qfield">${confPhotoBox(i)}</div>`:''}
+    ${st==='无问题'?`<div class="qfield">${confPhotoBox(i)}</div>`:''}
   </div>`;
 }
 
@@ -354,8 +354,8 @@ function updHead(i){
   const t=document.querySelector('.gdir[onclick="toggleDir('+ci+')"] .gd-t');
   if(t) t.textContent=cnNum(ci+1)+'、'+CATEGORIES[ci].name+'｜已检查('+c+'/'+idxs.length+')';
   const hs=document.querySelector('.headsum .hn');
-  if(hs){ let ch=0,bd=0; STATE.forEach(s=>{if(s.status)ch++; if(s.status==='不符合')bd++;});
-    hs.innerHTML='当前已检查 <b>'+ch+'</b> 项，其中不符合 <b class="bad">'+bd+'</b> 项'; }
+  if(hs){ let ch=0,bd=0; STATE.forEach(s=>{if(s.status)ch++; if(s.status==='有问题')bd++;});
+    hs.innerHTML='当前已检查 <b>'+ch+'</b> 项，其中有问题 <b class="bad">'+bd+'</b> 项'; }
 }
 
 /* ===== 状态 / 隐患等级 点击 ===== */
@@ -367,10 +367,10 @@ document.addEventListener('click', e=>{
     box.querySelectorAll('.stbtn').forEach(x=>x.classList.remove('on'));
     sb.classList.add('on');
     STATE[i].status=v;
-    if(v!=='符合') STATE[i].photoConform='';
+    if(v!=='无问题') STATE[i].photoConform='';
     persist();
     refreshCard(i);
-    if(v==='不符合') openHazard(i);
+    if(v==='有问题') openHazard(i);
     return;
   }
   const chip=e.target.closest('.chip');
@@ -495,7 +495,7 @@ function phInner(i,key){
 }
 function confPhotoBox(i){
   return `<div class="qlbl" style="margin-bottom:8px">现场照片<span class="opt">（选填）</span></div>
-    <div class="upsub">拍摄或引用现场检查照片，留作符合项佐证（最多 1 张）</div>
+    <div class="upsub">拍摄或引用现场检查照片，留作无问题项佐证（最多 1 张）</div>
     <div class="phbox" id="ph_photoConform_${i}">${phInner(i,'photoConform')}</div>`;
 }
 function phBox(i,key,label){

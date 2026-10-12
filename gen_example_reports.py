@@ -3,7 +3,7 @@
 版式：A4 公文体（仿宋、居中标题、黑色边框表格、全宽说明框）。输出 HTML，并用无头 Chrome 打印为 PDF。"""
 import os
 
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "示例报告")
+OUT = os.path.dirname(os.path.abspath(__file__))
 os.makedirs(OUT, exist_ok=True)
 
 # ===================== 版式 =====================
