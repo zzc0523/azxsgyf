@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>我的 · 事故预防服务平台</title>
+<style>
+  :root{--blue:#2b5ce6;--text:#1f2329;--sub:#8b91a0;--line:#eef0f5;--bg:#f4f6fb;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  body{display:flex;align-items:center;justify-content:center;background:#0e1320}
+  .phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:46px;overflow:hidden;border:11px solid #232734;box-shadow:0 24px 70px rgba(0,0,0,.55)}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;background:#232734;border-radius:0 0 18px 18px;z-index:9}
+  /* 顶部蓝色渐变头 */
+  .header{position:relative;background:linear-gradient(180deg,#3f6ef2 0%,#5b86f5 55%,#7ba2f6 100%);padding:44px 18px 66px;border-radius:0 0 26px 26px}
+  .header::after{content:"";position:absolute;inset:0;background:
+      radial-gradient(closest-side,rgba(255,255,255,.18),transparent) 88% 30%/200px 120px no-repeat,
+      radial-gradient(closest-side,rgba(255,255,255,.12),transparent) 8% 80%/180px 120px no-repeat;border-radius:0 0 26px 26px}
+  .statusbar{position:absolute;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;color:#fff;z-index:5}
+  .statusbar .icons{display:flex;align-items:center;gap:5px}
+  .statusbar .icons svg{display:block}
+  .head-top{position:relative;z-index:5;display:flex;align-items:center;justify-content:space-between}
+  .head-title{color:#fff;font-size:16px;font-weight:700;letter-spacing:.5px}
+  .head-icons{display:flex;align-items:center}
+  .capsule{display:flex;align-items:center;height:32px;padding:0 13px;border-radius:16px;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .cap-dots{color:#fff;font-size:14px;letter-spacing:2px;line-height:1;padding-bottom:5px;cursor:pointer}
+  .cap-line{width:1px;height:15px;background:rgba(255,255,255,.4);margin:0 9px}
+  .cap-circ{width:17px;height:17px;border-radius:50%;border:1.6px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .cap-circ i{width:6px;height:6px;border-radius:50%;background:#fff;display:block}
+  /* 用户信息 */
+  .user{position:relative;z-index:5;display:flex;align-items:center;gap:10px;margin-top:18px}
+  .avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#c9d6f7,#8fa9e8);
+    border:2px solid rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;flex-shrink:0}
+  .uinfo{flex:1;min-width:0}
+  .uname{color:#fff;font-size:19px;font-weight:700}
+  .uorg{color:rgba(255,255,255,.85);font-size:12.5px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .uday{color:rgba(255,255,255,.82);font-size:11.5px;margin-top:5px}
+  .uday .days{color:#ff7a45;font-weight:700}
+  .editbtn{flex-shrink:0;display:flex;align-items:center;gap:4px;height:30px;padding:0 10px;border-radius:15px;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.4);color:#fff;font-size:12px;cursor:pointer}
+  .editbtn:active{background:rgba(255,255,255,.34)}
+  /* 内容区 */
+  .body{margin-top:-54px;padding:0 14px 96px;position:relative;z-index:6;height:calc(844px - 44px);overflow-y:auto;display:flex;flex-direction:column}
+  .body::-webkit-scrollbar{display:none}
+  /* 数据统计 */
+  .stats{background:#fff;border-radius:16px;padding:18px 8px;box-shadow:0 8px 22px rgba(30,50,110,.10);display:flex;align-items:center}
+  .stat{flex:1;text-align:center}
+  .stat .num{color:var(--blue);font-size:22px;font-weight:700;letter-spacing:.5px}
+  .stat .lb{color:#9aa0ad;font-size:12px;margin-top:6px}
+  /* 菜单列表 */
+  .menu{background:#fff;border-radius:16px;box-shadow:0 6px 18px rgba(30,50,110,.07);overflow:hidden;margin-top:14px}
+  .mitem{display:flex;align-items:center;gap:12px;padding:16px;border-bottom:1px solid var(--line);cursor:pointer;transition:.15s}
+  .mitem:last-child{border:none}
+  .mitem:active{background:#f7f9ff}
+  .mico{width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .mtx{flex:1;font-size:15px;color:var(--text)}
+  .mchev{color:#c3c8d2;font-size:20px;line-height:1}
+  /* 退出登录 */
+  .logout{margin-top:auto;width:100%;height:50px;background:#fff;border:1px solid var(--line);border-radius:12px;
+    color:#e5484d;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+    box-shadow:0 6px 18px rgba(30,50,110,.06)}
+  .logout:active{background:#fff5f5}
+  /* 底部 Tab */
+  .tabbar{position:absolute;bottom:0;left:0;right:0;height:64px;background:#fff;border-top:1px solid var(--line);display:flex;z-index:20;padding-bottom:6px}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;color:#9aa0ad;cursor:pointer}
+  .tab.active{color:var(--blue);font-weight:600}
+  .tab .ic{font-size:21px;line-height:1}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#111;opacity:.3;z-index:21}
+  .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:40;display:none}
+  .toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <!-- 头部 -->
+  <div class="header">
+    <div class="statusbar"><span>9:41</span>
+      <span class="icons">
+        <svg viewBox="0 0 17 11" width="17" height="11" fill="#fff">
+          <rect x="0" y="7.6" width="3.1" height="3.4" rx="1"/>
+          <rect x="4.65" y="5.3" width="3.1" height="5.7" rx="1"/>
+          <rect x="9.3" y="3" width="3.1" height="8" rx="1"/>
+          <rect x="13.95" y="0.7" width="3.1" height="10.3" rx="1"/>
+        </svg>
+        <svg viewBox="0 0 15.5 11.2" width="15.5" height="11.2" fill="#fff">
+          <path d="M7.75 11.2 5.95 9.2a2.7 2.7 0 0 1 3.6 0L7.75 11.2Z"/>
+          <path d="M7.75 5.85c1.55 0 2.95.6 4 1.65L10.6 8.8a4.1 4.1 0 0 0-5.7 0L3.75 7.5a5.8 5.8 0 0 1 4-1.65Z" opacity=".92"/>
+          <path d="M7.75 1.95c2.55 0 4.9 1 6.65 2.65L13.25 5.9A7.95 7.95 0 0 0 7.75 3.7c-2.1 0-3.95.8-5.5 2.2L1.1 4.6A9.55 9.55 0 0 1 7.75 1.95Z" opacity=".82"/>
+        </svg>
+        <svg viewBox="0 0 25 12" width="25" height="12">
+          <rect x="0.7" y="0.7" width="20.3" height="10.6" rx="3.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/>
+          <rect x="2.4" y="2.4" width="16.9" height="7.2" rx="1.8" fill="#fff"/>
+          <path d="M22.6 3.9v4.2c1.05-.35 1.8-1.2 1.8-2.1s-.75-1.75-1.8-2.1Z" fill="#fff" fill-opacity=".5"/>
+        </svg>
+      </span>
+    </div>
+    <div class="head-top">
+      <span class="head-title">事故预防服务平台</span>
+      <span class="head-icons">
+        <div class="capsule">
+          <span class="cap-dots" onclick="toast('更多')">•••</span>
+          <span class="cap-line"></span>
+          <span class="cap-circ" onclick="toast('设置')"><i></i></span>
+        </div>
+      </span>
+    </div>
+    <div class="user">
+      <div class="avatar">🧑</div>
+      <div class="uinfo">
+        <div class="uname">赵子龙</div>
+        <div class="uorg">福州无比欢安全技术服务公司</div>
+        <div class="uday">守护企业安全的第 <span class="days">365</span> 天</div>
+      </div>
+      <div class="editbtn" onclick="toast('修改信息')">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3z"/>
+          <path d="M13.5 6.5l3 3"/>
+        </svg>
+        修改信息
+      </div>
+    </div>
+  </div>
+
+  <!-- 内容 -->
+  <div class="body">
+    <div class="stats">
+      <div class="stat"><div class="num">23</div><div class="lb">服务次数</div></div>
+      <div class="stat"><div class="num">178</div><div class="lb">排查隐患</div></div>
+      <div class="stat"><div class="num">1,951</div><div class="lb">风险防控</div></div>
+    </div>
+
+    <div class="menu">
+      <div class="mitem" onclick="toast('进入服务协议')">
+        <span class="mico">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2fa96b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+            <path d="M14 3v5h5"/>
+            <path d="M8.6 13.4h5.2M8.6 16.8h3.4"/>
+          </svg>
+        </span>
+        <span class="mtx">服务协议</span>
+        <span class="mchev">›</span>
+      </div>
+    </div>
+
+    <div class="logout" onclick="toast('退出登录')">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#e5484d" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14.5 4H18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3.5"/>
+        <path d="M9.5 16.5 14 12 9.5 7.5"/>
+        <path d="M14 12H4"/>
+      </svg>
+      退出登录
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab" onclick="location.href='首页.html'"><div class="ic">🏠</div>首页</div>
+    <div class="tab active" onclick="toast('已在我的')"><div class="ic">👤</div>我的</div>
+  </div>
+  <div class="home-ind"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1500);}
+</script>
+</body>
+</html>

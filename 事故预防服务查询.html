@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>事故预防服务查询 · 保险机构端</title>
+<link rel="stylesheet" href="ins-common.css">
+<style>
+  .card{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(20,30,60,.04);}
+
+  /* ===== 查询条 ===== */
+  .search{padding:16px 18px;margin-bottom:14px;}
+  .qrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .qgroup{display:flex;align-items:center;height:32px;border:1px solid #dfe4ed;border-radius:4px;background:#fff;padding:0 10px;}
+  .qgroup:focus-within{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .qgroup.k1{width:250px;}
+  .qgroup.k2{width:310px;}
+  .qgroup .lb{color:#6b7688;margin-right:12px;white-space:nowrap;}
+  .qgroup input{flex:1;min-width:0;height:30px;border:none;outline:none;background:transparent;font-size:13px;color:#1f2329;}
+  .qgroup input::placeholder{color:#c2c8d4;}
+  .more{display:none;grid-template-columns:repeat(3,1fr);gap:16px 24px;margin-top:16px;padding-top:16px;border-top:1px dashed var(--line);}
+  .more.show{display:grid;}
+  .fi{display:flex;align-items:center;}
+  .fi label{width:104px;flex:0 0 104px;text-align:right;padding-right:10px;color:#4a5568;white-space:nowrap;}
+  .fi input,.fi select{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
+  .fi input:focus,.fi select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+
+  .btn{height:32px;padding:0 18px;border-radius:4px;border:1px solid #dfe4ed;background:#fff;color:#3a4354;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
+  .btn:hover{border-color:#c7d0de;}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .btn.primary:hover{background:var(--brand-d);border-color:var(--brand-d);}
+  .btn.link{border:none;background:none;color:#7c8aa0;padding:0 4px;}
+  .btn.link svg{width:11px;height:11px;transition:.2s;}
+  .btn.link.up svg{transform:rotate(180deg);}
+
+  /* ===== 表格 ===== */
+  .table-wrap{overflow:hidden;overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:1352px;}
+  thead th{background:#f7f9fc;color:#5d6879;font-weight:600;text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:13px;}
+  tbody td{padding:13px 14px;border-bottom:1px solid var(--line);color:#2b3242;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  tbody tr:hover{background:#f9fbff;}
+  th.op{position:relative;}
+  th.op .gear{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#8a93a5;cursor:pointer;font-size:14px;}
+  th.op .gear:hover{color:var(--brand);}
+  td.op a{color:var(--brand);cursor:pointer;}
+  td.op a:hover{text-decoration:underline;}
+  .empty{text-align:center;color:#9aa3b2;padding:38px 0 !important;}
+
+  /* 服务状态 */
+  .st{display:inline-block;padding:2px 11px;border-radius:3px;font-size:12px;}
+  .st.green{color:#2fa96b;background:rgba(47,169,107,.12);}
+  .st.red{color:#f04438;background:rgba(240,68,56,.10);}
+  .st.blue{color:#2b6ce8;background:rgba(43,108,232,.12);}
+  .st.gray{color:#5d6879;background:#eef1f6;}
+
+  /* ===== 分页 ===== */
+  .pager{display:flex;align-items:center;gap:12px;padding:14px 18px;color:#5d6879;font-size:13px;flex-wrap:wrap;}
+  .pager .right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .pager .pgbtn{min-width:30px;height:30px;padding:0 8px;border:1px solid #e2e7f0;border-radius:4px;background:#fff;cursor:pointer;color:#3a4354;font-size:13px;}
+  .pager .pgbtn:hover:not(:disabled){border-color:#c7d0de;}
+  .pager .pgbtn.on{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .pager .pgbtn:disabled{opacity:.45;cursor:not-allowed;}
+  .pager .sizesel{height:30px;border:1px solid #e2e7f0;border-radius:4px;padding:0 8px;color:#3a4354;background:#fff;}
+  .pager .go input{width:44px;height:30px;border:1px solid #e2e7f0;border-radius:4px;padding:0 6px;text-align:center;}
+
+  /* ===== 弹窗 ===== */
+  .mask{position:fixed;inset:0;background:rgba(15,22,36,.45);display:none;align-items:center;justify-content:center;z-index:50;}
+  .mask.show{display:flex;}
+  .modal{width:min(680px,94vw);max-height:88vh;background:#fff;border-radius:6px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .mhead{height:52px;flex:0 0 52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);}
+  .mtitle{font-size:15px;font-weight:600;display:flex;align-items:center;gap:9px;}
+  .mtitle::before{content:"";width:3px;height:15px;background:var(--brand);border-radius:2px;}
+  .mclose{font-size:18px;color:#9aa3b2;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;}
+  .mclose:hover{background:#f0f2f7;}
+  .mbody{flex:1;overflow:auto;padding:24px 40px 30px;}
+  .form{display:grid;grid-template-columns:1fr;gap:16px;}
+  .fitem{display:flex;align-items:center;}
+  .fitem label{flex:0 0 130px;width:130px;text-align:right;padding-right:12px;font-size:13px;color:#3a4354;line-height:32px;}
+  .fitem .req{color:#f04438;margin-right:3px;}
+  .fitem input,.fitem select{flex:1;min-width:0;height:34px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
+  .fitem input:focus,.fitem select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  select:disabled,input:disabled{background:#f5f7fa;border-color:#eef1f6;color:#2b3242;-webkit-text-fill-color:#2b3242;cursor:default;}
+  .range{flex:1;display:flex;align-items:center;gap:10px;min-width:0;}
+  .range input{flex:1;min-width:0;}
+  .range .to{color:#8a93a5;flex:0 0 auto;}
+  .mfoot{flex:0 0 60px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 26px;border-top:1px solid var(--line);}
+
+  /* 委托协议上传 */
+  .uploadbox{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:172px;max-width:100%;height:44px;padding:0 18px;
+    border:1px dashed #c7d0de;border-radius:6px;color:#5d6879;cursor:pointer;background:#fff;}
+  .uploadbox:hover{border-color:var(--brand);color:var(--brand);}
+  .uploadbox svg{width:14px;height:14px;flex:0 0 14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+  .uploadbox span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .uphint{font-size:12px;color:#9aa3b2;margin-top:8px;}
+
+  /* 只读文件展示行 */
+  .fileline{display:flex;align-items:center;gap:14px;min-height:34px;flex-wrap:wrap;}
+  .fileline .fn{color:#2b3242;word-break:break-all;}
+  .linkbtn{color:var(--brand);cursor:pointer;}
+  .linkbtn:hover{text-decoration:underline;}
+  .linkbtn.dis{color:#9aa3b2;cursor:not-allowed;}
+  .linkbtn.dis:hover{text-decoration:none;}
+
+  .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:rgba(20,28,46,.92);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:80;display:none;}
+  .toast.show{display:block;animation:pop .2s;}
+  @keyframes pop{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1}}
+
+  /* ===== 自适应 ===== */
+  @media (max-width:1366px){ .more{grid-template-columns:1fr 1fr;} }
+  @media (max-width:1024px){
+    .more{grid-template-columns:1fr;}
+    .qgroup.k1,.qgroup.k2{width:100%;}
+    .mbody{padding:16px;}
+    .fitem label{flex:0 0 104px;width:104px;}
+  }
+  @media (max-width:768px){
+    .topbar{padding:0 12px;}
+    .page{padding:12px 10px 20px;}
+    .card.search{padding:14px;}
+    .modal{max-height:92vh;}
+    .pager .right{width:100%;margin-left:0;justify-content:flex-start;}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="side">
+    <div class="brand"><i class="logo"><i></i><b></b></i><span>保险机构端</span></div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+
+  <main class="main">
+    <header class="topbar" id="topbar"></header>
+
+    <div class="page">
+      <div class="card search">
+        <div class="qrow">
+          <div class="qgroup k1"><span class="lb">保单号</span><input id="q_policy" placeholder="请输入保单号" onkeydown="if(event.key==='Enter')doSearch()"></div>
+          <div class="qgroup k2"><span class="lb">服务机构</span><input id="q_org" placeholder="请输入服务机构" onkeydown="if(event.key==='Enter')doSearch()"></div>
+          <button class="btn primary" onclick="doSearch()">查询</button>
+          <button class="btn" onclick="doReset()">重置</button>
+          <button class="btn link" id="collapseBtn" onclick="toggleCollapse()">展开<svg viewBox="0 0 16 16"><path d="M4 10l4-4 4 4" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+        <div class="more" id="moreFields">
+          <div class="fi"><label>服务项目：</label><select id="q_project"><option value="">全部</option></select></div>
+          <div class="fi"><label>服务技术人员：</label><input id="q_staff" placeholder="请输入服务技术人员"></div>
+          <div class="fi"><label>服务状态：</label><select id="q_status">
+            <option value="">全部</option><option>未开始</option><option>进行中</option><option>已完成</option><option>已逾期</option>
+          </select></div>
+          <div class="fi"><label>计划开始日期：</label><input id="q_start" type="date"></div>
+          <div class="fi"><label>计划结束日期：</label><input id="q_end" type="date"></div>
+        </div>
+      </div>
+
+      <div class="card table-wrap">
+        <table>
+          <colgroup>
+            <col style="width:52px"><col style="width:170px"><col style="width:170px"><col style="width:118px"><col style="width:158px">
+            <col style="width:96px"><col style="width:100px"><col style="width:100px"><col style="width:118px"><col style="width:96px">
+            <col style="width:84px"><col style="width:104px"><col style="width:90px">
+          </colgroup>
+          <thead><tr>
+            <th>序号</th><th>预防服务ID</th><th>保单号</th><th>生产经营企业</th><th>服务项目</th>
+            <th>服务费用（元）</th><th>计划开始日期</th><th>计划结束日期</th><th>服务机构</th><th>服务技术人员</th>
+            <th>服务状态</th><th>实际完工日期</th><th class="op">操作<span class="gear" title="列设置" onclick="toast('列设置（演示）')">⚙</span></th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="pager" id="pager"></div>
+    </div>
+  </main>
+</div>
+
+<!-- 查看详情 -->
+<div class="mask" id="dmask">
+  <div class="modal">
+    <div class="mhead">
+      <div class="mtitle">查看详情</div>
+      <div class="mclose" onclick="closeDMask()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="form">
+        <div class="fitem"><label>保单号：</label><input id="d_policy" disabled></div>
+        <div class="fitem"><label>承保机构：</label><input id="d_insurer" disabled></div>
+        <div class="fitem"><label>服务企业：</label><input id="d_company" disabled></div>
+        <div class="fitem"><label>服务项目：</label><select id="d_project" disabled></select></div>
+        <div class="fitem"><label>计划服务日期：</label>
+          <div class="range"><input type="date" id="d_start" disabled><span class="to">至</span><input type="date" id="d_end" disabled></div>
+        </div>
+        <div class="fitem"><label>服务机构：</label><input id="d_org" disabled></div>
+        <div class="fitem"><label>技术服务人员：</label><input id="d_staff" disabled></div>
+        <div class="fitem"><label>实际完工日期：</label><input type="date" id="d_finish" disabled></div>
+        <div class="fitem"><label>服务描述：</label><input id="d_desc" disabled></div>
+        <div class="fitem"><label>服务费用（元）：</label><input id="d_fee" disabled></div>
+        <div class="fitem" style="align-items:flex-start">
+          <label style="line-height:34px">委托协议：</label>
+          <div class="fileline">
+            <span class="fn" id="d_agreement">-</span>
+            <a class="linkbtn" id="d_agreement_preview" onclick="previewFile('agreement')">预览</a>
+          </div>
+        </div>
+        <div class="fitem" style="align-items:flex-start">
+          <label style="line-height:34px">服务报告：</label>
+          <div class="fileline">
+            <span class="fn" id="d_report">-</span>
+            <a class="linkbtn" id="d_report_preview" onclick="previewFile('report')">预览</a>
+            <a class="linkbtn" id="d_report_download" onclick="toast('下载服务报告（演示）')">下载</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeDMask()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="ins-common.js"></script>
+<script>
+/* ===== 枚举 ===== */
+const PROJECTS=['安全生产宣传教育培训','安全风险辨识、评估、评价','生产安全重大事故隐患排查','安全生产应急救援演练','安全生产应急预案编制','安全生产标准化管理体系建设'];
+const COMPANIES=['福建XXX公司','福建厦发信息有限公司','黑龙江超发商贸有限公司','哈尔滨远大建筑安装有限公司','福州海峡建设投资集团有限公司','厦门路桥工程有限公司','宁德时代新能源科技有限公司','泉州石化炼化有限公司'];
+const ORGS=['福建xx安全咨询','福建安通汇科技','福恒安全咨询','民太安公估','福建建安安全评价有限公司'];
+const STAFFS=['张老师','王老师','李老师','陈老师','林老师'];
+const INSURER='泰山保险';
+const ST_ORDER=['未开始','进行中','已完成','已逾期'];
+
+/* ===== 数据 ===== */
+function seed(){
+  return [
+    {id:'210954360130726702',policyNo:'BD202605111435000',company:'福建XXX公司',project:'安全生产宣传教育培训',fee:'-',start:'2026-10-13',end:'2026-11-27',org:'',staff:'',status:'未开始'},
+    {id:'2053744633978044416',policyNo:'BD202605111435000',company:'福建XXX公司',project:'安全生产宣传教育培训',fee:'2000',start:'2026-05-12',end:'2026-05-15',org:'福建xx安全咨询',staff:'张老师',status:'已逾期'},
+    {id:'2053730483512033280',policyNo:'BD202605111435000',company:'福建XXX公司',project:'安全生产宣传教育培训',fee:'1000',start:'2026-05-12',end:'2026-05-16',org:'福建xx安全咨询',staff:'张老师',status:'已逾期'},
+    {id:'2053730483512033281',policyNo:'BD202605111435001',company:'福州海峡建设投资集团有限公司',project:'生产安全重大事故隐患排查',fee:'3500',start:'2026-06-01',end:'2026-06-10',org:'民太安公估',staff:'王老师',status:'已完成'},
+    {id:'2053730483512033282',policyNo:'BD202605111435002',company:'厦门路桥工程有限公司',project:'安全生产应急救援演练',fee:'2600',start:'2026-06-12',end:'2026-06-14',org:'福建安通汇科技',staff:'李老师',status:'进行中'},
+    {id:'2053730483512033283',policyNo:'BD202605111435003',company:'宁德时代新能源科技有限公司',project:'安全风险辨识、评估、评价',fee:'5200',start:'2026-07-01',end:'2026-07-20',org:'福建建安安全评价有限公司',staff:'陈老师',status:'已完成'},
+    {id:'2053730483512033284',policyNo:'BD202605111435004',company:'泉州石化炼化有限公司',project:'安全生产应急预案编制',fee:'1800',start:'2026-08-05',end:'2026-08-18',org:'福恒安全咨询',staff:'林老师',status:'未开始'},
+    {id:'2053730483512033285',policyNo:'BD202605111435005',company:'哈尔滨远大建筑安装有限公司',project:'安全生产标准化管理体系建设',fee:'4200',start:'2026-09-01',end:'2026-09-30',org:'福建安通汇科技',staff:'张老师',status:'进行中'},
+    {id:'2053730483512033286',policyNo:'BD202605111435006',company:'黑龙江超发商贸有限公司',project:'安全生产宣传教育培训',fee:'900',start:'2026-04-10',end:'2026-04-12',org:'福恒安全咨询',staff:'王老师',status:'已逾期'},
+  ].map(r=>Object.assign({insurer:INSURER,desc:'',finish:'',agreement:''},r));
+}
+const DATA=seed();
+
+/* ===== 查询 / 分页 / 渲染 ===== */
+let state={page:1,size:10,q:{policy:'',org:'',project:'',staff:'',status:'',start:'',end:''}};
+function val(id){const el=$('#'+id);return el?el.value:'';}
+function doSearch(){
+  state.q={policy:val('q_policy').trim(),org:val('q_org').trim(),project:val('q_project'),staff:val('q_staff').trim(),status:val('q_status'),start:val('q_start'),end:val('q_end')};
+  state.page=1;renderTable();
+}
+function doReset(){
+  ['q_policy','q_org','q_project','q_staff','q_status','q_start','q_end'].forEach(id=>{const el=$('#'+id);if(el)el.value='';});
+  state.q={policy:'',org:'',project:'',staff:'',status:'',start:'',end:''};state.page=1;renderTable();
+}
+function toggleCollapse(){
+  const f=$('#moreFields'),b=$('#collapseBtn');
+  const show=!f.classList.contains('show');
+  f.classList.toggle('show',show);
+  b.classList.toggle('up',show);
+  b.firstChild.textContent=show?'收起':'展开';
+}
+function stCls(s){return s==='未开始'?'green':s==='已逾期'?'red':(s==='进行中'||s==='服务中')?'blue':'gray';}
+function filtered(){
+  const q=state.q;
+  return DATA.filter(r=>
+    (!q.policy||(r.policyNo||'').toLowerCase().includes(q.policy.toLowerCase()))&&
+    (!q.org||(r.org||'').includes(q.org))&&
+    (!q.project||r.project===q.project)&&
+    (!q.staff||(r.staff||'').includes(q.staff))&&
+    (!q.status||r.status===q.status)&&
+    (!q.start||r.start>=q.start)&&
+    (!q.end||r.end<=q.end)
+  );
+}
+function setSize(v){state.size=+v;state.page=1;renderTable();}
+function gotoPage(p){state.page=p;renderTable();}
+function renderTable(){
+  const rows=filtered(),total=rows.length,pages=Math.max(1,Math.ceil(total/state.size));
+  if(state.page>pages)state.page=pages;
+  const start=(state.page-1)*state.size,cur=rows.slice(start,start+state.size);
+  $('#tbody').innerHTML=cur.length?cur.map((r,i)=>`
+    <tr>
+      <td>${start+i+1}</td>
+      <td title="${esc(r.id)}">${esc(r.id)}</td>
+      <td title="${esc(r.policyNo)}">${esc(r.policyNo)}</td>
+      <td title="${esc(r.company)}">${esc(r.company)}</td>
+      <td title="${esc(r.project)}">${esc(r.project)}</td>
+      <td>${r.fee&&r.fee!=='-'?esc(r.fee):'-'}</td>
+      <td>${esc(r.start||'-')}</td>
+      <td>${esc(r.end||'-')}</td>
+      <td title="${esc(r.org||'')}">${r.org?esc(r.org):'-'}</td>
+      <td>${r.staff?esc(r.staff):'-'}</td>
+      <td><span class="st ${stCls(r.status)}">${esc(r.status)}</span></td>
+      <td>${esc(r.finish||'-')}</td>
+      <td class="op"><a onclick="openDetail('${r.id}')">查看详情</a></td>
+    </tr>`).join(''):`<tr><td colspan="13" class="empty">暂无数据</td></tr>`;
+  renderPager(total,pages);
+}
+function renderPager(total,pages){
+  const cur=state.page;let pg='';
+  const wS=Math.max(1,cur-2),wE=Math.min(pages,cur+2);
+  for(let i=wS;i<=wE;i++)pg+=`<button class="pgbtn ${i===cur?'on':''}" onclick="gotoPage(${i})">${i}</button>`;
+  $('#pager').innerHTML=
+    `<span>共 ${total} 条</span>`+
+    `<span class="right">`+
+      `<span>每页</span><select class="sizesel" onchange="setSize(this.value)">${[10,20,50].map(n=>`<option ${n===state.size?'selected':''}>${n}</option>`).join('')}</select><span>条</span>`+
+      `<button class="pgbtn" onclick="gotoPage(${Math.max(1,cur-1)})" ${cur===1?'disabled':''}>‹</button>`+
+      pg+
+      `<button class="pgbtn" onclick="gotoPage(${Math.min(pages,cur+1)})" ${cur===pages?'disabled':''}>›</button>`+
+      `<span class="go">前往<input type="number" min="1" max="${pages}" value="${cur}" onchange="gotoPage(Math.min(${pages},Math.max(1,+this.value||1)))">页</span>`+
+    `</span>`;
+}
+
+/* ===== 查看详情（仅展示） ===== */
+let curId='';
+function openDetail(id){
+  const r=DATA.find(x=>x.id===id);if(!r)return;
+  curId=id;
+  $('#d_policy').value=r.policyNo;$('#d_insurer').value=r.insurer;$('#d_company').value=r.company;
+  $('#d_project').value=r.project;
+  $('#d_start').value=r.start||'';$('#d_end').value=r.end||'';
+  $('#d_org').value=r.org||'';$('#d_staff').value=r.staff||'';
+  $('#d_finish').value=r.finish||'';$('#d_desc').value=r.desc||'';
+  $('#d_fee').value=(r.fee&&r.fee!=='-')?r.fee:'';
+  const agreement=r.agreement||(r.org?`委托协议_${r.id}.pdf`:'');
+  const report=r.report||(r.status==='未开始'?'':`事故预防服务报告_${r.id}.pdf`);
+  r.agreement=agreement;r.report=report;
+  setFile('d_agreement','d_agreement_preview',null,agreement);
+  setFile('d_report','d_report_preview','d_report_download',report);
+  $('#dmask').classList.add('show');
+}
+function setFile(nameId,previewId,downloadId,name){
+  $('#'+nameId).textContent=name||'-';
+  const p=$('#'+previewId);if(name)p.classList.remove('dis');else p.classList.add('dis');
+  if(downloadId){const d=$('#'+downloadId);if(name)d.classList.remove('dis');else d.classList.add('dis');}
+}
+function previewFile(type){
+  const r=DATA.find(x=>x.id===curId);if(!r)return;
+  const name=type==='agreement'?r.agreement:r.report;
+  if(!name){toast(type==='agreement'?'未上传委托协议':'暂无服务报告');return;}
+  toast('预览 '+name+'（演示）');
+}
+function closeDMask(){$('#dmask').classList.remove('show');}
+$('#dmask').addEventListener('click',e=>{if(e.target===$('#dmask'))closeDMask();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDMask();});
+
+/* ===== 初始化 ===== */
+$('#d_project').innerHTML=PROJECTS.map(p=>`<option>${esc(p)}</option>`).join('');
+$('#q_project').innerHTML='<option value="">全部</option>'+PROJECTS.map(p=>`<option>${esc(p)}</option>`).join('');
+initIns({bread:['事故预防服务管理','事故预防服务查询'], active:'事故预防服务查询'});
+renderTable();
+</script>
+</body>
+</html>

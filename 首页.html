@@ -40,15 +40,16 @@
   .body{margin-top:-52px;padding:0 14px 90px;position:relative;z-index:6;height:calc(844px - 44px);overflow-y:auto}
   .body::-webkit-scrollbar{display:none}
   /* 功能卡片 */
-  .cards{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:12px}
+  .cards{display:grid;grid-template-columns:1fr;grid-template-rows:auto auto;gap:12px}
   .card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 6px 18px rgba(30,50,110,.08);position:relative;overflow:hidden;cursor:pointer;transition:.15s}
   .card:active{transform:scale(.985)}
   .card .ct{font-size:16px;font-weight:700;position:relative;z-index:2}
   .card .cd{font-size:11.5px;color:var(--sub);margin-top:4px;position:relative;z-index:2}
   /* 大卡：事故预防服务 */
-  .card.big{grid-row:span 2;background:linear-gradient(165deg,#eaf1ff,#dbe7ff)}
-  .card.big .ct{color:#20356e}
-  .card.big .cd{color:#6b80b5}
+  .card.big{background:linear-gradient(165deg,#eaf1ff,#dbe7ff);min-height:118px;display:flex;flex-direction:column;justify-content:center;padding:22px 24px}
+  .card.big .ct{color:#20356e;font-size:17px}
+  .card.big .cd{color:#6b80b5;font-size:12px;margin-top:6px}
+  .card.big .art{font-size:68px;right:12px;bottom:6px;line-height:1}
   .art{position:absolute;right:-6px;bottom:-4px;font-size:64px;opacity:.95;z-index:1;filter:drop-shadow(0 8px 12px rgba(40,80,180,.25))}
   /* 小卡配色 */
   .card.orange{background:linear-gradient(150deg,#fff4e8,#ffe7cc)}
@@ -137,16 +138,6 @@
         <div class="cd">事故预防服务工单</div>
         <div class="art">📋</div>
       </div>
-      <div class="card orange" onclick="toast('进入隐患排查')">
-        <div class="ct">隐患排查</div>
-        <div class="cd">安全隐患不容小觑</div>
-        <div class="art" style="font-size:40px">⚠️</div>
-      </div>
-      <div class="card red" onclick="toast('进入风险防控')">
-        <div class="ct">风险防控</div>
-        <div class="cd">提高风险防控意识</div>
-        <div class="art" style="font-size:40px">🛡️</div>
-      </div>
     </div>
 
     <div class="notice-title">系统通知</div>
@@ -157,7 +148,7 @@
 
   <div class="tabbar">
     <div class="tab active" onclick="toast('已在首页')"><div class="ic">🏠</div>首页</div>
-    <div class="tab" onclick="toast('进入我的')"><div class="ic">👤</div>我的</div>
+    <div class="tab" onclick="location.href='我的.html'"><div class="ic">👤</div>我的</div>
   </div>
   <div class="home-ind"></div>
   <div class="toast" id="toast"></div>

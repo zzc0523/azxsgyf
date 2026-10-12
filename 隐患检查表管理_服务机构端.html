@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>隐患检查表管理 · 保险机构端</title>
-<link rel="stylesheet" href="ins-common.css">
+<title>隐患检查表管理 · 服务机构端</title>
+<link rel="stylesheet" href="tech-common.css">
 <style>
   .card{background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(20,30,60,.04);}
   /* 查询卡片 */
@@ -77,11 +77,11 @@
   .mbody{flex:1;overflow:auto;padding:22px 26px 26px;}
   .mfoot{flex:0 0 60px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 26px;border-top:1px solid var(--line);}
   .form{display:grid;grid-template-columns:1fr;gap:16px;}
-  .fitem{display:flex;align-items:flex-start;}
-  .fitem label{flex:0 0 116px;width:116px;text-align:right;padding-right:12px;font-size:13px;color:#3a4354;line-height:32px;}
-  .fitem .req{color:#f04438;margin-right:3px;}
+  .fitem{display:flex;flex-direction:row;align-items:flex-start;gap:0;}
+  .fitem label{flex:0 0 116px;width:116px;text-align:right;padding-right:12px;font-size:13px;font-weight:400;color:#3a4354;line-height:32px;}
+  .fitem .req{color:#f04438;margin:0 3px 0 0;}
   .fitem input,.fitem select,.fitem textarea{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
-  .fitem textarea{height:72px;padding:8px 10px;line-height:1.5;resize:vertical;}
+  .fitem textarea{height:72px;min-height:0;padding:8px 10px;line-height:1.5;resize:vertical;}
   .fitem input:focus,.fitem select:focus,.fitem textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
   input:disabled{background:#f5f7fa;border-color:#eef1f6;color:#2b3242;-webkit-text-fill-color:#2b3242;cursor:default;}
   /* 题库弹窗：加宽标签列，避免标签换行 */
@@ -113,13 +113,14 @@
 <body>
 <div class="layout">
   <aside class="side">
-    <div class="brand"><i class="logo"><i></i><b></b></i><span>保险机构端</span></div>
+    <div class="brand"><i class="logo"><i></i><b></b></i><span>安全服务端</span></div>
     <nav class="nav" id="nav"></nav>
+    <div class="side-toggle" onclick="toggleSide()" title="收起/展开菜单"><i>«</i></div>
   </aside>
 
   <main class="main">
     <header class="topbar" id="topbar"></header>
-    <!-- 页签（公共组件，菜单/路由在 ins-common.js 中维护） -->
+    <!-- 页签（公共组件，菜单/路由在 tech-common.js 中维护） -->
     <div class="tabs" id="tabs"></div>
 
     <div class="page">
@@ -299,7 +300,7 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="ins-common.js"></script>
+<script src="tech-common.js"></script>
 <script>
 /* ===== 枚举 ===== */
 const INDUSTRIES=['煤矿','非煤矿山','危险化学品','烟花爆竹','交通运输','建筑施工','民用爆炸物品','金属冶炼','渔业生产','其他'];
@@ -760,7 +761,7 @@ function doImport(){
 }
 
 /* ===== 初始化（公共组件入口） ===== */
-initIns({
+initTech({
   bread:['隐患检查表管理'],
   active:'隐患检查表管理',
   tabs:['隐患检查表管理'],

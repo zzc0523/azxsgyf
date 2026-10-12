@@ -78,6 +78,29 @@
   .etip{margin-top:14px;padding:10px 12px;background:#f7f9fc;border:1px solid #e6eaf2;border-radius:4px;font-size:12.5px;color:#5d6879;}
   .mfoot{flex:0 0 60px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 26px;border-top:1px solid var(--line);}
 
+  /* ===== 委托·第三方机构选择 ===== */
+  .orgq{display:flex;align-items:center;gap:12px;}
+  .orgq input{flex:1;min-width:0;height:38px;border:1px solid #e2e7f0;border-radius:20px;padding:0 18px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
+  .orgq input::placeholder{color:#c2c8d4;}
+  .orgq input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .orgq .btn{height:38px;padding:0 22px;}
+  .orglist{margin-top:8px;max-height:50vh;overflow:auto;}
+  .orgitem{display:flex;gap:12px;padding:15px 6px;border-bottom:1px solid #f0f2f7;cursor:pointer;align-items:flex-start;}
+  .orgitem:hover{background:#f9fbff;}
+  .orgitem>input[type=radio]{flex:0 0 16px;width:16px;height:16px;margin-top:2px;accent-color:var(--brand);cursor:pointer;}
+  .orgitem .oname{font-size:14px;font-weight:600;color:#222b3a;margin-bottom:7px;}
+  .orgitem .ometa{font-size:12.5px;color:#5d6879;line-height:1.8;word-break:break-word;}
+  .orgitem .ometa b{color:#4a5568;font-weight:400;}
+  .org-empty{text-align:center;color:#9aa3b2;padding:36px 0;}
+
+  /* ===== 委托服务·协议上传 ===== */
+  .uploadbox{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:172px;max-width:100%;height:44px;padding:0 18px;
+    border:1px dashed #c7d0de;border-radius:6px;color:#5d6879;cursor:pointer;background:#fff;}
+  .uploadbox:hover{border-color:var(--brand);color:var(--brand);}
+  .uploadbox svg{width:14px;height:14px;flex:0 0 14px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+  .uploadbox span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .uphint{font-size:12px;color:#9aa3b2;margin-top:8px;}
+
   .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:rgba(20,28,46,.92);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:80;display:none;}
   .toast.show{display:block;animation:pop .2s;}
   @keyframes pop{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1}}
@@ -156,22 +179,53 @@
   </main>
 </div>
 
-<!-- 委托弹窗 -->
+<!-- 委托弹窗（第三方机构） -->
 <div class="mask" id="emask">
-  <div class="modal sm">
+  <div class="modal" style="width:min(620px,94vw)">
     <div class="mhead">
-      <div class="mtitle" id="etitle">委托服务机构</div>
+      <div class="mtitle" id="etitle">委托</div>
       <div class="mclose" onclick="closeEMask()">✕</div>
     </div>
-    <div class="mbody">
-      <div class="form" style="grid-template-columns:1fr">
-        <div class="fitem"><label><i class="req">*</i>委托机构：</label><select id="e_org"><option value="">请选择</option></select></div>
+    <div class="mbody" style="padding:20px 26px 10px">
+      <div class="orgq">
+        <input id="org_kw" placeholder="请输入服务机构进行查询" onkeydown="if(event.key==='Enter')doOrgSearch()">
+        <button class="btn primary" onclick="doOrgSearch()">查询</button>
       </div>
-      <div class="etip" id="e_tip"></div>
+      <div class="orglist" id="org_list"></div>
     </div>
     <div class="mfoot">
       <button class="btn" onclick="closeEMask()">取消</button>
-      <button class="btn primary" onclick="confirmEntrust()">确定</button>
+      <button class="btn primary" onclick="confirmEntrust()">确认委托</button>
+    </div>
+  </div>
+</div>
+
+<!-- 委托服务弹窗 -->
+<div class="mask" id="fmodal">
+  <div class="modal sm">
+    <div class="mhead">
+      <div class="mtitle">委托服务</div>
+      <div class="mclose" onclick="closeFModal()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="form" style="grid-template-columns:1fr">
+        <div class="fitem"><label><i class="req">*</i>预防服务费用（元）：</label><input id="f_fee" placeholder="请输入" inputmode="decimal"></div>
+        <div class="fitem" style="align-items:flex-start">
+          <label style="line-height:22px;padding-top:11px"><i class="req">*</i>委托协议：</label>
+          <div style="flex:1;min-width:0">
+            <div class="uploadbox" onclick="document.getElementById('f_file').click()">
+              <svg viewBox="0 0 16 16"><path d="M8 11V3.6M4.6 6.8 8 3.4l3.4 3.4"/><path d="M3 12.8h10"/></svg>
+              <span id="f_fname">点击上传</span>
+            </div>
+            <input type="file" id="f_file" accept=".rar,.zip,.doc,.docx,.pdf,.jpg,.png" style="display:none" onchange="onFilePick(this)">
+            <div class="uphint">支持扩展名：.rar,.zip,.doc,.docx,.pdf,.jpg,.png</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeFModal()">取消</button>
+      <button class="btn primary" onclick="confirmFuwu()">确定</button>
     </div>
   </div>
 </div>
@@ -214,7 +268,22 @@ const COMPANIES=['福建厦发信息有限公司','黑龙江超发商贸有限�
 const INDUSTRIES=['煤矿','非煤矿山','危险化学品','烟花爆竹','交通运输','建筑施工','民用爆炸物品','金属冶炼','渔业生产','其他'];
 const PROJECTS=['安全风险辨识、评估、评价','生产安全重大事故隐患排查','安全生产宣传教育培训','安全生产应急预案编制','安全生产应急救援演练','安全生产标准化管理体系建设'];
 const ADDRS=['福州鼓楼中闽大厦','福州台江区金融街','厦门思明区软件园','哈尔滨南岗区开发区','杭州滨江区物联网街','泉州丰泽区东海大厦','漳州古雷港片区','宁德蕉城区新能源园'];
-const ORGS=['事故预防示范机构','中国人寿保险','安全服务机构人员测试','安全生产技术服务中心','福建建安安全评价有限公司'];
+/* 第三方服务机构（含主要服务行业 / 服务项目，供「委托」弹窗选择） */
+const ORG_LIST=[
+  {name:'福建安通汇科技',inds:['矿山','危险化学品','烟花爆竹','交通运输','建筑施工','民用爆炸物品','金属冶炼','渔业生产','其他'],
+    projs:['安全生产宣传教育培训','安全风险辨识、评估和安全评价','生产安全事故隐患排查']},
+  {name:'福恒安全咨询',inds:['矿山','危险化学品','烟花爆竹','交通运输','建筑施工','民用爆炸物品','金属冶炼','渔业生产','其他'],
+    projs:['安全生产宣传教育培训','安全风险辨识、评估和安全评价','生产安全事故隐患排查']},
+  {name:'民太安公估',inds:['矿山','危险化学品','烟花爆竹','交通运输','建筑施工','民用爆炸物品','金属冶炼','渔业生产','其他'],
+    projs:['安全生产宣传教育培训','安全风险辨识、评估和安全评价','生产安全事故隐患排查']},
+  {name:'广东为众消防',inds:['矿山','危险化学品','烟花爆竹','交通运输','建筑施工','民用爆炸物品','金属冶炼','渔业生产','其他'],
+    projs:['安全生产宣传教育培训','安全风险辨识、评估和安全评价','生产安全事故隐患排查']},
+  {name:'福建建安安全评价有限公司',inds:['建筑施工','危险化学品','金属冶炼','交通运输','其他'],
+    projs:['安全风险辨识、评估和安全评价','生产安全重大事故隐患排查','安全生产标准化管理体系建设']},
+  {name:'安全生产技术服务中心',inds:['煤矿','非煤矿山','危险化学品','烟花爆竹','交通运输','建筑施工','其他'],
+    projs:['安全生产应急预案编制','安全生产应急救援演练','安全生产宣传教育培训']},
+];
+const ORGS=ORG_LIST.map(o=>o.name);
 
 /* ===== 数据 ===== */
 const _SID=2083531398322040833;
@@ -303,19 +372,54 @@ function onCheck(box,id){if(box.checked)selected.add(id);else selected.delete(id
 function toggleAll(box){document.querySelectorAll('.rowck').forEach(c=>{c.checked=box.checked;if(box.checked)selected.add(c.dataset.id);else selected.delete(c.dataset.id);});}
 function syncSelAll(){const cs=document.querySelectorAll('.rowck');const all=cs.length&&[...cs].every(c=>c.checked);$('#selAll').checked=all;}
 
-/* ===== 委托 ===== */
-let entrustIds=[],entrustMode='single';
-function openEntrust(id){entrustMode='single';entrustIds=[id];openEMask('委托服务机构','将对该条需求进行机构委托。');}
-function openBatchEntrust(){if(!selected.size){toast('请先勾选要委托的需求');return;}entrustMode='batch';entrustIds=[...selected];openEMask('批量委托','已选择 '+entrustIds.length+' 条需求，确认后统一委托给所选机构。');}
-function openEMask(title,tip){$('#etitle').textContent=title;$('#e_tip').textContent=tip;$('#e_org').innerHTML='<option value="">请选择</option>'+ORGS.map(o=>`<option>${o}</option>`).join('');$('#e_org').value='';$('#emask').classList.add('show');}
+/* ===== 委托（第三方机构） ===== */
+let entrustIds=[],entrustMode='single',curOrg='',curFile='';
+function openEntrust(id){entrustMode='single';entrustIds=[id];openEMask('委托');}
+function openBatchEntrust(){if(!selected.size){toast('请先勾选要委托的需求');return;}entrustMode='batch';entrustIds=[...selected];openEMask('批量委托');}
+function openEMask(title){
+  $('#etitle').textContent=title;
+  $('#org_kw').value='';curOrg='';renderOrgList('');
+  $('#emask').classList.add('show');
+}
 function closeEMask(){$('#emask').classList.remove('show');}
+function renderOrgList(kw){
+  kw=(kw||'').trim().toLowerCase();
+  const list=ORG_LIST.filter(o=>!kw||o.name.toLowerCase().includes(kw));
+  $('#org_list').innerHTML=list.length?list.map(o=>`
+    <label class="orgitem">
+      <input type="radio" name="orgpick" value="${esc(o.name)}" ${curOrg===o.name?'checked':''} onchange="curOrg=this.value">
+      <div>
+        <div class="oname">${esc(o.name)}</div>
+        <div class="ometa"><b>主要服务行业：</b>${esc(o.inds.join('，'))}</div>
+        <div class="ometa"><b>主要服务项目：</b>${esc(o.projs.join('，'))}</div>
+      </div>
+    </label>`).join(''):`<div class="org-empty">未查询到服务机构</div>`;
+}
+function doOrgSearch(){renderOrgList($('#org_kw').value);}
+/* 第一步：确认机构 → 打开「委托服务」填写费用与协议 */
 function confirmEntrust(){
-  const org=$('#e_org').value;if(!org){toast('请选择委托机构');return;}
-  let cnt=0;entrustIds.forEach(id=>{const r=DATA.find(x=>x.id===id);if(r&&r.status!=='已委托'){r.status='已委托';r.org=org;cnt++;}});
-  closeEMask();selected.clear();renderTable();
+  if(!curOrg){toast('请选择服务机构');return;}
+  closeEMask();
+  $('#f_fee').value='';curFile='';
+  $('#f_fname').textContent='点击上传';$('#f_file').value='';
+  $('#fmodal').classList.add('show');
+}
+function closeFModal(){$('#fmodal').classList.remove('show');}
+function onFilePick(inp){
+  const f=inp.files&&inp.files[0];if(!f)return;
+  curFile=f.name;$('#f_fname').textContent=f.name;
+}
+/* 第二步：确定 → 落库 */
+function confirmFuwu(){
+  const fee=$('#f_fee').value.trim();
+  if(!fee){toast('请输入预防服务费用');return;}
+  if(!curFile){toast('请上传委托协议');return;}
+  let cnt=0;entrustIds.forEach(id=>{const r=DATA.find(x=>x.id===id);if(r&&r.status!=='已委托'){r.status='已委托';r.org=curOrg;r.fee=fee;r.agreement=curFile;cnt++;}});
+  closeFModal();selected.clear();renderTable();
   toast(entrustMode==='batch'?('已委托 '+cnt+' 条需求'):'委托成功');
 }
 $('#emask').addEventListener('click',e=>{if(e.target===$('#emask'))closeEMask();});
+$('#fmodal').addEventListener('click',e=>{if(e.target===$('#fmodal'))closeFModal();});
 
 /* ===== 详情 ===== */
 function openDetail(id){const r=DATA.find(x=>x.id===id);if(!r)return;
@@ -326,7 +430,7 @@ function openDetail(id){const r=DATA.find(x=>x.id===id);if(!r)return;
 }
 function closeDMask(){$('#dmask').classList.remove('show');}
 $('#dmask').addEventListener('click',e=>{if(e.target===$('#dmask'))closeDMask();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeEMask();closeDMask();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeEMask();closeFModal();closeDMask();}});
 
 /* ===== 初始化 ===== */
 initIns({bread:['事故预防服务管理','事故预防服务需求'], active:'事故预防服务需求'});
