@@ -8,6 +8,21 @@
 <style>
   #grid{table-layout:fixed}
   .pgbtns{display:flex;gap:6px}
+  /* 列表工具条 */
+  .listbar{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .listbar .selinfo{font-size:13px;color:#8a93a5}
+  /* 批量分配弹窗 */
+  .alloc-search{display:flex;gap:10px;margin-bottom:16px}
+  .alloc-search input{flex:1;height:38px;border:1px solid #dfe4ed;border-radius:6px;padding:0 12px;font-size:13px}
+  .alloc-search input:focus{outline:none;border-color:var(--brand)}
+  .alloc-list{display:flex;flex-direction:column;gap:4px;min-height:120px}
+  .alloc-item{display:flex;gap:12px;padding:14px 12px;border-radius:8px;cursor:pointer;transition:.12s}
+  .alloc-item:hover{background:#f6f8fc}
+  .alloc-item input[type=radio]{margin-top:3px;flex:0 0 auto}
+  .alloc-item .nm{font-size:14px;color:#1f2733;font-weight:600;display:flex;align-items:center;gap:8px}
+  .alloc-item .meta{font-size:13px;color:#5a6472;margin-top:8px;line-height:1.7}
+  .alloc-item .meta b{color:#1f2733;font-weight:600}
+  .alloc-empty{color:#9aa3b2;font-size:13px;text-align:center;padding:34px 0}
 </style>
 </head>
 <body>
@@ -47,6 +62,12 @@
           <button class="btn" onclick="doReset()">重置</button>
           <span class="expand" id="expBtn" onclick="toggleExpand()"><span id="expTxt">展开</span><i class="caret"></i></span>
         </div>
+      </div>
+
+      <!-- 列表工具条 -->
+      <div class="listbar">
+        <button class="btn primary" onclick="openAlloc('batch')">批量分配</button>
+        <span class="selinfo" id="selInfo"></span>
       </div>
 
       <!-- 列表 -->
@@ -171,6 +192,28 @@
   </div>
 </div>
 
+<!-- 批量分配弹窗 -->
+<div class="mask" id="amask" onclick="if(event.target===this)closeAlloc()">
+  <div class="modal" style="width:min(680px,94vw)">
+    <div class="mhead">
+      <div class="mtitle">批量分配 <span class="sub" id="allocSub"></span></div>
+      <div class="mclose" onclick="closeAlloc()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="alloc-search">
+        <input type="text" id="allocName" placeholder="请输入姓名进行查询"
+               onkeydown="if(event.key==='Enter')renderAlloc()">
+        <button class="btn primary" onclick="renderAlloc()">查询</button>
+      </div>
+      <div class="alloc-list" id="allocList"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn primary" onclick="confirmAlloc()">确认分配</button>
+      <button class="btn" onclick="closeAlloc()">取消</button>
+    </div>
+  </div>
+</div>
+
 <script src="tech-common.js"></script>
 <script>
 /* ===== 列表数据（演示）：六大服务项各展示一条 ===== */
@@ -231,13 +274,15 @@ function badge(v, cls){ return (v && v !== '-') ? `<span class="badge ${cls}">${
 
 function cell(c, r){
   switch(c.k){
-    case 'sel':    return '<td class="c-sel"><input type="checkbox"></td>';
+    case 'sel':    return `<td class="c-sel"><input type="checkbox" onchange="updateSelInfo()"></td>`;
     case 'alloc':  return `<td>${badge(r.alloc, 'blue')}</td>`;
     case 'status': { const m={'已逾期':'red','服务中':'blue','已完成':'green','待服务':'gray'}; return `<td>${badge(r.status, m[r.status] || 'gray')}</td>`; }
     case 'op': {
       const prep = r.content === '安全生产应急救援演练'
         ? `<div><span class="link" onclick="openDrill('${r.id}')">演练准备</span></div>` : '';
-      return `<td class="op">${prep}<span class="link" onclick="detail('${r.id}')">查看详情</span></td>`;
+      const alloc = r.alloc === '未分配'
+        ? `<div><span class="link" onclick="openAlloc('single','${r.id}')">分配</span></div>` : '';
+      return `<td class="op">${prep}${alloc}<span class="link" onclick="detail('${r.id}')">查看详情</span></td>`;
     }
     case 'policy': case 'content':
       return `<td class="c-ellip" title="${esc(r[c.k])}">${esc(r[c.k])}</td>`;
@@ -251,9 +296,17 @@ function renderTable(){
   document.getElementById('thead').innerHTML = cols.map(c =>
     `<th${c.cls ? ' class="' + c.cls + '"' : ''}>${c.k === 'sel' ? '<input type="checkbox" onclick="toggleAll(this)">' : esc(c.h)}</th>`).join('');
   document.getElementById('tbody').innerHTML = rows.length
-    ? rows.map(r => `<tr>${cols.map(c => cell(c, r)).join('')}</tr>`).join('')
+    ? rows.map(r => `<tr data-id="${r.id}">${cols.map(c => cell(c, r)).join('')}</tr>`).join('')
     : `<tr><td class="empty" colspan="${cols.length}">暂无数据</td></tr>`;
   document.getElementById('total').textContent = rows.length;
+  updateSelInfo();
+}
+
+/* 勾选数量统计 */
+function updateSelInfo(){
+  const n = getCheckedIds().length;
+  const el = document.getElementById('selInfo');
+  if(el) el.textContent = n ? ('已选择 ' + n + ' 条') : '';
 }
 
 /* ===== 查询 / 重置 / 查询条件展开收起 ===== */
@@ -286,8 +339,79 @@ function toggleExpand(){
 }
 function toggleAll(el){
   document.querySelectorAll('#tbody input[type=checkbox]').forEach(x => { x.checked = el.checked; });
+  updateSelInfo();
 }
 function detail(id){ toast('查看详情：' + id); }
+
+/* ===== 分配（单条 / 批量）===== */
+const TECHS = [
+  {name:'张老师', level:'高级',
+   industries:'矿山，危险化学品，烟花爆竹，交通运输，建筑施工，民用爆炸物品，金属冶炼，渔业生产，其他',
+   projects:'安全生产宣传教育培训，安全风险辨识、评估和安全评价，生产安全事故隐患排查'},
+  {name:'李老师', level:'中级',
+   industries:'建筑施工，危险化学品，机械制造，其他',
+   projects:'安全生产宣传教育培训，生产安全事故隐患排查'},
+  {name:'王老师', level:'高级',
+   industries:'交通运输，非煤矿山，金属冶炼，其他',
+   projects:'安全生产应急救援演练，安全生产应急预案编制，安全生产标准化管理体系建设'},
+  {name:'赵老师', level:'初级',
+   industries:'机械制造，渔业生产，其他',
+   projects:'安全生产宣传教育培训，安全风险辨识、评估和安全评价'}
+];
+let allocState = {mode:'batch', ids:[], selected:null};
+
+function getCheckedIds(){
+  return [...document.querySelectorAll('#tbody tr')]
+    .filter(tr => { const cb = tr.querySelector('input[type=checkbox]'); return cb && cb.checked; })
+    .map(tr => tr.getAttribute('data-id')).filter(Boolean);
+}
+function openAlloc(mode, id){
+  if(mode === 'batch'){
+    const ids = getCheckedIds();
+    if(!ids.length){ toast('请先勾选需要分配的数据'); return; }
+    allocState = {mode:'batch', ids, selected:null};
+    document.getElementById('allocSub').textContent = '· 已选 ' + ids.length + ' 条';
+  } else {
+    allocState = {mode:'single', ids:[id], selected:null};
+    document.getElementById('allocSub').textContent = '· ' + id;
+  }
+  document.getElementById('allocName').value = '';
+  document.getElementById('amask').classList.add('show');
+  renderAlloc();
+}
+function closeAlloc(){ document.getElementById('amask').classList.remove('show'); }
+function renderAlloc(){
+  const kw = (document.getElementById('allocName').value || '').trim().toLowerCase();
+  const list = TECHS.filter(t => !kw || t.name.toLowerCase().indexOf(kw) >= 0);
+  const box = document.getElementById('allocList');
+  if(!list.length){ box.innerHTML = '<div class="alloc-empty">未查询到技术人员</div>'; return; }
+  box.innerHTML = list.map(t => `
+    <label class="alloc-item">
+      <input type="radio" name="allocTech" value="${esc(t.name)}"
+             ${allocState.selected === t.name ? 'checked' : ''}
+             onchange="allocState.selected='${esc(t.name)}'">
+      <div>
+        <div class="nm">${esc(t.name)} <span class="badge green">${esc(t.level)}</span></div>
+        <div class="meta"><b>主要服务行业：</b>${esc(t.industries)}</div>
+        <div class="meta"><b>主要服务项目：</b>${esc(t.projects)}</div>
+      </div>
+    </label>`).join('');
+}
+function confirmAlloc(){
+  if(!allocState.selected){ toast('请选择要分配的技术人员'); return; }
+  const ids = allocState.ids || [];
+  ids.forEach(id => {
+    const src = ALL.find(x => x.id === id);
+    if(src){ src.alloc = '已分配'; src.tech = allocState.selected; }
+  });
+  rows = rows.map(r => {
+    const a = ALL.find(x => x.id === r.id);
+    return a ? Object.assign({}, r, {alloc:a.alloc, tech:a.tech}) : r;
+  });
+  renderTable();
+  toast('已分配给 ' + allocState.selected + '（共 ' + ids.length + ' 条）');
+  closeAlloc();
+}
 
 /* ===== 演练准备弹窗 ===== */
 function openDrill(id){
