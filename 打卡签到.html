@@ -116,7 +116,6 @@
       <div class="row"><span class="lbl">详细地址</span><span class="val" id="vDetail">—</span></div>
       <div class="row"><span class="lbl">GPS 坐标</span><span class="val" id="vCoord">—</span></div>
       <div class="row"><span class="lbl">定位时间</span><span class="val" id="vTime">—</span></div>
-      <div class="row"><span class="lbl">距计划地点</span><span class="val" id="vDist">—</span></div>
     </div>
   </div>
 
@@ -145,7 +144,6 @@ function getLocation(manual){
   document.getElementById('vDetail').textContent = '—';
   document.getElementById('vCoord').textContent = '—';
   document.getElementById('vTime').textContent = '—';
-  document.getElementById('vDist').textContent = '—';
   if(manual) toast('重新获取定位…');
 
   setTimeout(()=>{
@@ -162,7 +160,6 @@ function getLocation(manual){
     document.getElementById('vDetail').textContent = '福建省福州市马尾区海峡广场A座12层';
     document.getElementById('vCoord').textContent = `${lat}° N, ${lng}° E`;
     document.getElementById('vTime').textContent = t;
-    document.getElementById('vDist').innerHTML = '120m<span class="range">范围内</span>';
     document.getElementById('signBtn').disabled = false;
   }, manual ? 900 : 1300);
 }
