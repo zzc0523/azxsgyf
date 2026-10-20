@@ -43,6 +43,7 @@
   .empty{text-align:center;color:#9aa3b2;padding:38px 0 !important;}
   .st{display:inline-block;padding:2px 11px;border-radius:3px;font-size:12px;}
   .st.done{color:#2fa96b;background:rgba(47,169,107,.12);}
+  .st.review{color:#e08a00;background:rgba(224,138,0,.12);}
   .st.idle{color:#5d6879;background:#eef1f6;}
 
   /* 分页 */
@@ -60,6 +61,11 @@
   .mask.show{display:flex;}
   .modal{width:min(1120px,94vw);max-height:88vh;background:#fff;border-radius:6px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);}
   .modal.sm{width:min(540px,94vw);}
+  .modal.xs{width:min(480px,92vw);}
+  .modal.xs .mhead{border-bottom:none;}
+  .modal.xs .mbody{padding:6px 22px 8px;}
+  .modal.xs .mfoot{border-top:none;}
+  .mtitle.plain::before{display:none;}
   .mhead{height:52px;flex:0 0 52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);}
   .mtitle{font-size:15px;font-weight:600;display:flex;align-items:center;gap:9px;}
   .mtitle::before{content:"";width:3px;height:15px;background:var(--brand);border-radius:2px;}
@@ -75,7 +81,16 @@
   .fitem input,.fitem select{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
   .fitem input:focus,.fitem select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
   select:disabled,input:disabled{background:#f5f7fa;border-color:#eef1f6;color:#2b3242;-webkit-text-fill-color:#2b3242;cursor:default;}
+  /* 日期区间（单框内双日期，中间“至”） */
+  .drange{flex:1;min-width:0;display:flex;align-items:center;gap:6px;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 8px;background:#fff;}
+  .drange:focus-within{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .drange input{border:none;background:transparent;flex:1;min-width:0;height:30px;padding:0;font-size:13px;color:#1f2329;outline:none;}
+  .drange .sep{color:#8a93a5;flex:0 0 auto;font-size:13px;}
   .etip{margin-top:14px;padding:10px 12px;background:#f7f9fc;border:1px solid #e6eaf2;border-radius:4px;font-size:12.5px;color:#5d6879;}
+  /* 审核不通过原因 */
+  .rlabel{font-size:13px;color:#3a4354;margin:8px 0 10px;line-height:1.6;}
+  .rbox textarea{width:100%;min-height:86px;resize:vertical;border:1px solid #dfe4ed;border-radius:4px;padding:9px 10px;font-size:13px;line-height:1.6;color:#1f2329;background:#fff;outline:none;font-family:inherit;}
+  .rbox textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
   .mfoot{flex:0 0 60px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 26px;border-top:1px solid var(--line);}
 
   /* ===== 委托·第三方机构选择 ===== */
@@ -141,7 +156,7 @@
         </div>
         <div class="fields more" id="moreFields" style="display:none;margin-top:16px">
           <div class="fi"><label>状态：</label><select id="q_status">
-            <option value="">请选择</option><option>未委托</option><option>已委托</option>
+            <option value="">请选择</option><option>未委托</option><option>审核中</option><option>已委托</option>
           </select></div>
           <div class="fi"><label>计划年度：</label><input id="q_year" type="date" placeholder="请选择计划年度"></div>
           <div class="fi"><label>开始时间：</label><input id="q_start" type="date" placeholder="请选择开始时间"></div>
@@ -230,6 +245,53 @@
   </div>
 </div>
 
+<!-- 审核弹窗 -->
+<div class="mask" id="amask">
+  <div class="modal sm">
+    <div class="mhead">
+      <div class="mtitle">审核</div>
+      <div class="mclose" onclick="closeAMask()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="form" style="grid-template-columns:1fr">
+        <div class="fitem"><label>保单号：</label><input id="a_policy" disabled></div>
+        <div class="fitem"><label>服务企业：</label><input id="a_company" disabled></div>
+        <div class="fitem"><label><i class="req">*</i>服务项目：</label>
+          <select id="a_project"><option value="">请选择</option></select></div>
+        <div class="fitem"><label><i class="req">*</i>计划服务日期：</label>
+          <div class="drange">
+            <input id="a_start" type="date">
+            <span class="sep">至</span>
+            <input id="a_end" type="date">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn primary" onclick="auditSubmit('通过')">通过</button>
+      <button class="btn" onclick="auditSubmit('不通过')">不通过</button>
+    </div>
+  </div>
+</div>
+
+<!-- 审核不通过原因 -->
+<div class="mask" id="rmask">
+  <div class="modal xs">
+    <div class="mhead">
+      <div class="mtitle plain">提示</div>
+      <div class="mclose" onclick="backToAudit()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="rlabel">请输入审核不通过原因</div>
+      <div class="rbox"><textarea id="r_reason" maxlength="200"></textarea></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="backToAudit()">取消</button>
+      <button class="btn primary" onclick="confirmReject()">确定</button>
+    </div>
+  </div>
+</div>
+
 <!-- 详情弹窗 -->
 <div class="mask" id="dmask">
   <div class="modal">
@@ -286,7 +348,7 @@ const ORG_LIST=[
 const ORGS=ORG_LIST.map(o=>o.name);
 
 /* ===== 数据 ===== */
-const _SID=2083531398322040833;
+const _SID='2083531398322040'; // 字符串前缀，避免超长整数精度丢失导致 ID 冲突
 function uuid(){const s='0123456789abcdef';let o='';for(let i=0;i<32;i++){o+=s[Math.floor(Math.random()*16)];if(i===7||i===11||i===15||i===19)o+='-';}return o;}
 function seed(){
   const rows=[],n=77;
@@ -295,13 +357,13 @@ function seed(){
     const industry=INDUSTRIES[i%INDUSTRIES.length];
     const project=PROJECTS[i%PROJECTS.length];
     const addr=ADDRS[i%ADDRS.length];
-    const status=i%9===0?'未委托':'已委托';
-    const org=status==='已委托'?ORGS[(i+1)%ORGS.length]:'-';
+    const status=i%9===0?'未委托':(i%4===0?'审核中':'已委托');
+    const org=status!=='未委托'?ORGS[(i+1)%ORGS.length]:'-';
     const year=2025+(i%2);
     const m=String((i%11)+1).padStart(2,'0'), d=String((i%25)+1).padStart(2,'0');
     const start=year+'-'+m+'-'+d;
     const end=year+'-'+String((i%11)+5).padStart(2,'0')+'-'+String((i%27)+1).padStart(2,'0');
-    rows.push({id:''+(_SID+i),policyNo:uuid(),company,industry,year,project,addr,status,start,end,org});
+    rows.push({id:_SID+String(100+i),policyNo:uuid(),company,industry,year,project,addr,status,start,end,org});
   }
   return rows;
 }
@@ -326,6 +388,7 @@ function doSearch(){state.q={policy:$('#q_policy').value.trim().toLowerCase(),co
 function doReset(){$('#q_policy').value='';$('#q_company').value='';$('#q_status').value='';$('#q_year').value='';$('#q_start').value='';$('#q_end').value='';state.q={policy:'',company:'',status:'',year:'',start:'',end:''};state.page=1;renderTable();}
 function setSize(v){state.size=+v;state.page=1;renderTable();}
 function gotoPage(p){state.page=p;renderTable();}
+function stCls(s){return s==='已委托'?'done':(s==='审核中'?'review':'idle');}
 
 function renderTable(){
   const rows=filtered();const total=rows.length,size=state.size;
@@ -334,7 +397,9 @@ function renderTable(){
   const start=(state.page-1)*size;const cur=rows.slice(start,start+size);
   $('#tbody').innerHTML=cur.length?cur.map(r=>{
     const ck=selected.has(r.id)?'checked':'';
-    const op=`<a onclick="openDetail('${r.id}')">详情</a>`+(r.status==='未委托'?` <a onclick="openEntrust('${r.id}')">委托</a>`:'');
+    const op=`<a onclick="openDetail('${r.id}')">详情</a>`
+      +(r.status==='未委托'?` <a onclick="openEntrust('${r.id}')">委托</a>`:'')
+      +(r.status==='审核中'?` <a onclick="openAudit('${r.id}')">审核</a>`:'');
     return `<tr>
       <td class="ck"><input type="checkbox" class="rowck" data-id="${r.id}" ${ck} onchange="onCheck(this,'${r.id}')"></td>
       <td title="${esc(r.id)}">${esc(r.id)}</td>
@@ -344,7 +409,7 @@ function renderTable(){
       <td>${esc(r.year)}</td>
       <td title="${esc(r.project)}">${esc(r.project)}</td>
       <td title="${esc(r.addr)}">${esc(r.addr)}</td>
-      <td><span class="st ${r.status==='已委托'?'done':'idle'}">${esc(r.status)}</span></td>
+      <td><span class="st ${stCls(r.status)}">${esc(r.status)}</span></td>
       <td>${esc(r.start)}</td><td>${esc(r.end)}</td>
       <td>${r.org&&r.org!=='-'?esc(r.org):'-'}</td>
       <td class="op">${op}</td>
@@ -414,12 +479,55 @@ function confirmFuwu(){
   const fee=$('#f_fee').value.trim();
   if(!fee){toast('请输入预防服务费用');return;}
   if(!curFile){toast('请上传委托协议');return;}
-  let cnt=0;entrustIds.forEach(id=>{const r=DATA.find(x=>x.id===id);if(r&&r.status!=='已委托'){r.status='已委托';r.org=curOrg;r.fee=fee;r.agreement=curFile;cnt++;}});
+  let cnt=0;entrustIds.forEach(id=>{const r=DATA.find(x=>x.id===id);if(r&&r.status==='未委托'){r.status='审核中';r.org=curOrg;r.fee=fee;r.agreement=curFile;cnt++;}});
   closeFModal();selected.clear();renderTable();
-  toast(entrustMode==='batch'?('已委托 '+cnt+' 条需求'):'委托成功');
+  toast(entrustMode==='batch'?('已提交 '+cnt+' 条需求，待审核'):'已提交审核，待审核');
 }
 $('#emask').addEventListener('click',e=>{if(e.target===$('#emask'))closeEMask();});
 $('#fmodal').addEventListener('click',e=>{if(e.target===$('#fmodal'))closeFModal();});
+
+/* ===== 审核 ===== */
+let curAuditId='';
+function openAudit(id){
+  const r=DATA.find(x=>x.id===id);if(!r)return;
+  curAuditId=id;
+  $('#a_policy').value=r.policyNo;
+  $('#a_company').value=r.company;
+  const sel=$('#a_project');
+  sel.innerHTML='<option value="">请选择</option>'+PROJECTS.map(p=>`<option ${p===r.project?'selected':''}>${esc(p)}</option>`).join('');
+  if(r.project&&!PROJECTS.includes(r.project)){const o=document.createElement('option');o.value=r.project;o.textContent=r.project;o.selected=true;sel.appendChild(o);}
+  $('#a_start').value=r.start||'';
+  $('#a_end').value=r.end||'';
+  $('#amask').classList.add('show');
+}
+function closeAMask(){$('#amask').classList.remove('show');}
+function auditSubmit(result){
+  const r=DATA.find(x=>x.id===curAuditId);if(!r)return;
+  if(result==='通过'){
+    const project=$('#a_project').value,s=$('#a_start').value,e=$('#a_end').value;
+    if(!project){toast('请选择服务项目');return;}
+    if(!s||!e){toast('请选择计划服务日期');return;}
+    if(e<s){toast('结束日期不能早于开始日期');return;}
+    r.project=project;r.start=s;r.end=e;r.status='已委托';
+    closeAMask();renderTable();toast('审核通过');
+  }else{
+    closeAMask();
+    openRMask();
+  }
+}
+/* 审核不通过：必须先填写原因 */
+function openRMask(){$('#r_reason').value='';$('#rmask').classList.add('show');}
+function closeRMask(){$('#rmask').classList.remove('show');}
+function backToAudit(){closeRMask();$('#amask').classList.add('show');}
+function confirmReject(){
+  const reason=$('#r_reason').value.trim();
+  if(!reason){toast('请输入审核不通过原因');return;}
+  const r=DATA.find(x=>x.id===curAuditId);if(!r)return;
+  r.status='未委托';r.org='-';r.fee='';r.agreement='';r.rejectReason=reason;
+  closeRMask();closeAMask();renderTable();toast('审核不通过，已退回');
+}
+$('#amask').addEventListener('click',e=>{if(e.target===$('#amask'))closeAMask();});
+$('#rmask').addEventListener('click',e=>{if(e.target===$('#rmask'))backToAudit();});
 
 /* ===== 详情 ===== */
 function openDetail(id){const r=DATA.find(x=>x.id===id);if(!r)return;
@@ -430,7 +538,7 @@ function openDetail(id){const r=DATA.find(x=>x.id===id);if(!r)return;
 }
 function closeDMask(){$('#dmask').classList.remove('show');}
 $('#dmask').addEventListener('click',e=>{if(e.target===$('#dmask'))closeDMask();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeEMask();closeFModal();closeDMask();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeEMask();closeFModal();closeAMask();closeRMask();closeDMask();}});
 
 /* ===== 初始化 ===== */
 initIns({bread:['事故预防服务管理','事故预防服务需求'], active:'事故预防服务需求'});

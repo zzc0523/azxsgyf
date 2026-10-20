@@ -83,6 +83,19 @@
   .fitem.top{align-items:flex-start;}
   .fitem.top > label{padding-top:8px;line-height:1.5;}
 
+  /* 服务企业：关键字模糊搜索下拉 */
+  .ssel{position:relative;}
+  .ssel input{width:100%;padding-right:26px;cursor:text;}
+  .ssel .arrow{position:absolute;right:9px;top:50%;transform:translateY(-50%);color:#8a93a5;font-size:11px;line-height:1;pointer-events:none;}
+  .combo{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;background:#fff;border:1px solid #dfe4ed;border-radius:4px;box-shadow:0 8px 22px rgba(20,30,60,.14);max-height:220px;overflow:auto;display:none;}
+  .combo.show{display:block;}
+  .citem{display:flex;align-items:center;gap:8px;padding:8px 10px;font-size:13px;color:#2b3242;cursor:pointer;}
+  .citem:hover,.citem.on{background:#f2f6ff;}
+  .citem .cname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .citem .cname b{color:var(--brand);font-weight:600;}
+  .citem .cmeta{flex:0 0 auto;font-size:12px;color:#9aa3b2;}
+  .cempty{padding:10px;text-align:center;color:#9aa3b2;font-size:12.5px;}
+
   /* 单选组 */
   .radios{display:flex;align-items:center;gap:18px;}
   .pick{display:flex;align-items:center;gap:10px;}
@@ -198,7 +211,12 @@
     <div class="mbody">
       <div class="form" id="form">
         <div class="fitem"><label><i class="req">*</i>选择服务企业：</label>
-          <div class="ctl"><select id="f_company" onchange="onCompanyChange()"><option value="">请选择</option></select></div>
+          <div class="ctl"><div class="ssel">
+            <input id="f_company" type="text" placeholder="请选择" autocomplete="off"
+              onfocus="openCompanyCombo()" onclick="openCompanyCombo()" oninput="onCompanyInput()" onkeydown="onCompanyKey(event)" onblur="onCompanyBlur()">
+            <span class="arrow">▾</span>
+            <div class="combo" id="companyCombo"></div>
+          </div></div>
         </div>
         <div class="fitem"><label><i class="req">*</i>选择保单号：</label>
           <div class="ctl"><select id="f_policy"><option value="">请选择</option></select></div>
@@ -246,13 +264,15 @@ const COMPANIES=[
   {name:'福建恒安机械制造有限公司',industry:'制造业',addr:'福州晋安区福新中路'}
 ];
 const POLICIES=[
-  {no:'b732e94a-d9ff-1110-ae43-3f8a5d0e1c21',company:'福建厦发信息有限公司'},
-  {no:'986bb439-e52b-1110-ae43-2c7d1f0a9b33',company:'福建厦发信息有限公司'},
-  {no:'0b57a7cc-dbcc-1110-ae43-9e2f4a6c8d10',company:'福建厦发信息有限公司'},
-  {no:'3d9f1b62-77aa-1110-ae43-5b1c8e2d4f70',company:'福建金牛山建设集团有限公司'},
-  {no:'7c1e5a90-4b33-1110-ae43-8d2f6c0a1e45',company:'福州东街建设工程有限公司'},
-  {no:'a1c8e3f4-9d21-1110-ae43-6a3b7e5c2d80',company:'福建闽通矿业有限公司'},
-  {no:'5e7b2d18-6f44-1110-ae43-1c9d3a8b6e02',company:'福建华信化工有限公司'}
+  {no:'b732e94a-d9ff-1110-ae43-3f8a5d0e1c21',company:'福建厦发信息有限公司',status:'在保'},
+  {no:'986bb439-e52b-1110-ae43-2c7d1f0a9b33',company:'福建厦发信息有限公司',status:'已过期'},
+  {no:'0b57a7cc-dbcc-1110-ae43-9e2f4a6c8d10',company:'福建厦发信息有限公司',status:'在保'},
+  {no:'3d9f1b62-77aa-1110-ae43-5b1c8e2d4f70',company:'福建金牛山建设集团有限公司',status:'在保'},
+  {no:'7c1e5a90-4b33-1110-ae43-8d2f6c0a1e45',company:'福州东街建设工程有限公司',status:'在保'},
+  {no:'a1c8e3f4-9d21-1110-ae43-6a3b7e5c2d80',company:'福建闽通矿业有限公司',status:'在保'},
+  {no:'5e7b2d18-6f44-1110-ae43-1c9d3a8b6e02',company:'福建华信化工有限公司',status:'在保'},
+  {no:'c2f4a7b8-8e11-1110-ae43-2d6b9f4c7a13',company:'福建恒安机械制造有限公司',status:'在保'},
+  {no:'e8a1c3d5-2b76-1110-ae43-7f4e1a9d3c58',company:'福建恒安机械制造有限公司',status:'已退保'}
 ];
 /* 事故预防服务项目：must=固定必做；either=二选一；no=默认否 */
 const SERVICE_ITEMS=[
@@ -367,16 +387,17 @@ function renderPager(total,pages,start,cnt){
 }
 
 /* ===== 弹窗 ===== */
-const FORM={big:false,req:{},freq:{}};
+const FORM={big:false,req:{},freq:{},company:''};
 let locked=false;
 function val(id){return $('#'+id).value.trim();}
 function setLocked(lock){
   locked=lock;
   ['f_company','f_policy','f_year','f_remark'].forEach(id=>{$('#'+id).disabled=lock;});
   document.querySelectorAll('#f_bigbox input,#itbody input,#itbody select').forEach(e=>{e.disabled=lock;});
+  if(lock)closeCompanyCombo();
   if(!lock)syncItems();
 }
-function closeModal(){$('#mask').classList.remove('show');}
+function closeModal(){closeCompanyCombo();$('#mask').classList.remove('show');}
 $('#mask').addEventListener('click',e=>{if(e.target===$('#mask'))closeModal();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 
@@ -438,18 +459,89 @@ function pickEither(key,yes){
   if(yes)SERVICE_ITEMS.forEach(it=>{if(it.type==='either'&&it.key!==key){FORM.req[it.key]=false;FORM.freq[it.key]=0;}});
   syncItems();
 }
+/* ===== 服务企业：关键字模糊搜索 ===== */
+let comboOpen=false,comboIdx=-1,comboList=[];
+function hlName(name,kw){
+  if(!kw)return esc(name);
+  const i=name.toLowerCase().indexOf(kw.toLowerCase());
+  if(i<0)return esc(name);
+  return esc(name.slice(0,i))+'<b>'+esc(name.slice(i,i+kw.length))+'</b>'+esc(name.slice(i+kw.length));
+}
+function renderCompanyCombo(kw){
+  kw=(kw||'').trim();
+  const k=kw.toLowerCase();
+  comboList=COMPANIES.filter(c=>!k||c.name.toLowerCase().includes(k));
+  comboIdx=-1;
+  const box=$('#companyCombo');
+  box.innerHTML=comboList.length
+    ? comboList.map((c,i)=>`<div class="citem" onmousedown="pickCompany(${i})"><span class="cname">${hlName(c.name,kw)}</span><span class="cmeta">${esc(c.industry)}</span></div>`).join('')
+    : '<div class="cempty">未找到匹配的企业</div>';
+  box.classList.add('show');comboOpen=true;
+}
+function openCompanyCombo(){if(locked)return;renderCompanyCombo('');}
+function onCompanyInput(){
+  if(locked)return;
+  FORM.company='';
+  fillPolicySelect('');
+  renderCompanyCombo($('#f_company').value);
+}
+function pickCompany(i){
+  const c=comboList[i];if(!c)return;
+  FORM.company=c.name;
+  $('#f_company').value=c.name;
+  closeCompanyCombo();
+  onCompanyChange();
+}
+function closeCompanyCombo(){comboOpen=false;comboIdx=-1;const box=$('#companyCombo');if(box)box.classList.remove('show');}
+function onCompanyBlur(){
+  setTimeout(()=>{
+    if(!comboOpen)return;
+    closeCompanyCombo();
+    if(FORM.company)return;
+    const v=$('#f_company').value.trim();
+    const m=COMPANIES.find(c=>c.name===v);
+    if(m){FORM.company=m.name;onCompanyChange();}
+    else $('#f_company').value='';
+  },120);
+}
+function onCompanyKey(e){
+  if(locked)return;
+  if(!comboOpen){
+    if(e.key==='ArrowDown'){renderCompanyCombo($('#f_company').value);e.preventDefault();}
+    return;
+  }
+  if(e.key==='ArrowDown'){comboIdx=Math.min(comboList.length-1,comboIdx+1);markCombo();e.preventDefault();}
+  else if(e.key==='ArrowUp'){comboIdx=Math.max(0,comboIdx-1);markCombo();e.preventDefault();}
+  else if(e.key==='Enter'){if(comboIdx>=0){pickCompany(comboIdx);e.preventDefault();}}
+  else if(e.key==='Escape'){closeCompanyCombo();}
+}
+function markCombo(){
+  [...document.querySelectorAll('#companyCombo .citem')].forEach((el,i)=>el.classList.toggle('on',i===comboIdx));
+  const on=document.querySelector('#companyCombo .citem.on');
+  if(on&&on.scrollIntoView)on.scrollIntoView({block:'nearest'});
+}
 function onCompanyChange(){fillPolicySelect('');}
 function fillPolicySelect(cur){
-  const c=$('#f_company').value;
-  const list=POLICIES.filter(p=>!c||p.company===c);
+  const c=FORM.company||'';
+  let list=POLICIES.filter(p=>p.status==='在保'&&(!c||p.company===c));
+  // 详情回显：历史保单可能已不在保，仍展示当前值
+  if(cur&&!list.some(p=>p.no===cur)){
+    const old=POLICIES.find(p=>p.no===cur);
+    if(old)list=[old].concat(list);
+  }
   const sel=$('#f_policy');
-  sel.innerHTML='<option value="">请选择</option>'+list.map(p=>`<option value="${p.no}">${p.no}</option>`).join('');
+  let html=(c&&!list.length)
+    ? '<option value="" disabled selected>该企业暂无在保保单</option>'
+    : '<option value="">请选择</option>';
+  html+=list.map(p=>`<option value="${p.no}">${p.no}${p.status!=='在保'?'（'+p.status+'）':''}</option>`).join('');
+  sel.innerHTML=html;
   if(cur)setSelectValue(sel,cur);
 }
 function fillForm(r){
   r=r||{};
-  fillSelect('#f_company',COMPANIES.map(c=>c.name),'');
-  setSelectValue($('#f_company'),r.company||'');
+  FORM.company=r.company||'';
+  $('#f_company').value=FORM.company;
+  closeCompanyCombo();
   fillPolicySelect(r.policy||'');
   FORM.big=!!r.big;
   const rb=document.querySelector(`input[name=f_big][value="${FORM.big?'是':'否'}"]`);
@@ -483,7 +575,7 @@ function openCreate(){
   $('#mask').classList.add('show');
 }
 function saveCreate(){
-  if(!val('f_company'))return toast('请选择服务企业');
+  if(!FORM.company)return toast('请选择服务企业');
   if(!val('f_policy'))return toast('请选择保单号');
   if(!document.querySelector('input[name=f_big]:checked'))return toast('请选择是否为大中型被保险人');
   if(!val('f_year'))return toast('请选择计划年度');
@@ -496,7 +588,7 @@ function saveCreate(){
     if(s&&e&&e<s)return toast('「'+it.name+'」结束时间不能早于开始时间');
   }
   if(!val('f_remark'))return toast('请输入服务说明');
-  const company=val('f_company'),co=COMPANIES.find(c=>c.name===company)||{};
+  const company=FORM.company,co=COMPANIES.find(c=>c.name===company)||{};
   const items=SERVICE_ITEMS.filter(it=>(FORM.freq[it.key]||0)>=1).map(it=>({name:it.name,start:val('s_'+it.key),end:val('e_'+it.key),freq:FORM.freq[it.key]}));
   const ds=items.map(i=>i.start).filter(Boolean).sort();
   const de=items.map(i=>i.end).filter(Boolean).sort();

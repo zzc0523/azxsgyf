@@ -426,8 +426,7 @@ function renderHistory(r){
 function renderRevBox(r){
   if(!(r.status==='待复审'||r.status==='待终审')){
     return `<div class="revbox"><div class="secttl">审核结论</div>
-      <div class="revdone">本报告当前状态：<span class="st ${stClass(r.status)}">${r.status}</span></div>
-      <button class="btn" onclick="resubmit('${r.no}')">模拟服务机构重新提交</button></div>`;
+      <div class="revdone">本报告当前状态：<span class="st ${stClass(r.status)}">${r.status}</span></div></div>`;
   }
   const stage=stageOf(r.status);
   return `<div class="revbox"><div class="secttl">${stage}审核</div>
@@ -470,13 +469,6 @@ function submitReview(result){
   saveReports();renderTable();openDetail(curNo);
   toast('审核提交成功：'+r.status);
 }
-function resubmit(no){
-  const r=getReport(no);if(!r)return;
-  r.status='待复审';r.reviews={};
-  saveReports();renderTable();openDetail(no);
-  toast('已模拟服务机构重新提交，回到待复审');
-}
-
 /* ===== 报告 PDF 生成与预览 ===== */
 let lastPdf=null,lastName='',lastNo='';
 function buildPdfHtml(r){
