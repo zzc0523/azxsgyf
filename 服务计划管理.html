@@ -69,6 +69,7 @@
   .form{display:grid;grid-template-columns:1fr 1fr;gap:18px 40px;min-width:0;}
   .fitem{display:flex;align-items:center;min-width:0;}
   .fitem.span2{grid-column:1 / -1;}
+  .pickbar{grid-column:1 / -1;margin-bottom:4px;}
   .fitem > label{flex:0 0 158px;width:158px;text-align:right;padding-right:10px;font-size:13px;color:#3a4354;line-height:32px;white-space:nowrap;}
   .fitem .req{color:#f04438;margin-right:3px;}
   .fitem input,.fitem select{flex:1;min-width:0;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
@@ -140,6 +141,21 @@
     .fitem.top > label{flex:0 0 100%;width:100%;text-align:left;padding:0 0 8px;}
     .fitem.top{align-items:stretch;}
   }
+
+  /* 选择保单弹窗 */
+  .psch{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .psch input{flex:1;min-width:130px;height:32px;border:1px solid #dfe4ed;border-radius:4px;padding:0 10px;font-size:13px;color:#1f2329;background:#fff;outline:none;}
+  .psch input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,124,255,.12);}
+  .ptable-wrap{overflow-x:auto;}
+  .ptable{width:100%;min-width:560px;border-collapse:collapse;border:1px solid var(--line);border-radius:6px;overflow:hidden;font-size:13px;background:#fff;}
+  .ptable thead th{background:#f7f9fc;color:#5d6879;font-weight:600;text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);font-size:12.5px;white-space:nowrap;}
+  .ptable tbody td{padding:9px 12px;border-bottom:1px solid #eef1f6;color:#2b3242;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ptable tbody tr:last-child td{border-bottom:none;}
+  .ptable tbody tr:hover{background:#f9fbff;}
+  .ptable td.op{white-space:nowrap;}
+  .ptable td.op a{color:var(--brand);cursor:pointer;}
+  .ptable td.op a:hover{text-decoration:underline;}
+  .ptable .empty{text-align:center;color:#9aa3b2;padding:30px 0 !important;}
 </style>
 </head>
 <body>
@@ -210,6 +226,7 @@
     </div>
     <div class="mbody">
       <div class="form" id="form">
+        <div class="pickbar"><button class="btn primary" type="button" onclick="openPolicyModal()">选择保单</button></div>
         <div class="fitem"><label><i class="req">*</i>选择服务企业：</label>
           <div class="ctl"><div class="ssel">
             <input id="f_company" type="text" placeholder="请选择" autocomplete="off"
@@ -248,6 +265,33 @@
   </div>
 </div>
 
+<!-- 选择保单 -->
+<div class="mask" id="pmask">
+  <div class="modal sm">
+    <div class="mhead">
+      <div class="mtitle">选择保单</div>
+      <div class="mclose" onclick="closePolicyModal()">✕</div>
+    </div>
+    <div class="mbody">
+      <div class="psch">
+        <input id="pq_company" placeholder="企业名称" oninput="renderPolicyTable()">
+        <input id="pq_no" placeholder="保单号" oninput="renderPolicyTable()">
+        <input id="pq_project" placeholder="项目名称" oninput="renderPolicyTable()">
+        <button class="btn" onclick="renderPolicyTable()">查询</button>
+        <button class="btn" onclick="resetPolicySch()">重置</button>
+      </div>
+      <div class="ptable-wrap">
+        <table class="ptable">
+          <colgroup><col><col><col><col><col style="width:64px"></colgroup>
+          <thead><tr><th>保单号</th><th>投保企业名称</th><th>统一社会信用代码</th><th>项目名称</th><th>操作</th></tr></thead>
+          <tbody id="ptbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="mfoot"><button class="btn" onclick="closePolicyModal()">关闭</button></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="ins-common.js"></script>
@@ -264,15 +308,15 @@ const COMPANIES=[
   {name:'福建恒安机械制造有限公司',industry:'制造业',addr:'福州晋安区福新中路'}
 ];
 const POLICIES=[
-  {no:'b732e94a-d9ff-1110-ae43-3f8a5d0e1c21',company:'福建厦发信息有限公司',status:'在保'},
-  {no:'986bb439-e52b-1110-ae43-2c7d1f0a9b33',company:'福建厦发信息有限公司',status:'已过期'},
-  {no:'0b57a7cc-dbcc-1110-ae43-9e2f4a6c8d10',company:'福建厦发信息有限公司',status:'在保'},
-  {no:'3d9f1b62-77aa-1110-ae43-5b1c8e2d4f70',company:'福建金牛山建设集团有限公司',status:'在保'},
-  {no:'7c1e5a90-4b33-1110-ae43-8d2f6c0a1e45',company:'福州东街建设工程有限公司',status:'在保'},
-  {no:'a1c8e3f4-9d21-1110-ae43-6a3b7e5c2d80',company:'福建闽通矿业有限公司',status:'在保'},
-  {no:'5e7b2d18-6f44-1110-ae43-1c9d3a8b6e02',company:'福建华信化工有限公司',status:'在保'},
-  {no:'c2f4a7b8-8e11-1110-ae43-2d6b9f4c7a13',company:'福建恒安机械制造有限公司',status:'在保'},
-  {no:'e8a1c3d5-2b76-1110-ae43-7f4e1a9d3c58',company:'福建恒安机械制造有限公司',status:'已退保'}
+  {no:'b732e94a-d9ff-1110-ae43-3f8a5d0e1c21',company:'福建厦发信息有限公司',status:'在保',credit:'91350100MA2Y0XF18Q',project:'安全生产责任保险（2026年度）'},
+  {no:'986bb439-e52b-1110-ae43-2c7d1f0a9b33',company:'福建厦发信息有限公司',status:'已过期',credit:'91350100MA2Y0XF18Q',project:'安全生产责任保险（2025年度）'},
+  {no:'0b57a7cc-dbcc-1110-ae43-9e2f4a6c8d10',company:'福建厦发信息有限公司',status:'在保',credit:'91350100MA2Y0XF18Q',project:'安责险附加事故预防服务（2026）'},
+  {no:'3d9f1b62-77aa-1110-ae43-5b1c8e2d4f70',company:'福建金牛山建设集团有限公司',status:'在保',credit:'91350100MA1Y2BN46X',project:'建筑施工安全生产责任险'},
+  {no:'7c1e5a90-4b33-1110-ae43-8d2f6c0a1e45',company:'福州东街建设工程有限公司',status:'在保',credit:'91350100MA3X9KQ52L',project:'交通运输安全生产责任险'},
+  {no:'a1c8e3f4-9d21-1110-ae43-6a3b7e5c2d80',company:'福建闽通矿业有限公司',status:'在保',credit:'91350100MA4K7RD09P',project:'矿山安全生产责任险'},
+  {no:'5e7b2d18-6f44-1110-ae43-1c9d3a8b6e02',company:'福建华信化工有限公司',status:'在保',credit:'91350100MA5T3WF71B',project:'危险化学品安全生产责任险'},
+  {no:'c2f4a7b8-8e11-1110-ae43-2d6b9f4c7a13',company:'福建恒安机械制造有限公司',status:'在保',credit:'91350100MA6H8CQ33V',project:'机械制造安全生产责任险'},
+  {no:'e8a1c3d5-2b76-1110-ae43-7f4e1a9d3c58',company:'福建恒安机械制造有限公司',status:'已退保',credit:'91350100MA6H8CQ33V',project:'机械制造安全生产责任险（2025）'}
 ];
 /* 事故预防服务项目：must=固定必做；either=二选一；no=默认否 */
 const SERVICE_ITEMS=[
@@ -399,7 +443,11 @@ function setLocked(lock){
 }
 function closeModal(){closeCompanyCombo();$('#mask').classList.remove('show');}
 $('#mask').addEventListener('click',e=>{if(e.target===$('#mask'))closeModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  if($('#pmask').classList.contains('show')){closePolicyModal();return;}
+  closeModal();
+});
 
 function resetReq(){SERVICE_ITEMS.forEach(it=>{FORM.req[it.key]=it.type==='must';FORM.freq[it.key]=it.type==='must'?1:0;});}
 function isReq(k){return !!FORM.req[k];}
@@ -537,6 +585,43 @@ function fillPolicySelect(cur){
   sel.innerHTML=html;
   if(cur)setSelectValue(sel,cur);
 }
+
+/* ===== 选择保单弹窗 ===== */
+function openPolicyModal(){
+  $('#pq_company').value='';$('#pq_no').value='';$('#pq_project').value='';
+  renderPolicyTable();
+  $('#pmask').classList.add('show');
+}
+function closePolicyModal(){$('#pmask').classList.remove('show');}
+function resetPolicySch(){$('#pq_company').value='';$('#pq_no').value='';$('#pq_project').value='';renderPolicyTable();}
+function renderPolicyTable(){
+  const kc=$('#pq_company').value.trim().toLowerCase();
+  const kn=$('#pq_no').value.trim().toLowerCase();
+  const kp=$('#pq_project').value.trim().toLowerCase();
+  const list=POLICIES.filter(p=>p.status==='在保'
+    &&(!kc||p.company.toLowerCase().includes(kc))
+    &&(!kn||p.no.toLowerCase().includes(kn))
+    &&(!kp||p.project.toLowerCase().includes(kp)));
+  $('#ptbody').innerHTML=list.length
+    ? list.map(p=>`<tr>
+        <td title="${esc(p.no)}">${esc(p.no)}</td>
+        <td title="${esc(p.company)}">${esc(p.company)}</td>
+        <td title="${esc(p.credit)}">${esc(p.credit)}</td>
+        <td title="${esc(p.project)}">${esc(p.project)}</td>
+        <td class="op"><a onclick="selectPolicy('${p.no}')">选择</a></td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" class="empty">未找到匹配的在保保单</td></tr>';
+}
+function selectPolicy(no){
+  const p=POLICIES.find(x=>x.no===no);if(!p)return;
+  FORM.company=p.company;
+  $('#f_company').value=p.company;
+  closeCompanyCombo();
+  fillPolicySelect(no); // 刷新保单下拉并选中该保单
+  closePolicyModal();
+  toast('已选择保单，已带入企业');
+}
+$('#pmask').addEventListener('click',e=>{if(e.target===$('#pmask'))closePolicyModal();});
 function fillForm(r){
   r=r||{};
   FORM.company=r.company||'';
