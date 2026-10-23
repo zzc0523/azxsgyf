@@ -67,6 +67,8 @@ const SCHEMA = {
      {t:'multi',name:'演练目的',opts:['检验预案','完善准备','锻炼队伍','磨合机制','科普宣教'],req:true},
      {t:'single',name:'演练形式',opts:['综合应急演练','专项应急演练'],req:true},
      {t:'tech',name:'指导专家',req:true},
+     {t:'text',name:'组织人员',max:50,req:true},
+     {t:'text',name:'参与对象',max:50,req:true},
      {t:'text',name:'演练地点',max:30,req:true},
      {t:'single',name:'演练方式',opts:['桌面推演','实战演练'],req:true},
      {t:'text',name:'演练主题',max:50,req:true},

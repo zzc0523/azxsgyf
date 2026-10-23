@@ -139,6 +139,14 @@
           </div>
         </div>
         <div class="fitem">
+          <label>组织人员<span class="req">*</span><span class="hint">（50字以内）</span></label>
+          <input type="text" id="dorg" maxlength="50" placeholder="请输入组织人员">
+        </div>
+        <div class="fitem">
+          <label>参与对象<span class="req">*</span><span class="hint">（50字以内）</span></label>
+          <input type="text" id="dobj" maxlength="50" placeholder="请输入参与对象">
+        </div>
+        <div class="fitem">
           <label>演练地点<span class="req">*</span><span class="hint">（30字以内）</span></label>
           <input type="text" id="dlocation" maxlength="30" placeholder="请输入演练地点">
         </div>
@@ -434,6 +442,8 @@ function genWord(){
     ['演练目的',   getChk('purpose').join('、') || '（未填写）'],
     ['演练形式',   (document.querySelector('input[name=dtype]:checked') || {}).value || '（未填写）'],
     ['指导专家',   g('dexpert') || '（未填写）'],
+    ['组织人员',   g('dorg') || '（未填写）'],
+    ['参与对象',   g('dobj') || '（未填写）'],
     ['演练方式',   (document.querySelector('input[name=dway]:checked') || {}).value || '（未填写）'],
     ['演练地点',   g('dlocation') || '（未填写）'],
     ['总指挥',     g('dcommander') || '（未填写）'],
@@ -461,6 +471,8 @@ function saveDrill(){
     [[...document.querySelectorAll('#purpose input:checked')].length > 0, '请选择演练目的'],
     [!!document.querySelector('input[name=dtype]:checked'), '请选择演练形式'],
     [g('dlocation'), '请填写演练地点'],
+    [g('dorg'), '请填写组织人员'],
+    [g('dobj'), '请填写参与对象'],
     [!!document.querySelector('input[name=dway]:checked'), '请选择演练方式'],
     [g('dname'), '请填写演练主题'],
     [g('dcommander'), '请填写总指挥'],
