@@ -74,6 +74,12 @@
 
   .toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(20,28,46,.9);color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;z-index:80;display:none;max-width:74%;text-align:center;line-height:1.6}
   .toast.show{display:block}
+
+  /* 重复分组（如周边医疗机构 2 家） */
+  .grp{margin-top:2px}
+  .grp-item{background:#f7f9fc;border:1px solid var(--line);border-radius:10px;padding:2px 12px 8px;margin-top:10px}
+  .grp-tit{font-size:13px;font-weight:600;color:var(--text);padding:10px 0 2px}
+  .grp .field{padding:11px 0}
 </style>
 </head>
 <body>
@@ -122,8 +128,18 @@ const FIELDS = [
   {type:'area', name:'事故响应程序', max:500, ph:'请填写事故响应程序（500字以内）', req:true},
   {type:'location', name:'当前位置', max:50, ph:'请填写当前位置（50字以内）', req:true},
   {type:'area', name:'应急物资', max:500, ph:'请填写应急物资（500字以内）', req:true},
-  {type:'photo', name:'周边医疗机构', min:2, max:6, req:true},
-  {type:'photo', name:'周边救援机构', min:2, max:6, req:true},
+  {type:'group', name:'周边医疗机构', count:2, req:true, fields:[
+    {type:'text', name:'医院名称', max:50, ph:'请填写医院名称（50字以内）', req:true},
+    {type:'text', name:'地址', max:50, ph:'请填写地址（50字以内）', req:true},
+    {type:'text', name:'联系电话', max:11, ph:'请填写联系电话（11字以内）', req:true},
+    {type:'photo', name:'路线图', min:1, max:1, req:true},
+  ]},
+  {type:'group', name:'周边救援机构', count:2, req:true, fields:[
+    {type:'text', name:'救援队名称', max:50, ph:'请填写救援队名称（50字以内）', req:true},
+    {type:'text', name:'地址', max:50, ph:'请填写地址（50字以内）', req:true},
+    {type:'text', name:'联系电话', max:11, ph:'请填写联系电话（11字以内）', req:true},
+    {type:'photo', name:'路线图', min:1, max:1, req:true},
+  ]},
   {type:'photo', name:'周边关系图', min:2, max:6, req:true},
 ];
 
@@ -147,11 +163,24 @@ function fieldHTML(f){
     inner = `<div class="loc-row"><input class="inp" maxlength="${f.max}" placeholder="${f.ph||''}"><button class="loc-btn" onclick="getLocation(this)">获取定位</button></div>`;
   } else if(f.type==='photo'){
     inner = `<div class="photos" data-min="${f.min||0}" data-max="${f.max}"><div class="add" onclick="pickPhotos(this)">+<span>添加</span></div></div><div class="ctr"><span>0/${f.max}</span></div>`;
+  } else if(f.type==='group'){
+    inner = groupHTML(f);
   } else {
     inner = `<input class="inp" type="text" maxlength="${f.max||''}" placeholder="${f.ph||''}"><div class="ctr"></div>`;
   }
   const req = f.req?'<span class="req">*</span>':'';
-  return `<div class="field"><div class="flbl">${req}${f.name}</div>${inner}</div>`;
+  const dataAttr = f.type==='group'?' data-type="group"':'';
+  const label = f.type==='group' ? `${f.name}（${f.count}家）` : f.name;
+  return `<div class="field"${dataAttr}><div class="flbl">${req}${label}</div>${inner}</div>`;
+}
+
+function groupHTML(f){
+  let html = '<div class="grp">';
+  for(let i=0;i<f.count;i++){
+    html += `<div class="grp-item"><div class="grp-tit">第 ${i+1} 家</div>` +
+      f.fields.map(sf=>fieldHTML(sf)).join('') + '</div>';
+  }
+  return html + '</div>';
 }
 
 function updCount(el){
@@ -217,17 +246,30 @@ function removeThumb(el){
   if(cnt < +box.dataset.max) box.querySelector('.add').style.display = 'flex';
 }
 
+function validateField(f){
+  const lbl = f.querySelector('.flbl').textContent.replace('*','').trim();
+  if(f.querySelector('.chips')){ if(!f.querySelector('.chip.on')) return [lbl]; }
+  else if(f.querySelector('.photos')){
+    const n = f.querySelectorAll('.thumb').length;
+    const min = +f.querySelector('.photos').dataset.min || 0;
+    if(n < min) return [lbl + '（至少 ' + min + ' 张）'];
+  } else { const el = f.querySelector('input,textarea'); if(!el.value.trim()) return [lbl]; }
+  return [];
+}
+
 function submitForm(){
   const miss = [];
-  document.querySelectorAll('#body .field').forEach(f=>{
-    const lbl = f.querySelector('.flbl').textContent.replace('*','').trim();
-    if(f.querySelector('.chips')){ if(!f.querySelector('.chip.on')) miss.push(lbl); }
-    else if(f.querySelector('.photos')){
-      const n = f.querySelectorAll('.thumb').length;
-      const min = +f.querySelector('.photos').dataset.min || 0;
-      if(n < min) miss.push(lbl + '（至少 ' + min + ' 张）');
+  document.querySelectorAll('#body .card > .field').forEach(f=>{
+    if(f.dataset.type==='group'){
+      const gname = f.querySelector(':scope > .flbl').textContent.replace('*','').trim();
+      f.querySelectorAll('.grp-item').forEach((item,idx)=>{
+        item.querySelectorAll(':scope > .field').forEach(sf=>{
+          validateField(sf).forEach(m=> miss.push(gname + '（第' + (idx+1) + '家）·' + m));
+        });
+      });
+    } else {
+      validateField(f).forEach(m=> miss.push(m));
     }
-    else { const el = f.querySelector('input,textarea'); if(!el.value.trim()) miss.push(lbl); }
   });
   if(miss.length){ toast('请完善：'+miss.join('、')); return; }
   try{ localStorage.setItem('entry_应急预案编制信息采集','1'); }catch(e){}
