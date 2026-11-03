@@ -200,7 +200,7 @@ function infoCard(){
   const row=(k,v,ic)=>`<div class="infrow"><span class="ink">${k}：</span><span class="inv">${v}${ic||''}</span></div>`;
   return `<div class="infosec">基本信息</div>
   <div class="infocard">
-    ${row('预防服务工单', orderNo)}
+    ${row('预防服务ID', orderNo)}
     ${row('企业名称', INFO_COMPANY)}
     ${row('服务项目', PROJECT)}
     ${row('计划服务日期', INFO_DATE)}
@@ -345,7 +345,7 @@ function generateReport(){
   const proj = document.getElementById('ctxProj').textContent;
   document.getElementById('previewBody').innerHTML =
     '<div class="pv-sec">安全生产应急预案编制 · 报告整理</div>'+
-    '<div class="pv-row"><div class="pv-k">预防服务工单</div><div class="pv-v">'+esc(orderNo)+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">预防服务ID</div><div class="pv-v">'+esc(orderNo)+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">服务项目</div><div class="pv-v">'+esc(proj)+'</div></div>'+
     DOCS.map(d=>'<div class="pv-row"><div class="pv-k">'+esc(d.name)+'</div><div class="pv-v">'+sub(d.key)+'</div></div>').join('')+
     '<div class="pv-row"><div class="pv-k">生产安全事故风险分析</div><div class="pv-v">'+esc(state.__riskAnalysis||'—')+'</div></div>'+

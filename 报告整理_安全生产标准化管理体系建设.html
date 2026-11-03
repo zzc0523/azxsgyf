@@ -242,7 +242,7 @@ function infoCard(){
   const row=(k,v,ic)=>`<div class="frow"><span class="k">${k}：</span><span class="v">${v}${ic||''}</span></div>`;
   return `<div class="sec-title">基本信息</div>
   <div class="card first info">
-    ${row('预防服务工单', orderNo)}
+    ${row('预防服务ID', orderNo)}
     ${row('企业名称', COMPANY)}
     ${row('服务项目', project)}
     ${row('计划服务日期', DATE)}
@@ -589,7 +589,7 @@ function generateReport(){
   const spCount = photoImgs(SRV_PHOTO_NAME).length;
   document.getElementById('previewBody').innerHTML =
     '<div class="pv-sec">安全生产标准化管理体系建设 · 报告整理</div>'+
-    '<div class="pv-row"><div class="pv-k">预防服务工单</div><div class="pv-v">'+esc(orderNo)+'</div></div>'+
+    '<div class="pv-row"><div class="pv-k">预防服务ID</div><div class="pv-v">'+esc(orderNo)+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">企业名称</div><div class="pv-v">'+esc(COMPANY)+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">服务项目</div><div class="pv-v">'+esc(project)+'</div></div>'+
     '<div class="pv-row"><div class="pv-k">现场服务照片</div><div class="pv-v">'+(spCount?spCount+' 张（页内拍照 / 引用）':'未上传')+'</div></div>'+

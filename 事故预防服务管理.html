@@ -50,7 +50,7 @@
         <div class="field adv"><label>分配状态</label>
           <select id="q_alloc"><option value="">请选择</option><option>已分配</option><option>未分配</option></select></div>
         <div class="field adv"><label>服务状态</label>
-          <select id="q_status"><option value="">请选择</option><option>已完成</option><option>已逾期</option><option>服务中</option><option>待服务</option></select></div>
+          <select id="q_status"><option value="">请选择</option><option>未开始</option><option>进行中</option><option>已逾期</option><option>已完成</option><option>已结束</option></select></div>
         <div class="field adv"><label>计划年度</label>
           <input id="q_year" type="date" placeholder="请选择计划年度"></div>
         <div class="field adv"><label>开始时间</label>
@@ -244,12 +244,12 @@ const ALL = [
   {id:'2005475827917910021', policy:'0057a7c0-db0c-11ef-9f2a-0242ac110002', alloc:'已分配',
    company:'泉州港务集团有限公司', industry:'交通运输', year:'2025',
    content:'安全生产应急救援演练', fee:'18000',
-   start:'2026-01-08', end:'2026-01-10', org:'中国人寿保险', status:'服务中', tech:'张工'},
+   start:'2026-01-08', end:'2026-01-10', org:'中国人寿保险', status:'进行中', tech:'张工'},
 
   {id:'2005475827917910022', policy:'0057a7c0-db0c-11ef-9f2a-0242ac110002', alloc:'未分配',
    company:'漳州机械制造有限公司', industry:'机械制造', year:'2026',
    content:'安全生产应急预案编制', fee:'34000',
-   start:'2026-02-01', end:'2026-02-20', org:'中国人寿保险', status:'待服务', tech:'-'},
+   start:'2026-02-01', end:'2026-02-20', org:'中国人寿保险', status:'未开始', tech:'-'},
 
   {id:'2005475827917910023', policy:'0057a7c0-db0c-11ef-9f2a-0242ac110002', alloc:'已分配',
    company:'龙岩矿业股份有限公司', industry:'非煤矿山', year:'2025',
@@ -280,11 +280,16 @@ let rows = ALL.slice();
 
 function badge(v, cls){ return (v && v !== '-') ? `<span class="badge ${cls}">${esc(v)}</span>` : esc(v == null ? '-' : v); }
 
+/* 报告审核不通过的几种结果，服务状态统一归并为“已结束” */
+function normStatus(s){
+  return ['报告初审不通过','复审不通过','终审不通过'].includes(s) ? '已结束' : s;
+}
+
 function cell(c, r){
   switch(c.k){
     case 'sel':    return `<td class="c-sel"><input type="checkbox" onchange="updateSelInfo()"></td>`;
     case 'alloc':  return `<td>${badge(r.alloc, 'blue')}</td>`;
-    case 'status': { const m={'已逾期':'red','服务中':'blue','已完成':'green','待服务':'gray'}; return `<td>${badge(r.status, m[r.status] || 'gray')}</td>`; }
+    case 'status': { const m={'未开始':'gray','进行中':'blue','已逾期':'red','已完成':'green','已结束':'gray'}; const s=normStatus(r.status); return `<td>${badge(s, m[s] || 'gray')}</td>`; }
     case 'op': {
       const prep = r.content === '安全生产应急救援演练'
         ? `<div><span class="link" onclick="openDrill('${r.id}')">演练准备</span></div>` : '';
@@ -329,7 +334,7 @@ function filterRows(){
     (!p || r.policy.toLowerCase().indexOf(p) >= 0) &&
     (!c || r.company.toLowerCase().indexOf(c) >= 0) &&
     (!alloc || r.alloc === alloc) &&
-    (!status || r.status === status) &&
+    (!status || normStatus(r.status) === status) &&
     (!year || r.year === year) &&
     (!start || (r.start !== '-' && r.start >= start)) &&
     (!end || (r.end !== '-' && r.end <= end)));

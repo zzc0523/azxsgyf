@@ -245,7 +245,7 @@ function infoCard(){
   const row=(k,v,ic)=>`<div class="infrow"><span class="ink">${k}：</span><span class="inv">${v}${ic||''}</span></div>`;
   return `<div class="infosec">基本信息</div>
   <div class="infocard">
-    ${row('预防服务工单', q.get('no') || 'YF2131900')}
+    ${row('预防服务ID', q.get('no') || 'YF2131900')}
     ${row('企业名称', INFO_COMPANY)}
     ${row('服务项目', q.get('project') || '安全生产宣传教育培训')}
     ${row('计划服务日期', INFO_DATE)}

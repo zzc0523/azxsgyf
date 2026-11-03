@@ -272,7 +272,7 @@ function infoCard(){
   const row=(k,v,ic)=>`<div class="frow"><span class="k">${k}：</span><span class="v">${v}${ic||''}</span></div>`;
   return `<div class="sec-title">基本信息</div>
   <div class="card first info">
-    ${row('预防服务工单', orderNo)}
+    ${row('预防服务ID', orderNo)}
     ${row('企业名称', COMPANY)}
     ${row('服务项目', project)}
     ${row('计划服务日期', DATE)}
@@ -518,7 +518,7 @@ function patrolOpen(i){ const r = patrolLoad()[i]; if(!r) return; toast('打开�
 /* ===== 报告生成 ===== */
 function collect(){
   const basic = {
-    预防服务工单: orderNo, 企业名称: COMPANY, 服务项目: project,
+    预防服务ID: orderNo, 企业名称: COMPANY, 服务项目: project,
     计划服务日期: DATE, 计划服务地点: PLACE, 联系人: '张三', 联系电话: '18000000000'
   };
   const photo = PHOTOS.map(p=>p.name+' '+photoCount(p.name)+'张').join('、');

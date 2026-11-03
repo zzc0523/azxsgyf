@@ -28,6 +28,15 @@
   .ust.blue{color:#2b6ce8;background:rgba(43,108,232,.12)}
   .ust.orange{color:#e08a1e;background:rgba(224,138,30,.12)}
   .ust.green{color:#2fa96b;background:rgba(47,169,107,.12)}
+  .ust.gray{color:#5d6879;background:#eef1f6}
+  .ust.red{color:#f04438;background:rgba(240,68,56,.10)}
+  /* 审核记录 */
+  .revrow{background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:10px}
+  .revtop{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+  .revstage{font-size:13px;font-weight:600;color:#2b3242}
+  .revmeta{color:#9aa3b2;font-size:12px}
+  .revop{background:#f7f9fc;border-radius:4px;padding:8px 10px;font-size:13px;color:#2b3242;white-space:pre-wrap;line-height:1.6}
+  .empty2{color:#9aa3b2;padding:8px 0 14px;font-size:13px}
 
   /* 详情弹窗 */
   .modal.doc{width:min(1080px,96vw);height:min(820px,94vh);max-height:94vh}
@@ -295,7 +304,7 @@
             <col style="width:120px"><col style="width:160px"><col style="width:160px"><col style="width:110px"><col style="width:110px">
           </colgroup>
           <thead><tr>
-            <th>预防服务工单</th><th>企业名称</th><th>服务项目</th><th>计划服务日期</th>
+            <th>预防服务ID</th><th>企业名称</th><th>服务项目</th><th>计划服务日期</th>
             <th>服务技术人员</th><th>服务开始时间</th><th>服务结束时间</th><th>整理状态</th><th>操作</th>
           </tr></thead>
           <tbody id="tbody"></tbody>
@@ -1361,6 +1370,24 @@ function applyShowIf(){
     el.style.display=(cur===v)?'':'none';
   });
 }
+/* 审核记录：读取审核环节写入的 review 数据（初审来自服务机构端，复审/终审来自保险机构端） */
+function auditHistoryHTML(no){
+  const get=k=>{try{const s=localStorage.getItem(k);const a=s?JSON.parse(s):[];return Array.isArray(a)?a:[];}catch(e){return [];}};
+  const org=get('org_review_reports').find(x=>x.no===no);
+  const ins=get('ins_review_reports').find(x=>x.no===no);
+  const items=[];
+  if(org&&org.reviews&&org.reviews.review1) items.push(['初审',org.reviews.review1]);
+  if(ins&&ins.reviews&&ins.reviews.review1) items.push(['复审',ins.reviews.review1]);
+  if(ins&&ins.reviews&&ins.reviews.review2) items.push(['终审',ins.reviews.review2]);
+  if(!items.length) return '<div class="rsec">审核记录</div><div class="empty2">暂无审核记录</div>';
+  let h='<div class="rsec">审核记录</div>';
+  items.forEach(([stage,rv])=>{
+    const cls=rv.result==='通过'?'green':(rv.result==='退回'?'gray':'red');
+    const txt=rv.result==='通过'?'审核通过':(rv.result==='退回'?'退回修改':'审核不通过');
+    h+=`<div class="revrow"><div class="revtop"><span class="revstage">${stage}</span><span class="ust ${cls}">${txt}</span><span class="revmeta">${esc(rv.reviewer)} · ${esc(rv.time)}</span></div><div class="revop">${esc(rv.opinion)||'—'}</div></div>`;
+  });
+  return h;
+}
 function openDetail(no){
   const r=getReport(no);if(!r)return;
   curNo=no;curReport=r;
@@ -1368,7 +1395,7 @@ function openDetail(no){
   const pd=PROJECT_DEF[r.project];
   if(pd&&pd.type==='sections'){ const mini=loadSvcForm(no,r.project); Object.keys(mini).forEach(k=>{ if(r.form[k]==null) r.form[k]=mini[k]; }); }
   if(r.status==='待整理'){ r.status='整理中'; saveReports(); }
-  const infoRows=[['预防服务工单',r.no],['企业名称',r.company],['服务项目',r.project],['计划服务日期',r.date],['服务技术人员',r.staff||'—'],['服务开始时间',r.start||'—'],['服务结束时间',r.end||'—'],['计划服务地点',r.place],['联系人',r.contact],['联系电话',r.phone]];
+  const infoRows=[['预防服务ID',r.no],['企业名称',r.company],['服务项目',r.project],['计划服务日期',r.date],['服务技术人员',r.staff||'—'],['服务开始时间',r.start||'—'],['服务结束时间',r.end||'—'],['计划服务地点',r.place],['联系人',r.contact],['联系电话',r.phone]];
   $('#mtitle').textContent='报告整理 · '+r.project;
   $('#mbody').innerHTML=
     `<div class="rhead">
@@ -1378,6 +1405,7 @@ function openDetail(no){
          <div class="rmrow"><span>服务项目</span><b>${esc(r.project)}</b></div>
        </div>
      </div>
+     ${auditHistoryHTML(r.no)}
      ${photoBlockHTML(r.project)}
      ${needServicePhoto(r.project)?servicePhotoHTML():''}
      ${contentHtml(r.project,r.form)}
@@ -1521,7 +1549,7 @@ function doNew(){
 let lastPdf=null,lastName='',lastNo='';
 function buildPdfHtml(r){
   const form=r.form||{};
-  const info=[['预防服务工单',r.no],['企业名称',r.company],['服务项目',r.project],['计划服务日期',r.date],['计划服务地点',r.place],['联系人',r.contact],['联系电话',r.phone]];
+  const info=[['预防服务ID',r.no],['企业名称',r.company],['服务项目',r.project],['计划服务日期',r.date],['计划服务地点',r.place],['联系人',r.contact],['联系电话',r.phone]];
   const meta=info.map(([k,v])=>`<tr><td class="k">${esc(k)}</td><td>${esc(v)}</td></tr>`).join('');
   const photoRow=PHOTOS.map(p=>`<tr><td class="k">${esc(p.name)}</td><td>已采集 ${photoCount(p.name)} 张</td></tr>`).join('');
   const def=PROJECT_DEF[r.project];
