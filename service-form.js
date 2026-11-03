@@ -210,7 +210,7 @@ function infoCard(){
   const row=(k,v,ic)=>`<div class="frow"><span class="k">${k}：</span><span class="v">${v}${ic||''}</span></div>`;
   return `<div class="sec-title">基本信息</div>
   <div class="card first info">
-    ${row('预防服务工单',orderNo)}
+    ${row('预防服务ID',orderNo)}
     ${row('企业名称',COMPANY)}
     ${row('服务项目',project)}
     ${row('计划服务日期','2025.01.01-2025.01.05')}
