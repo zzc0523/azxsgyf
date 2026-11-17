@@ -185,9 +185,9 @@ const SECTIONS = [
     {type:'text', name:'风险点名称', max:20, ph:'请填写风险点名称（20字以内）', req:true},
     {type:'single', name:'风险点种类', opts:['设备设施','场所区域','作业活动'], def:'设备设施', req:true},
     {type:'single', name:'风险位置', opts:['生产区域','辅助生产区域','非生产区域'], def:'生产区域', req:true},
-    {type:'single', name:'选用评价方法', opts:['风险判定矩阵法（R=LS）','作业条件危险性评价法(D=LEC)'], key:'method', def:'风险判定矩阵法（R=LS）', req:true},
     {type:'ai-all'},
     {type:'multi', name:'可能导致的事故种类', opts:ACCIDENT, req:true},
+    {type:'single', name:'选用评价方法', opts:['风险判定矩阵法（R=LS）','作业条件危险性评价法(D=LEC)'], key:'method', def:'风险判定矩阵法（R=LS）', req:true},
 
     {type:'group-title', name:'风险判定矩阵法', showIf:'method=风险判定矩阵法（R=LS）'},
     {type:'single', name:'事故发生的可能性(L)', opts:MATRIX_L, fid:'Lm', info:'Lm', showIf:'method=风险判定矩阵法（R=LS）', req:true},

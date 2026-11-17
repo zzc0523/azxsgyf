@@ -235,15 +235,14 @@ function photoCard(){
 }
 function goPhoto(name,max){ location.href = '照片采集.html?title=' + name + '&max=' + max; }
 
-function render(){
-  const html = DOCS.map(d=>{
-    const st = state[d.key];
-    const badge = st ? `<span class="badge done">${st.mode==='pdf'?'已上传':'已生成'}</span>` : `<span class="badge">未上传</span>`;
-    const editorShown = (st && st.mode==='gen') ? '' : 'display:none';
-    const fileShown   = (st && st.mode==='pdf') ? '' : 'display:none';
-    const area = st && st.mode==='gen' ? esc(st.text||'') : '';
-    const fname = st && st.mode==='pdf' ? esc(st.name||'') : '';
-    return `
+function docCardHTML(d){
+  const st = state[d.key];
+  const badge = st ? `<span class="badge done">${st.mode==='pdf'?'已上传':'已生成'}</span>` : `<span class="badge">未上传</span>`;
+  const editorShown = (st && st.mode==='gen') ? '' : 'display:none';
+  const fileShown   = (st && st.mode==='pdf') ? '' : 'display:none';
+  const area = st && st.mode==='gen' ? esc(st.text||'') : '';
+  const fname = st && st.mode==='pdf' ? esc(st.name||'') : '';
+  return `
     <div class="card" data-key="${d.key}">
       <div class="card-title"><i></i>${d.name}${badge}</div>
       <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">${d.hint}</div>
@@ -258,12 +257,15 @@ function render(){
         <button class="save" onclick="saveDoc('${d.key}')">保存并上传</button>
       </div>
     </div>`;
-  }).join('');
+}
+function render(){
+  const html = DOCS.filter(d=>d.key!=='risk').map(docCardHTML).join('');
+  const riskCard = docCardHTML(DOCS.find(d=>d.key==='risk'));
 
   const other = state.__other;
   const otherShown = other && other.names && other.names.length ? '' : 'display:none';
   const otherNames = other && other.names ? other.names.join('、') : '';
-  document.getElementById('body').innerHTML = infoCard() + photoCard() + entryCard() + preDocHTML() + html + `
+  document.getElementById('body').innerHTML = infoCard() + photoCard() + entryCard() + preDocHTML(riskCard) + html + `
     <div class="card">
       <div class="card-title"><i></i>其他文档</div>
       <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">文档上传（PDF、Word 多份）</div>
@@ -449,7 +451,7 @@ function entryCard(){
 }
 
 /* ===== 报告前置信息（应急资源调查报告前方） ===== */
-function preDocHTML(){
+function preDocHTML(riskCard){
   const sp = state.__sitePhotos || [];
   const spHtml = sp.map((p,i)=>`<div class="thumb"><img src="${esc(p.data)}"><span class="x" onclick="removeSitePhoto(${i})">×</span></div>`).join('');
   const addShown = sp.length>=6 ? 'style="display:none"' : '';
@@ -465,6 +467,7 @@ function preDocHTML(){
     </div>
     <div class="ctr"><span>${sp.length}/6</span></div>
   </div>
+  ${riskCard}
   <div class="card">
     <div class="card-title"><i></i>生产安全事故风险分析<span class="req">*</span></div>
     <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">手动输入 或 大模型生成（500 字以内）</div>
