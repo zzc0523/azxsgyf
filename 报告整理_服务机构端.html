@@ -72,6 +72,13 @@
   .barea{width:100%;min-height:90px;border:1px solid #dfe4ed;border-radius:6px;padding:8px;font-size:13px;font-family:inherit;line-height:1.6;resize:vertical}
   .bstat{font-size:13px;margin-top:6px}
   .bcount{font-size:11px;color:#b9bfcc;text-align:right;margin-top:4px}
+  /* 大模型生成的 Word 文件卡片 */
+  .wordfile{display:flex;align-items:center;gap:9px;background:#f4f6fb;border-radius:6px;padding:10px 11px;margin-top:6px}
+  .wordfile .wicon{width:30px;height:30px;border-radius:6px;background:#2b5ce6;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+  .wordfile .wmeta{flex:1;min-width:0}
+  .wordfile .wname{font-size:13px;color:#2b3242;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .wordfile .wtype{font-size:11.5px;color:#9aa3b2;margin-top:2px}
+  .wordfile .wdel{width:19px;height:19px;border-radius:50%;background:#c8cedb;color:#fff;font-size:13px;text-align:center;line-height:18px;cursor:pointer;flex:none}
 
   /* 多选 / 照片状态 */
   .chkgrp{display:flex;flex:1;min-width:0;flex-wrap:wrap;gap:10px 12px;padding:2px 0;align-content:flex-start}
@@ -467,8 +474,8 @@ function loadSvcForm(no,project){ try{const s=localStorage.getItem('svcform_'+no
 /* ===== 与小程序端一致的整理内容定义（六大项目，内容各不相同） ===== */
 const PROJECT_DEF = {
   '安全生产标准化管理体系建设':{type:'blocks',blocks:[
-    {sec:'评分明细',mode:'pdf|doc',tag:'文档',req:true},
-    {sec:'自评报告及改进建议',mode:'pdf|ai',tag:'报告'},
+    {sec:'评分明细',mode:'doc',tag:'文档',word:true,req:true},
+    {sec:'自评报告及改进建议',mode:'doc|ai',tag:'报告',word:true},
     {sec:'安标创建制度汇编',mode:'pdf|doc',tag:'文档'},
     {sec:'其他文档',mode:'doc',tag:'文档'},
   ]},
@@ -878,22 +885,24 @@ function blockHTML(b,form){
   const isText=b.mode==='text';
   const hasAI=b.mode.indexOf('ai')>=0||b.mode.indexOf('gen')>=0||isText;
   const isDoc=b.mode==='doc'||b.mode.indexOf('doc')>=0;
+  const isWord=!!b.word;
   const max=b.max||0;
-  const fileShown=st.mode==='pdf'?'':'display:none';
-  const areaShown=(isText||st.mode==='gen'||st.mode==='ai')?'':'display:none';
-  const statusTxt=st.mode?(st.mode==='pdf'?('已上传 PDF：'+(st.name||'')):(st.mode==='gen'?(isText?('已填写（'+(st.text||'').length+' 字）'):('已生成并编辑（'+(st.text||'').length+' 字）')):'已编辑')):(isText?'未填写':'未整理');
+  const fileShown=(st.mode==='pdf'||st.mode==='doc')?'':'display:none';
+  const areaShown=(isText||st.mode==='gen'||st.mode==='ai'||st.mode==='word')?'':'display:none';
+  const statusTxt=st.mode?(st.mode==='doc'?('已上传 Word：'+(st.name||'')):(st.mode==='pdf'?('已上传 PDF：'+(st.name||'')):(st.mode==='word'?('大模型生成 Word 文件：'+(st.name||'报告.docx')):(st.mode==='gen'?(isText?('已填写（'+(st.text||'').length+' 字）'):('已生成并编辑（'+(st.text||'').length+' 字）')):'已编辑')))):(isText?'未填写':'未整理');
   const kid=idk(b.sec);
   return `<div class="rsec">${esc(b.sec)}${b.req?' <i class="req">*</i>':''}</div>
    <div class="bcard">
-     <div class="bhint">${b.tag==='文档'?'文档上传（PDF / Word）':(isText?('手动输入 或 大模型生成（'+(max||500)+' 字以内）'):'PDF 上传 或 大模型生成')}</div>
+     <div class="bhint">${isWord?'文档上传（仅 Word）':(b.tag==='文档'?'文档上传（PDF / Word）':(isText?('手动输入 或 大模型生成（'+(max||500)+' 字以内）'):'PDF 上传 或 大模型生成'))}</div>
      ${isText?'':`<div class="bacts">
-       ${st.mode==='pdf'?`<button class="btn sm" type="button" onclick="previewFile('${esc(st.data||'')}','${esc(st.name||'文件.pdf')}')">预览</button><button class="btn sm" type="button" onclick="upBlock('${esc(b.sec)}')">替换</button>`:`<button class="btn sm" type="button" onclick="upBlock('${esc(b.sec)}')">PDF 上传</button>`}
-       ${hasAI?`<button class="btn sm ai" type="button" onclick="genBlock('${esc(b.sec)}')">✦ 大模型生成</button>`:''}
+       ${(st.mode==='pdf'||st.mode==='doc')?`<button class="btn sm" type="button" onclick="previewFile('${esc(st.data||'')}','${esc(st.name||'文件')}')">预览</button><button class="btn sm" type="button" onclick="upBlock('${esc(b.sec)}')">替换</button>`:`<button class="btn sm" type="button" onclick="upBlock('${esc(b.sec)}')">${isWord?'Word 上传':'PDF 上传'}</button>`}
+       ${hasAI?`<button class="btn sm ai" type="button" onclick="genBlock('${esc(b.sec)}')">✦ ${(isWord&&st.mode==='word')?'重新生成 Word 文件':'大模型生成'}</button>`:''}
      </div>`}
      ${isText&&hasAI?`<div class="bacts"><button class="btn sm ai" type="button" onclick="genBlock('${esc(b.sec)}')">✦ 大模型生成</button></div>`:''}
-     <input type="file" id="bf_${kid}" ${isDoc?'accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"':'accept="application/pdf"'} ${isText?'style="display:none"':''} hidden onchange="onUpBlock('${esc(b.sec)}',this)">
+     <input type="file" id="bf_${kid}" ${isWord?'accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"':(isDoc?'accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"':'accept="application/pdf"')} ${isText?'style="display:none"':''} hidden onchange="onUpBlock('${esc(b.sec)}',this)">
      <div class="bfile" id="bfile_${kid}" style="${fileShown}"><span class="ok">✓</span><span class="fname">${esc(st.name||'')}</span></div>
-     ${hasAI?`<div class="beditor" id="beditor_${kid}" style="${areaShown}"><textarea class="barea" id="barea_${kid}" ${max?('maxlength="'+max+'"'):''} oninput="blockCnt('${esc(b.sec)}')" placeholder="${isText?'请手动输入，或点击「大模型生成」':'请人工补充完善'}">${esc(st.text||'')}</textarea><div class="bcount" id="bcount_${kid}">${(st.text||'').length}/${max||500}</div><button class="btn sm" type="button" onclick="saveBlock('${esc(b.sec)}')">保存编辑</button></div>`:''}
+     ${(hasAI && !(isWord&&st.mode==='word'))?`<div class="beditor" id="beditor_${kid}" style="${areaShown}"><textarea class="barea" id="barea_${kid}" ${max?('maxlength="'+max+'"'):''} oninput="blockCnt('${esc(b.sec)}')" placeholder="${isText?'请手动输入，或点击「大模型生成」':'请人工补充完善'}">${esc(st.text||'')}</textarea><div class="bcount" id="bcount_${kid}">${(st.text||'').length}/${max||500}</div><button class="btn sm" type="button" onclick="saveBlock('${esc(b.sec)}')">保存编辑</button></div>`:''}
+     ${(isWord&&st.mode==='word')?`<div class="wordfile"><div class="wicon">W</div><div class="wmeta"><div class="wname">${esc(st.name||'报告.docx')}</div><div class="wtype">Word 文档 · 大模型生成</div></div><span class="wdel" title="删除" onclick="delGenBlock('${esc(b.sec)}')">×</span></div>`:''}
      <div class="bstat">状态：<span class="${st.mode?'ok':'no'}">${esc(statusTxt)}</span></div>
    </div>`;
 }
@@ -1490,8 +1499,8 @@ function genSummaryField(name){
   saveReports(); openDetail(curNo); toast('已根据评估字段生成演练总结');
 }
 function upBlock(sec){const el=document.getElementById('bf_'+idk(sec)); if(el)el.click();}
-function onUpBlock(sec,inp){const f=inp.files&&inp.files[0]; if(!f)return; readFileDataURL(f,d=>{curReport.form.blocks=curReport.form.blocks||{}; curReport.form.blocks[sec]={mode:'pdf',name:f.name,data:d}; saveReports(); openDetail(curNo); toast('已上传文件');});}
-function genBlock(sec){curReport.form.blocks=curReport.form.blocks||{}; curReport.form.blocks[sec]={mode:'gen',text:genBlockText(sec)}; saveReports(); openDetail(curNo); toast('已生成，可人工编辑');}
+function onUpBlock(sec,inp){const f=inp.files&&inp.files[0]; if(!f)return; readFileDataURL(f,d=>{curReport.form.blocks=curReport.form.blocks||{}; const def=(PROJECT_DEF[curReport.project]||{}).blocks||[]; const bd=def.find(x=>x.sec===sec); const isWord=!!(bd&&bd.word); curReport.form.blocks[sec]={mode:isWord?'doc':'pdf',name:f.name,data:d}; saveReports(); openDetail(curNo); toast(isWord?'已上传 Word 文件':'已上传文件');});}
+function genBlock(sec){curReport.form.blocks=curReport.form.blocks||{}; const def=(PROJECT_DEF[curReport.project]||{}).blocks||[]; const bd=def.find(x=>x.sec===sec); const isWord=!!(bd&&bd.word); curReport.form.blocks[sec]={mode:isWord?'word':'gen',text:genBlockText(sec),name:isWord?(sec+'_报告.docx'):undefined}; saveReports(); openDetail(curNo); toast(isWord?'已生成 Word 文件':'已生成，可人工编辑');}
 function genBlockText(sec){
   if(sec==='应急资源调查报告')return '已根据企业基本情况生成应急资源调查报告，请人工补充完善。';
   if(sec==='生产安全事故风险评估报告')return '已根据风险辨识评估结果生成风险评估报告，请人工补充完善。';
@@ -1500,7 +1509,8 @@ function genBlockText(sec){
   if(sec==='应急资源差距分析')return '已根据现有应急资源与可能事故类型对比，生成应急资源差距分析，请人工补充完善。';
   return '已根据前项内容生成，请人工编辑完善。';
 }
-function saveBlock(sec){const t=document.getElementById('barea_'+idk(sec)).value; curReport.form.blocks=curReport.form.blocks||{}; curReport.form.blocks[sec]={mode:'gen',text:t}; saveReports(); openDetail(curNo); toast('已保存编辑');}
+function delGenBlock(sec){curReport.form.blocks=curReport.form.blocks||{}; delete curReport.form.blocks[sec]; saveReports(); openDetail(curNo); toast('已删除生成文件');}
+function saveBlock(sec){const t=document.getElementById('barea_'+idk(sec)).value; curReport.form.blocks=curReport.form.blocks||{}; const prev=curReport.form.blocks[sec]||{}; const isWord=prev.mode==='word'; curReport.form.blocks[sec]={mode:isWord?'word':'gen',text:t,name:isWord?(prev.name||sec+'_报告.docx'):undefined}; saveReports(); openDetail(curNo); toast(isWord?'Word 编辑结果已保存':'已保存编辑');}
 function blockCnt(sec){const ta=document.getElementById('barea_'+idk(sec)); const c=document.getElementById('bcount_'+idk(sec)); if(ta&&c)c.textContent=(ta.value.length)+'/'+(ta.getAttribute('maxlength')||500);}
 function addPatrol(project){const inp=document.getElementById('patrolAdd'); const v=inp&&inp.value.trim(); if(!v)return toast('请输入排查表名称'); const list=patrolLoad(project); list.push({name:v,done:true}); patrolSave(project,list); openDetail(curNo); toast('已添加排查表');}
 
@@ -1527,7 +1537,7 @@ function pushToReview(r){
 }
 function reportSectionsForReview(r){
   const form=r.form||{}; const def=PROJECT_DEF[r.project]; const out=[];
-  if(def.type==='blocks'){ def.blocks.forEach(b=>{const st=(form.blocks&&form.blocks[b.sec])||{}; const s=st.mode?(st.mode==='pdf'?('已上传PDF：'+(st.name||'')):(b.mode==='text'?('已填写（'+(st.text||'').length+' 字）'):'大模型生成并编辑')):'未整理'; out.push({title:esc(b.sec),rows:[['整理状态',s]]});}); }
+  if(def.type==='blocks'){ def.blocks.forEach(b=>{const st=(form.blocks&&form.blocks[b.sec])||{}; const s=st.mode?(st.mode==='doc'?('已上传 Word：'+(st.name||'')):(st.mode==='word'?('大模型生成 Word 文件：'+(st.name||'报告.docx')):(st.mode==='pdf'?('已上传PDF：'+(st.name||'')):(b.mode==='text'?('已填写（'+(st.text||'').length+' 字）'):'大模型生成并编辑')))):'未整理'; out.push({title:esc(b.sec),rows:[['整理状态',s]]});}); }
   else if(def.type==='sections'){ def.sections.forEach(sec=>{const rows=sec.fields.filter(f=>f.type!=='photo').map(f=>[f.name, form[f.name]!=null?form[f.name]:(f.def!=null?f.def:'—')]); out.push({title:esc(sec.title),rows});}); }
   else if(def.type==='cards'){ def.cards.forEach(c=>{ if(c.kind==='patrol'){const list=patrolLoad(r.project); out.push({title:esc(c.title),rows:list.map((x,i)=>[(i+1)+'', x.name+'（已完成）'])});} else {const list=c.store==='hazard'?loadHazards(r.project):loadRisks(r.project); out.push({title:esc(c.title),rows:list.map((x,i)=>[(i+1)+'', c.store==='hazard'?((x.name||'')+' · '+(x.level||'')):((x.name||'')+' · '+(x.accType||x.effect||'')+' · '+(x.level||''))])});} }); }
   return out;
@@ -1555,7 +1565,7 @@ function buildPdfHtml(r){
   const def=PROJECT_DEF[r.project];
   let body='';
   if(def.type==='blocks'){
-    body=def.blocks.map(b=>{const st=(form.blocks&&form.blocks[b.sec])||{}; const s=st.mode?(st.mode==='pdf'?('已上传 PDF：'+(st.name||'')):(b.mode==='text'?('已填写（'+(st.text||'').length+' 字）'):('大模型生成并编辑（'+(st.text||'').length+' 字）'))):'未整理'; return `<h3>${esc(b.sec)}</h3><table class="kv"><tr><td class="k">整理状态</td><td>${esc(s)}</td></tr></table>`;}).join('');
+    body=def.blocks.map(b=>{const st=(form.blocks&&form.blocks[b.sec])||{}; const s=st.mode?(st.mode==='doc'?('已上传 Word：'+(st.name||'')):(st.mode==='word'?('大模型生成 Word 文件：'+(st.name||'报告.docx')):(st.mode==='pdf'?('已上传 PDF：'+(st.name||'')):(b.mode==='text'?('已填写（'+(st.text||'').length+' 字）'):('大模型生成并编辑（'+(st.text||'').length+' 字）'))))):'未整理'; return `<h3>${esc(b.sec)}</h3><table class="kv"><tr><td class="k">整理状态</td><td>${esc(s)}</td></tr></table>`;}).join('');
   } else if(def.type==='sections'){
     body=def.sections.map(sec=>`<h3>${esc(sec.title)}</h3><table class="kv">`+sec.fields.filter(f=>f.type!=='photo').map(f=>{let v=form[f.name]; if(v==null)v=(f.def!=null?f.def:'—'); if(!v)v='—'; return `<tr><td class="k">${esc(f.name)}</td><td>${esc(v)}</td></tr>`;}).join('')+`</table>`).join('');
   } else if(def.type==='cards'){
