@@ -1148,9 +1148,9 @@ function buildRiskEditForm(x){
     <div class="efield" id="re_calcBox"></div>
     <div class="efield"><label>风险等级（自动计算）</label><div class="level-row"><span id="re_levelBadge" class="risk-badge"></span></div><div id="re_calcText" class="calc-text"></div><input type="hidden" id="re_level" value=""></div>
     <div class="efield"><label class="with"><span>事故诱因</span><button type="button" class="aibtn" onclick="genRiskCause()">✦ 大模型生成</button></label>
-      <textarea id="re_cause" maxlength="100" oninput="updRiskCnt(this)" placeholder="请填写事故诱因（100字以内），或点击「大模型生成」">${esc(cause)}</textarea><div class="cnt">${cause.length}/100</div></div>
+      <textarea id="re_cause" maxlength="500" oninput="updRiskCnt(this)" placeholder="请填写事故诱因（500字以内），或点击「大模型生成」">${esc(cause)}</textarea><div class="cnt">${cause.length}/500</div></div>
     <div class="efield"><label class="with"><span>管控措施</span><button type="button" class="aibtn" onclick="genRiskMeasure()">✦ 大模型生成</button></label>
-      <textarea id="re_advice" maxlength="100" oninput="updRiskCnt(this)" placeholder="请填写管控措施（100字以内），或点击「大模型生成」">${esc(advice)}</textarea><div class="cnt">${advice.length}/100</div></div>`;
+      <textarea id="re_advice" maxlength="500" oninput="updRiskCnt(this)" placeholder="请填写管控措施（500字以内），或点击「大模型生成」">${esc(advice)}</textarea><div class="cnt">${advice.length}/500</div></div>`;
 }
 function openRiskEdit(project,idx){
   const list=loadRisks(project); const x=list[idx]; if(!x)return;
