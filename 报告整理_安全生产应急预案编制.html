@@ -60,6 +60,27 @@
 
   .fileline{margin-top:10px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:#6b7280}
   .fileline .ok{color:#2f9e6b;flex:none}
+  /* Word 文件卡片：点击文件行预览，右侧删除 */
+  .wordfile{display:flex;align-items:center;gap:10px;background:#f4f6fb;border-radius:9px;padding:10px 11px;margin-top:8px;cursor:pointer}
+  .wordfile:active{background:#eef2fc}
+  .wordfile .wicon{width:32px;height:32px;border-radius:6px;background:#2b5ce6;color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+  .wordfile .wmeta{flex:1;min-width:0}
+  .wordfile .wname{font-size:13px;color:#2b3242;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .wordfile .wtype{font-size:11.5px;color:#9aa3b2;margin-top:3px}
+  .wordfile .wdel{width:20px;height:20px;border-radius:50%;background:#e5484d;color:#fff;font-size:14px;text-align:center;line-height:19px;flex:none}
+  /* Word 预览 / 编辑弹层 */
+  .wmask{position:absolute;inset:0;background:rgba(16,22,38,.55);z-index:75;display:none;align-items:center;justify-content:center;padding:20px}
+  .wmask.show{display:flex}
+  .wbox{width:100%;max-height:80%;background:#fff;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+  .wbox-head{flex:none;padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:700;color:var(--text)}
+  .wbox-head .x{font-size:20px;color:#9aa3b2;cursor:pointer;line-height:1}
+  .wbox-body{flex:1;overflow:auto;padding:16px}
+  .wpaper{background:#fff;border:1px solid #e6e9f0;border-radius:6px;padding:18px 16px;font-size:13px;line-height:1.8;color:var(--val);white-space:pre-wrap;min-height:160px}
+  .wpaper .wp-t{font-size:16px;font-weight:700;color:var(--text);text-align:center;margin-bottom:14px}
+  .wbox-foot{flex:none;padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:10px}
+  .wbox-foot button{flex:1;height:40px;border:none;border-radius:9px;background:var(--blue);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+  .wbox-foot button.ghost{border:1px solid var(--blue);background:#fff;color:var(--blue)}
+  .wta{width:100%;min-height:220px;border:1px solid #e0e5ef;border-radius:9px;padding:10px 12px;font-size:13px;line-height:1.7;color:var(--val);outline:none;font-family:inherit;resize:vertical}
 
   /* 其他文档 / 上传 */
   .upload{display:flex;align-items:center;gap:10px;margin-top:6px}
@@ -160,20 +181,30 @@
 
   <div class="footer"><button class="btn-draft" onclick="saveDraft()">存为草稿</button><button class="btn-main" onclick="generateReport()">生成报告</button></div>
 
+  <!-- Word 预览 / 编辑 -->
+  <div class="wmask" id="wmask">
+    <div class="wbox">
+      <div class="wbox-head"><span id="wtitle">Word 文件</span><span class="x" onclick="closeWBox()">×</span></div>
+      <div class="wbox-body" id="wbody"></div>
+      <div class="wbox-foot" id="wfoot"></div>
+    </div>
+  </div>
+
   <div class="home-ind"></div>
   <div class="toast" id="toast"></div>
 </div>
 
-<input type="file" id="pdfInput" accept="application/pdf" style="display:none">
+<input type="file" id="wordInput" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none">
 <input type="file" id="docInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip" multiple style="display:none">
 <input type="file" id="sitePhotoInput" accept="image/*" multiple style="display:none">
 
 <script>
 const PROJECT = '安全生产应急预案编制';
+const WORD_ACCEPT = '.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 const DOCS = [
-  {key:'resource', name:'应急资源调查报告', hint:'PDF 上传 或 根据前项内容大模型生成', gen:genResource},
-  {key:'risk',     name:'生产安全事故风险评估报告', hint:'PDF 上传 或 根据前项内容大模型生成', gen:genRisk},
-  {key:'plan',     name:'应急预案', hint:'PDF 上传 或 根据前项内容大模型生成', gen:genPlan},
+  {key:'resource', name:'应急资源调查报告', hint:'Word 上传 或 大模型生成（同步生成差距分析）', gen:genResource, req:true},
+  {key:'risk',     name:'生产安全事故风险评估报告', hint:'Word 上传 或 大模型生成（同步生成风险分析）', gen:genRisk, req:true},
+  {key:'plan',     name:'应急预案', hint:'Word 上传 或 根据前项内容大模型生成 Word 文件', gen:genPlan, req:true},
 ];
 
 const q = new URLSearchParams(location.search);
@@ -181,7 +212,7 @@ const orderNo = q.get('no') || 'YF2131900';
 document.getElementById('ctxNo').textContent   = orderNo;
 document.getElementById('ctxProj').textContent = q.get('project') || PROJECT;
 
-/* 文档状态：{ key: {mode:'pdf'|'gen', name, text} } */
+/* 文档状态：{ key: {mode:'word', from:'upload'|'ai', name, text} } */
 let state = loadState();
 
 function loadState(){
@@ -237,35 +268,30 @@ function goPhoto(name,max){ location.href = '照片采集.html?title=' + name + 
 
 function docCardHTML(d){
   const st = state[d.key];
-  const badge = st ? `<span class="badge done">${st.mode==='pdf'?'已上传':'已生成'}</span>` : `<span class="badge">未上传</span>`;
-  const editorShown = (st && st.mode==='gen') ? '' : 'display:none';
-  const fileShown   = (st && st.mode==='pdf') ? '' : 'display:none';
-  const area = st && st.mode==='gen' ? esc(st.text||'') : '';
-  const fname = st && st.mode==='pdf' ? esc(st.name||'') : '';
+  const isWord = st && st.mode==='word';
+  const badge = st ? `<span class="badge done">${isWord?(st.from==='ai'?'已生成':'已上传'):(st.mode==='gen'?'已生成':'已上传')}</span>` : `<span class="badge">未上传</span>`;
+  const fname = st ? esc(st.name||'') : '';
+  const from = st && (st.from==='ai'||st.mode==='gen') ? '大模型生成 Word 文件' : '已上传 Word 文件';
   return `
     <div class="card" data-key="${d.key}">
-      <div class="card-title"><i></i>${d.name}${badge}</div>
+      <div class="card-title"><i></i>${d.name}${d.req?'<span class="req">*</span>':''}${badge}</div>
       <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">${d.hint}</div>
       <div class="doc-actions">
-        <button class="act" onclick="uploadPDF('${d.key}')">PDF 上传</button>
-        <button class="act gen" onclick="genDoc('${d.key}')"><svg width="14" height="14" viewBox="0 0 16 16" fill="#fff"><path d="M8 0.6l1.75 4.65L14.4 7l-4.65 1.75L8 13.4l-1.75-4.65L1.6 7l4.65-1.75z"/></svg>大模型生成</button>
+        <button class="act" onclick="uploadWord('${d.key}')">${st?'替换':''}Word 上传</button>
+        <button class="act gen" onclick="${d.key==='risk'?'genRiskPair()':(d.key==='resource'?'genResourcePair()':'genDoc(\''+d.key+'\')')}"><svg width="14" height="14" viewBox="0 0 16 16" fill="#fff"><path d="M8 0.6l1.75 4.65L14.4 7l-4.65 1.75L8 13.4l-1.75-4.65L1.6 7l4.65-1.75z"/></svg>大模型生成</button>
       </div>
-      <div class="fileline" id="file_${d.key}" style="${fileShown}"><span class="ok">✓</span><span class="fname">${fname}</span></div>
-      <div class="editor" id="editor_${d.key}" style="${editorShown}">
-        <textarea class="doc-area" id="area_${d.key}" oninput="liveCount('${d.key}')">${area}</textarea>
-        <div class="ctr"><span id="cnt_${d.key}">${area.length} 字</span></div>
-        <button class="save" onclick="saveDoc('${d.key}')">保存并上传</button>
-      </div>
+      ${st?`<div class="wordfile" onclick="previewWord('${d.key}')"><div class="wicon">W</div><div class="wmeta"><div class="wname">${fname}</div><div class="wtype">${from}</div></div><span class="wdel" title="删除" onclick="event.stopPropagation();delWord('${d.key}')">×</span></div>`:''}
     </div>`;
 }
 function render(){
-  const html = DOCS.filter(d=>d.key!=='risk').map(docCardHTML).join('');
+  const html = DOCS.filter(d=>d.key!=='risk'&&d.key!=='resource').map(docCardHTML).join('');
   const riskCard = docCardHTML(DOCS.find(d=>d.key==='risk'));
+  const resourceCard = docCardHTML(DOCS.find(d=>d.key==='resource'));
 
   const other = state.__other;
   const otherShown = other && other.names && other.names.length ? '' : 'display:none';
   const otherNames = other && other.names ? other.names.join('、') : '';
-  document.getElementById('body').innerHTML = infoCard() + photoCard() + entryCard() + preDocHTML(riskCard) + html + `
+  document.getElementById('body').innerHTML = infoCard() + photoCard() + entryCard() + preDocHTML(riskCard,resourceCard) + html + `
     <div class="card">
       <div class="card-title"><i></i>其他文档</div>
       <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">文档上传（PDF、Word 多份）</div>
@@ -286,16 +312,23 @@ function liveCount(key){
   const el = document.getElementById('area_'+key);
   document.getElementById('cnt_'+key).textContent = el.value.length + ' 字';
 }
+function setRiskAnalysis(el){
+  state.__riskAnalysis = el.value; saveState(); liveCount('riskAnalysis');
+}
+function setGapAnalysis(el){
+  state.__gapAnalysis = el.value; saveState(); liveCount('gapAnalysis');
+}
 
-function uploadPDF(key){
-  const input = document.getElementById('pdfInput');
+function uploadWord(key){
+  const input = document.getElementById('wordInput');
   input.value = '';
   input.onchange = ()=>{
     if(input.files && input.files[0]){
       const f = input.files[0];
-      state[key] = {mode:'pdf', name:f.name};
+      const prev = state[key]||{};
+      state[key] = {mode:'word', from:'upload', name:f.name, text:prev.text||''};
       saveState(); render();
-      toast('已上传：'+f.name);
+      toast('已上传 Word 文件：'+f.name);
     }
   };
   input.click();
@@ -304,17 +337,41 @@ function uploadPDF(key){
 function genDoc(key){
   const doc = DOCS.find(d=>d.key===key);
   const text = doc.gen();
-  state[key] = {mode:'gen', text};
+  const prev = state[key]||{};
+  state[key] = {mode:'word', from:'ai', name:prev.name&&prev.from==='ai'?prev.name:(doc.name+'_报告.docx'), text};
   saveState(); render();
-  toast('大模型已根据前项内容生成文档，可编辑后上传');
+  toast('大模型已生成 Word 文件，可预览 / 编辑 / 删除');
 }
 
-function saveDoc(key){
-  const text = document.getElementById('area_'+key).value.trim();
-  if(!text){ toast('文档内容不能为空'); return; }
-  state[key] = {mode:'gen', text};
-  saveState(); render();
-  toast('文档已保存并上传');
+/* Word 文件：预览 / 编辑 / 删除 */
+let wCtx={key:'',mode:''};
+function closeWBox(){ document.getElementById('wmask').classList.remove('show'); }
+function previewWord(key){
+  const st=state[key]; if(!st)return;
+  wCtx={key,mode:'view'};
+  const doc=DOCS.find(d=>d.key===key);
+  document.getElementById('wtitle').textContent='预览 · '+doc.name;
+  document.getElementById('wbody').innerHTML=`<div class="wpaper"><div class="wp-t">${esc(st.name||'')}</div>${esc(st.text||'（本地上传的 Word 文件，原型中不解析正文内容）')}</div>`;
+  document.getElementById('wfoot').innerHTML=`<button class="ghost" onclick="closeWBox()">关闭</button><button onclick="editWord('${key}')">编辑文件</button>`;
+  document.getElementById('wmask').classList.add('show');
+}
+function editWord(key){
+  const st=state[key]; if(!st)return;
+  wCtx={key,mode:'edit'};
+  const doc=DOCS.find(d=>d.key===key);
+  document.getElementById('wtitle').textContent='编辑 · '+doc.name;
+  document.getElementById('wbody').innerHTML=`<textarea class="wta" id="wta">${esc(st.text||'')}</textarea>`;
+  document.getElementById('wfoot').innerHTML=`<button class="ghost" onclick="closeWBox()">取消</button><button onclick="saveWord('${key}')">保存</button>`;
+  document.getElementById('wmask').classList.add('show');
+}
+function saveWord(key){
+  const st=state[key]; if(!st)return;
+  const v=document.getElementById('wta').value.trim();
+  if(!v){ toast('内容不能为空'); return; }
+  st.text=v; st.mode='word'; saveState(); closeWBox(); render(); toast('Word 文件已保存');
+}
+function delWord(key){
+  delete state[key]; saveState(); render(); toast('Word 文件已删除');
 }
 
 function uploadOther(){
@@ -342,7 +399,9 @@ function generateReport(){
   const sub = k=>{
     const st = state[k];
     if(!st) return '<span style="color:#e5484d">未整理</span>';
-    return st.mode==='pdf' ? '已上传 PDF：'+esc(st.name||'') : '已生成文本（'+(st.text||'').length+' 字）';
+    if(st.mode==='pdf') return '已上传 PDF：'+esc(st.name||'');
+    if(st.mode==='word') return (st.from==='ai'?'大模型生成 Word 文件：':'已上传 Word 文件：')+esc(st.name||'');
+    return '已生成文本（'+(st.text||'').length+' 字）';
   };
   const proj = document.getElementById('ctxProj').textContent;
   document.getElementById('previewBody').innerHTML =
@@ -359,7 +418,7 @@ function generateReport(){
   document.getElementById('preview').classList.add('show');
 }
 function doSubmit(){
-  const miss = DOCS.filter(d=>!state[d.key]).map(d=>d.name);
+  const miss = DOCS.filter(d=>d.req && !state[d.key]).map(d=>d.name);
   if(!(state.__sitePhotos && state.__sitePhotos.length)) miss.push('现场服务照片');
   if(!state.__riskAnalysis || !state.__riskAnalysis.trim()) miss.push('生产安全事故风险分析');
   if(!state.__gapAnalysis || !state.__gapAnalysis.trim()) miss.push('应急资源差距分析');
@@ -451,7 +510,7 @@ function entryCard(){
 }
 
 /* ===== 报告前置信息（应急资源调查报告前方） ===== */
-function preDocHTML(riskCard){
+function preDocHTML(riskCard,resourceCard){
   const sp = state.__sitePhotos || [];
   const spHtml = sp.map((p,i)=>`<div class="thumb"><img src="${esc(p.data)}"><span class="x" onclick="removeSitePhoto(${i})">×</span></div>`).join('');
   const addShown = sp.length>=6 ? 'style="display:none"' : '';
@@ -470,22 +529,19 @@ function preDocHTML(riskCard){
   ${riskCard}
   <div class="card">
     <div class="card-title"><i></i>生产安全事故风险分析<span class="req">*</span></div>
-    <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">手动输入 或 大模型生成（500 字以内）</div>
+    <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">可手动填写，或由「生产安全事故风险评估报告」大模型生成时同步生成（500 字以内）</div>
     <div class="editor">
-      <textarea class="doc-area" id="area_riskAnalysis" oninput="liveCount('riskAnalysis')" maxlength="500">${esc(risk)}</textarea>
+      <textarea class="doc-area" id="area_riskAnalysis" maxlength="500" oninput="setRiskAnalysis(this)" placeholder="请手动填写生产安全事故风险分析，或点击上方风险评估报告的「大模型生成」">${esc(risk)}</textarea>
       <div class="ctr"><span id="cnt_riskAnalysis">${risk.length} 字</span></div>
-      <button class="save" onclick="genAnalysis()">大模型生成</button>
-      <button class="save" onclick="saveAnalysis()">保存</button>
     </div>
   </div>
+  ${resourceCard}
   <div class="card">
     <div class="card-title"><i></i>应急资源差距分析<span class="req">*</span></div>
-    <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">手动输入 或 大模型生成（500 字以内）</div>
+    <div class="flbl" style="color:var(--sub);font-size:12px;margin-bottom:8px">可手动填写，或由「应急资源调查报告」大模型生成时同步生成（500 字以内）</div>
     <div class="editor">
-      <textarea class="doc-area" id="area_gapAnalysis" oninput="liveCount('gapAnalysis')" maxlength="500">${esc(gap)}</textarea>
+      <textarea class="doc-area" id="area_gapAnalysis" maxlength="500" oninput="setGapAnalysis(this)" placeholder="请手动填写应急资源差距分析，或点击上方应急资源调查报告的「大模型生成」">${esc(gap)}</textarea>
       <div class="ctr"><span id="cnt_gapAnalysis">${gap.length} 字</span></div>
-      <button class="save aigen" onclick="genGap()">✦ 大模型生成</button>
-      <button class="save" onclick="saveGap()">保存</button>
     </div>
   </div>`;
 }
@@ -553,18 +609,21 @@ function genGapAnalysis(){
 四、综合结论
 汇总关键差距项，形成整改清单与完成时限，纳入闭环管理并跟踪验证。`;
 }
-function genAnalysis(){
-  state.__riskAnalysis = genRiskAnalysis(); saveState(); render();
-  toast('大模型已生成风险分析，可编辑后保存');
+/* 生产安全事故风险评估报告：大模型生成时同步生成风险分析 */
+function genRiskPair(){
+  const prev = state.risk||{};
+  state.__riskAnalysis = genRiskAnalysis();
+  state.risk = {mode:'word', from:'ai', name:prev.name&&prev.from==='ai'?prev.name:('生产安全事故风险评估报告_报告.docx'), text:genRisk()};
+  saveState(); render();
+  toast('大模型已生成风险评估报告 Word 文件，并同步生成风险分析');
 }
-function saveAnalysis(){
-  const t = document.getElementById('area_riskAnalysis').value.trim();
-  if(!t){ toast('内容不能为空'); return; }
-  state.__riskAnalysis = t; saveState(); render(); toast('已保存');
-}
-function genGap(){
-  state.__gapAnalysis = genGapAnalysis(); saveState(); render();
-  toast('大模型已生成差距分析，可编辑后保存');
+/* 应急资源差距分析 + 应急资源调查报告 共用生成 */
+function genResourcePair(){
+  const prev = state.resource||{};
+  state.__gapAnalysis = genGapAnalysis();
+  state.resource = {mode:'word', from:'ai', name:prev.name&&prev.from==='ai'?prev.name:('应急资源调查报告_报告.docx'), text:genResource()};
+  saveState(); render();
+  toast('大模型已生成差距分析与资源调查报告 Word 文件');
 }
 function saveGap(){
   const t = document.getElementById('area_gapAnalysis').value.trim();

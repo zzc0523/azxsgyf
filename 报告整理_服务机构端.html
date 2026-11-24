@@ -79,6 +79,13 @@
   .wordfile .wname{font-size:13px;color:#2b3242;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .wordfile .wtype{font-size:11.5px;color:#9aa3b2;margin-top:2px}
   .wordfile .wdel{width:19px;height:19px;border-radius:50%;background:#c8cedb;color:#fff;font-size:13px;text-align:center;line-height:18px;cursor:pointer;flex:none}
+  .wordfile.clickable{cursor:pointer}
+  .wbox-inner{width:min(720px,92vw);max-height:86vh;display:flex;flex-direction:column}
+  .wbox-body{overflow:auto;padding:18px}
+  .wpaper{background:#fff;border:1px solid var(--line);border-radius:6px;padding:18px 16px;font-size:13px;line-height:1.8;color:#3a4354;white-space:pre-wrap;min-height:180px}
+  .wpaper .wp-t{font-size:16px;font-weight:700;text-align:center;margin-bottom:12px;color:#1f2329}
+  .wbox-foot{display:flex;gap:10px;justify-content:flex-end;padding:12px 18px;border-top:1px solid var(--line)}
+  .wta{width:100%;min-height:260px;border:1px solid #dfe4ed;border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.7;color:#3a4354;outline:none;font-family:inherit;resize:vertical}
 
   /* 多选 / 照片状态 */
   .chkgrp{display:flex;flex:1;min-width:0;flex-wrap:wrap;gap:10px 12px;padding:2px 0;align-content:flex-start}
@@ -391,6 +398,15 @@
   </div>
 </div>
 
+<!-- Word 文件预览 / 编辑弹窗 -->
+<div class="mask" id="wordmask">
+  <div class="modal wbox-inner">
+    <div class="mhead"><div class="mtitle" id="wordTitle">Word 文件</div><div class="mclose" onclick="closeWordBox()">✕</div></div>
+    <div class="mbody wbox-body" id="wordBody"></div>
+    <div class="wbox-foot" id="wordFoot"></div>
+  </div>
+</div>
+
 <!-- 报告 PDF 预览弹窗 -->
 <div class="mask" id="pdfmask">
   <div class="modal doc">
@@ -523,7 +539,7 @@ const PROJECT_DEF = {
       {name:'演练流程',type:'area',max:500,ph:'请填写演练流程（500字以内）',req:true},
       {name:'演练场景',type:'area',max:500,ph:'请填写演练场景（500字以内）',req:true},
       {name:'演练物资',type:'area',max:500,ph:'请填写演练物资（500字以内）',req:true},
-      {name:'演练方案',type:'pdf',note:'PDF 上传 / 大模型生成 Word',ai:'word',req:true},
+      {name:'演练方案',type:'word',note:'Word 上传 / 大模型生成 Word 文件',ai:'word',req:true},
       {name:'签到表',type:'photo',max:9,sources:['本地上传','引用现场检查照片'],req:true},
       {name:'演练物资',type:'photo',max:9,sources:['本地上传','引用现场检查照片'],req:true},
     ]},
@@ -542,11 +558,11 @@ const PROJECT_DEF = {
     ]},
   ]},
   '安全生产应急预案编制':{type:'blocks',blocks:[
-    {sec:'生产安全事故风险评估报告',mode:'pdf|gen',tag:'报告'},
-    {sec:'生产安全事故风险分析',mode:'text',tag:'报告',max:500},
-    {sec:'应急资源差距分析',mode:'text',tag:'报告',max:500},
-    {sec:'应急资源调查报告',mode:'pdf|gen',tag:'报告'},
-    {sec:'应急预案',mode:'pdf|gen',tag:'报告'},
+    {sec:'生产安全事故风险评估报告',mode:'doc|ai',tag:'报告',word:true,fileCard:true,req:true},
+    {sec:'生产安全事故风险分析',mode:'text',tag:'报告',max:500,req:true,manual:true,hint:'可手动填写，或由「生产安全事故风险评估报告」大模型生成时同步生成（500 字以内）'},
+    {sec:'应急资源调查报告',mode:'doc|ai',tag:'报告',word:true,fileCard:true,req:true},
+    {sec:'应急资源差距分析',mode:'text',tag:'报告',max:500,req:true,manual:true,hint:'可手动填写，或由「应急资源调查报告」大模型生成时同步生成（500 字以内）'},
+    {sec:'应急预案',mode:'doc|ai',tag:'报告',word:true,fileCard:true,req:true},
     {sec:'其他文档',mode:'doc',tag:'文档'},
   ]},
 };
@@ -867,6 +883,15 @@ function fieldHTML(f,form){
     }
     if(f.ai) ctrl+=`<button class="btn sm ai" type="button" onclick="genField('${esc(f.name)}')">大模型生成</button>`;
     ctrl+=`<input type="file" id="ff_${idk(f.name)}" accept="application/pdf" hidden onchange="onUpField('${esc(f.name)}',this)">`;
+  } else if(f.type==='word'){
+    const st=(form[f.name])||{};
+    const isWord=st.mode==='word';
+    const wordFrom=st.from==='upload'?'已上传 Word 文件：':'大模型生成 Word 文件：';
+    ctrl=`<span class="phstat ${st.mode?'ok':'no'}">${st.mode?(isWord?(wordFrom+(st.name||'报告.docx')):'已生成内容'):'未上传'}</span>`;
+    if(isWord) ctrl+=`<div class="wordfile clickable" onclick="previewWordField('${esc(f.name)}')"><div class="wicon">W</div><div class="wmeta"><div class="wname">${esc(st.name||'报告.docx')}</div><div class="wtype">${esc(wordFrom.replace('：',''))}</div></div><span class="wdel" title="删除" onclick="event.stopPropagation();delWordField('${esc(f.name)}')">×</span></div>`;
+    ctrl+=`<button class="btn sm" type="button" onclick="upField('${esc(f.name)}')">${isWord?'替换 Word':'Word 上传'}</button>`;
+    if(f.ai) ctrl+=`<button class="btn sm ai" type="button" onclick="genWordField('${esc(f.name)}')">✦ ${isWord?'重新生成 Word 文件':'大模型生成 Word 文件'}</button>`;
+    ctrl+=`<input type="file" id="ff_${idk(f.name)}" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden onchange="onUpFieldWord('${esc(f.name)}',this)">`;
   } else if(f.type==='doc'){
     const st=(form[f.name])||{};
     const docAccept='.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -883,17 +908,21 @@ function fieldHTML(f,form){
 function blockHTML(b,form){
   const st=(form.blocks&&form.blocks[b.sec])||{};
   const isText=b.mode==='text';
-  const hasAI=b.mode.indexOf('ai')>=0||b.mode.indexOf('gen')>=0||isText;
+  const isManual=!!b.manual;
+  const hasAI=!isManual&&(b.mode.indexOf('ai')>=0||b.mode.indexOf('gen')>=0||isText);
   const isDoc=b.mode==='doc'||b.mode.indexOf('doc')>=0;
   const isWord=!!b.word;
+  const fileCard=!!b.fileCard;
   const max=b.max||0;
   const fileShown=(st.mode==='pdf'||st.mode==='doc')?'':'display:none';
   const areaShown=(isText||st.mode==='gen'||st.mode==='ai'||st.mode==='word')?'':'display:none';
-  const statusTxt=st.mode?(st.mode==='doc'?('已上传 Word：'+(st.name||'')):(st.mode==='pdf'?('已上传 PDF：'+(st.name||'')):(st.mode==='word'?('大模型生成 Word 文件：'+(st.name||'报告.docx')):(st.mode==='gen'?(isText?('已填写（'+(st.text||'').length+' 字）'):('已生成并编辑（'+(st.text||'').length+' 字）')):'已编辑')))):(isText?'未填写':'未整理');
+  const wordFrom=st.from==='upload'?'已上传 Word 文件：':'大模型生成 Word 文件：';
+  const statusTxt=st.mode?(st.mode==='doc'?(wordFrom+(st.name||'')):(st.mode==='pdf'?('已上传 PDF：'+(st.name||'')):(st.mode==='word'?(wordFrom+(st.name||'报告.docx')):(st.mode==='text'?('已填写（'+(st.text||'').length+' 字）'):(st.mode==='gen'?(isText?('已填写（'+(st.text||'').length+' 字）'):('已生成并编辑（'+(st.text||'').length+' 字）')):'已编辑'))))):(isText?'未填写':'未整理');
   const kid=idk(b.sec);
+  const hint=fileCard?'Word 上传 或 大模型生成 Word 文件':(b.hint||(isWord?'文档上传（仅 Word）':(b.tag==='文档'?'文档上传（PDF / Word）':(isText?('手动输入 或 大模型生成（'+(max||500)+' 字以内）'):'PDF 上传 或 大模型生成'))));
   return `<div class="rsec">${esc(b.sec)}${b.req?' <i class="req">*</i>':''}</div>
    <div class="bcard">
-     <div class="bhint">${isWord?'文档上传（仅 Word）':(b.tag==='文档'?'文档上传（PDF / Word）':(isText?('手动输入 或 大模型生成（'+(max||500)+' 字以内）'):'PDF 上传 或 大模型生成'))}</div>
+     <div class="bhint">${esc(hint)}</div>
      ${isText?'':`<div class="bacts">
        ${(st.mode==='pdf'||st.mode==='doc')?`<button class="btn sm" type="button" onclick="previewFile('${esc(st.data||'')}','${esc(st.name||'文件')}')">预览</button><button class="btn sm" type="button" onclick="upBlock('${esc(b.sec)}')">替换</button>`:`<button class="btn sm" type="button" onclick="upBlock('${esc(b.sec)}')">${isWord?'Word 上传':'PDF 上传'}</button>`}
        ${hasAI?`<button class="btn sm ai" type="button" onclick="genBlock('${esc(b.sec)}')">✦ ${(isWord&&st.mode==='word')?'重新生成 Word 文件':'大模型生成'}</button>`:''}
@@ -901,8 +930,8 @@ function blockHTML(b,form){
      ${isText&&hasAI?`<div class="bacts"><button class="btn sm ai" type="button" onclick="genBlock('${esc(b.sec)}')">✦ 大模型生成</button></div>`:''}
      <input type="file" id="bf_${kid}" ${isWord?'accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"':(isDoc?'accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"':'accept="application/pdf"')} ${isText?'style="display:none"':''} hidden onchange="onUpBlock('${esc(b.sec)}',this)">
      <div class="bfile" id="bfile_${kid}" style="${fileShown}"><span class="ok">✓</span><span class="fname">${esc(st.name||'')}</span></div>
-     ${(hasAI && !(isWord&&st.mode==='word'))?`<div class="beditor" id="beditor_${kid}" style="${areaShown}"><textarea class="barea" id="barea_${kid}" ${max?('maxlength="'+max+'"'):''} oninput="blockCnt('${esc(b.sec)}')" placeholder="${isText?'请手动输入，或点击「大模型生成」':'请人工补充完善'}">${esc(st.text||'')}</textarea><div class="bcount" id="bcount_${kid}">${(st.text||'').length}/${max||500}</div><button class="btn sm" type="button" onclick="saveBlock('${esc(b.sec)}')">保存编辑</button></div>`:''}
-     ${(isWord&&st.mode==='word')?`<div class="wordfile"><div class="wicon">W</div><div class="wmeta"><div class="wname">${esc(st.name||'报告.docx')}</div><div class="wtype">Word 文档 · 大模型生成</div></div><span class="wdel" title="删除" onclick="delGenBlock('${esc(b.sec)}')">×</span></div>`:''}
+     ${((isManual||hasAI) && !(isWord&&st.mode==='word'))?`<div class="beditor" id="beditor_${kid}" style="${areaShown}"><textarea class="barea" id="barea_${kid}" ${max?('maxlength="'+max+'"'):''} oninput="${isManual?'autoSaveBlock(\''+esc(b.sec)+'\')':'blockCnt(\''+esc(b.sec)+'\')'}" placeholder="${isText?'请手动填写，或由对应报告大模型生成时同步生成':'请人工补充完善'}">${esc(st.text||'')}</textarea><div class="bcount" id="bcount_${kid}">${(st.text||'').length}/${max||500}</div>${isManual?'':`<button class="btn sm" type="button" onclick="saveBlock('${esc(b.sec)}')">保存编辑</button>`}</div>`:''}
+     ${(isWord&&st.mode==='word')?`<div class="wordfile clickable" onclick="previewWord('${esc(b.sec)}')"><div class="wicon">W</div><div class="wmeta"><div class="wname">${esc(st.name||'报告.docx')}</div><div class="wtype">${esc(wordFrom.replace('：',''))}</div></div><span class="wdel" title="删除" onclick="event.stopPropagation();delGenBlock('${esc(b.sec)}')">×</span></div>`:''}
      <div class="bstat">状态：<span class="${st.mode?'ok':'no'}">${esc(statusTxt)}</span></div>
    </div>`;
 }
@@ -1040,7 +1069,8 @@ function updRiskCnt(el){
 function stripLv(s){ return String(s||'').replace(/（.*/,'').trim()||'待评定风险'; }
 function fillRiskArea(id,text){
   const ta=document.getElementById(id); if(!ta)return;
-  ta.value=text.length>100?text.slice(0,100):text;
+  const max=+ta.getAttribute('maxlength')||500;
+  ta.value=text.length>max?text.slice(0,max):text;
   updRiskCnt(ta); toast('已根据前项内容生成');
 }
 function genRiskCause(){
@@ -1056,6 +1086,25 @@ function genRiskMeasure(){
   const acc=chipVal('re_acc')||'相关事故';
   const lv=stripLv($('#re_level').value);
   fillRiskArea('re_advice',`针对评定为${lv}的「${acc}」风险，建议：落实${kind}风险分级管控，设置警示标识、配齐防护装备，加强日常巡检与应急演练，明确责任人并定期复核措施有效性。`);
+}
+/* 对齐小程序端：一键生成事故种类、评价细项、风险等级、诱因、措施 */
+function genRiskAll(){
+  const g=id=>($('#'+id).value||'').trim();
+  const name=g('re_name')||'该风险点', kind=chipVal('re_kind')||'作业', loc=chipVal('re_loc')||'相关区域';
+  const acc=['物体打击','高处坠落','触电','机械致害','火灾'];
+  const box=document.getElementById('re_acc');
+  if(box){ const set=new Set(acc); box.querySelectorAll('.echip').forEach(c=>c.classList.toggle('on',set.has(c.textContent.trim()))); }
+  const mBox=document.getElementById('re_method');
+  const method=mBox?(chipVal('re_method')||RISK_METHODS[0]):RISK_METHODS[0];
+  if(mBox) mBox.querySelectorAll('.echip').forEach(c=>c.classList.toggle('on',c.textContent.trim()===method));
+  curRiskParams={Lm:'',Sm:'',Ll:'',El:'',Cl:''};
+  if(method===RISK_METHODS[0]){ curRiskParams.Lm=3; curRiskParams.Sm=3; }
+  else { curRiskParams.Ll=3; curRiskParams.El=3; curRiskParams.Cl=15; }
+  renderCalcBox(); refreshRiskCalc();
+  const lv=stripLv($('#re_level').value), accs=acc.join('、');
+  fillRiskArea('re_cause',`因${loc}内${kind}环节的「${name}」，受${accs}因素影响，易引发相应事故；当前评定为${lv}，需重点辨识诱因并落实管控。`);
+  fillRiskArea('re_advice',`针对评定为${lv}的「${accs}」风险，建议：落实风险分级管控，设置警示标识、配齐防护装备，加强日常巡检与应急演练，明确责任人并定期复核措施有效性。`);
+  toast('已根据大模型生成，可手动修改');
 }
 
 /* ===== 风险等级自动计算：矩阵法(R=LS) 与 作业条件危险性评价法(D=LEC) ===== */
@@ -1091,14 +1140,16 @@ function renderCalcBox(){
   if(m===RISK_METHODS[0]){
     box.style.display='';
     box.innerHTML=
-      `<div class="efield"><label>事故发生的可能性(L)</label>${vchipsHTML('re_Lm',MATRIX_L,curRiskParams.Lm,false)}</div>`+
-      `<div class="efield"><label>危害事件发生的严重程度(S)</label>${vchipsHTML('re_Sm',MATRIX_S,curRiskParams.Sm,false)}</div>`;
+      `<div class="efield"><label>风险判定矩阵法（R=LS）</label></div>`+
+      `<div class="efield"><label><i class="req">*</i>事故发生的可能性(L)</label>${vchipsHTML('re_Lm',MATRIX_L,curRiskParams.Lm,false)}</div>`+
+      `<div class="efield"><label><i class="req">*</i>危害事件发生的严重程度(S)</label>${vchipsHTML('re_Sm',MATRIX_S,curRiskParams.Sm,false)}</div>`;
   } else if(m===RISK_METHODS[1]){
     box.style.display='';
     box.innerHTML=
-      `<div class="efield"><label>事故发生的可能性(L)</label>${vchipsHTML('re_Ll',LEC_L,curRiskParams.Ll,false)}</div>`+
-      `<div class="efield"><label>人员暴露于危险环境的频繁程度(E)</label>${vchipsHTML('re_El',LEC_E,curRiskParams.El,false)}</div>`+
-      `<div class="efield"><label>发生事故可能造成的后果(C)</label>${vchipsHTML('re_Cl',LEC_C,curRiskParams.Cl,false)}</div>`;
+      `<div class="efield"><label>作业条件危险性评价法(D=LEC)</label></div>`+
+      `<div class="efield"><label><i class="req">*</i>事故发生的可能性(L)</label>${vchipsHTML('re_Ll',LEC_L,curRiskParams.Ll,false)}</div>`+
+      `<div class="efield"><label><i class="req">*</i>人员暴露于危险环境的频繁程度(E)</label>${vchipsHTML('re_El',LEC_E,curRiskParams.El,false)}</div>`+
+      `<div class="efield"><label><i class="req">*</i>发生事故可能造成的后果(C)</label>${vchipsHTML('re_Cl',LEC_C,curRiskParams.Cl,false)}</div>`;
   } else { box.style.display='none'; box.innerHTML=''; }
 }
 function refreshRiskCalc(){
@@ -1139,17 +1190,18 @@ function buildRiskEditForm(x){
   const mSel=methodText(x);
   const cause=x.cause||'', advice=x.advice||'';
   return `
-    <div class="efield"><label>风险图片</label>${imgBox}</div>
-    <div class="efield"><label>风险点名称</label><input id="re_name" maxlength="20" value="${esc(x.name||'')}" placeholder="请填写风险点名称（20字以内）"></div>
-    <div class="efield"><label>风险点种类</label>${chipsHTML('re_kind',RISK_KINDS,x.kind||'',false)}</div>
-    <div class="efield"><label>风险位置</label>${chipsHTML('re_loc',RISK_LOCS,x.loc||'',false)}</div>
-    <div class="efield"><label>可能导致的事故种类</label>${chipsHTML('re_acc',ACCIDENT_TYPES,accSel,true)}</div>
-    <div class="efield"><label>选用评价方法</label>${chipsHTML('re_method',RISK_METHODS,mSel,false)}</div>
+    <div class="efield"><label><i class="req">*</i>风险图片</label>${imgBox}</div>
+    <div class="efield"><label><i class="req">*</i>风险点名称</label><input id="re_name" maxlength="20" value="${esc(x.name||'')}" placeholder="请填写风险点名称（20字以内）"></div>
+    <div class="efield"><label><i class="req">*</i>风险点种类</label>${chipsHTML('re_kind',RISK_KINDS,x.kind||'',false)}</div>
+    <div class="efield"><label><i class="req">*</i>风险位置</label>${chipsHTML('re_loc',RISK_LOCS,x.loc||'',false)}</div>
+    <div class="efield"><button type="button" class="aibtn wide" onclick="genRiskAll()">✦ 大模型生成</button></div>
+    <div class="efield"><label><i class="req">*</i>可能导致的事故种类</label>${chipsHTML('re_acc',ACCIDENT_TYPES,accSel,true)}</div>
+    <div class="efield"><label><i class="req">*</i>选用评价方法</label>${chipsHTML('re_method',RISK_METHODS,mSel,false)}</div>
     <div class="efield" id="re_calcBox"></div>
-    <div class="efield"><label>风险等级（自动计算）</label><div class="level-row"><span id="re_levelBadge" class="risk-badge"></span></div><div id="re_calcText" class="calc-text"></div><input type="hidden" id="re_level" value=""></div>
-    <div class="efield"><label class="with"><span>事故诱因</span><button type="button" class="aibtn" onclick="genRiskCause()">✦ 大模型生成</button></label>
+    <div class="efield"><label><i class="req">*</i>风险等级（自动计算）</label><div class="level-row"><span id="re_levelBadge" class="risk-badge"></span></div><div id="re_calcText" class="calc-text"></div><input type="hidden" id="re_level" value=""></div>
+    <div class="efield"><label><i class="req">*</i>事故诱因</label>
       <textarea id="re_cause" maxlength="500" oninput="updRiskCnt(this)" placeholder="请填写事故诱因（500字以内），或点击「大模型生成」">${esc(cause)}</textarea><div class="cnt">${cause.length}/500</div></div>
-    <div class="efield"><label class="with"><span>管控措施</span><button type="button" class="aibtn" onclick="genRiskMeasure()">✦ 大模型生成</button></label>
+    <div class="efield"><label><i class="req">*</i>管控措施</label>
       <textarea id="re_advice" maxlength="500" oninput="updRiskCnt(this)" placeholder="请填写管控措施（500字以内），或点击「大模型生成」">${esc(advice)}</textarea><div class="cnt">${advice.length}/500</div></div>`;
 }
 function openRiskEdit(project,idx){
@@ -1193,17 +1245,45 @@ function openRiskPhotoLib(){
 function saveRiskEdit(){
   if(curEditIdx<0)return;
   const list=loadRisks(curEditProject); const x=list[curEditIdx]; if(!x)return;
-  x.name=$('#re_name').value.trim();
-  x.img=document.getElementById('re_img').value;
-  x.kind=chipVal('re_kind');
-  x.loc=chipVal('re_loc');
-  x.accType=chipVal('re_acc');
-  x.method=chipVal('re_method');
+  const name=$('#re_name').value.trim();
+  const img=document.getElementById('re_img').value;
+  const kind=chipVal('re_kind');
+  const loc=chipVal('re_loc');
+  const accType=chipVal('re_acc');
+  const method=chipVal('re_method');
+  const cause=$('#re_cause').value.trim();
+  const advice=$('#re_advice').value.trim();
+  const params={Lm:curRiskParams.Lm,Sm:curRiskParams.Sm,Ll:curRiskParams.Ll,El:curRiskParams.El,Cl:curRiskParams.Cl};
+  const miss=[];
+  if(!img)miss.push('风险图片');
+  if(!name)miss.push('风险点名称');
+  if(!kind)miss.push('风险点种类');
+  if(!loc)miss.push('风险位置');
+  if(!accType)miss.push('可能导致的事故种类');
+  if(!method)miss.push('选用评价方法');
+  if(method===RISK_METHODS[0]){
+    if(!params.Lm)miss.push('事故发生的可能性(L)');
+    if(!params.Sm)miss.push('危害事件发生的严重程度(S)');
+  } else if(method===RISK_METHODS[1]){
+    if(!params.Ll)miss.push('事故发生的可能性(L)');
+    if(!params.El)miss.push('人员暴露于危险环境的频繁程度(E)');
+    if(!params.Cl)miss.push('发生事故可能造成的后果(C)');
+  }
+  if(!$('#re_level').value)miss.push('风险等级');
+  if(!cause)miss.push('事故诱因');
+  if(!advice)miss.push('管控措施');
+  if(miss.length){ toast('请填写必填项：'+miss.join('、')); return; }
+  x.name=name;
+  x.img=img;
+  x.kind=kind;
+  x.loc=loc;
+  x.accType=accType;
+  x.method=method;
   x.identify=x.method===RISK_METHODS[1]?'LEC':(x.method?'LS':'');
-  x.Lm=curRiskParams.Lm; x.Sm=curRiskParams.Sm; x.Ll=curRiskParams.Ll; x.El=curRiskParams.El; x.Cl=curRiskParams.Cl;
+  x.Lm=params.Lm; x.Sm=params.Sm; x.Ll=params.Ll; x.El=params.El; x.Cl=params.Cl;
   x.level=$('#re_level').value;
-  x.cause=$('#re_cause').value.trim();
-  x.advice=$('#re_advice').value.trim();
+  x.cause=cause;
+  x.advice=advice;
   saveRisks(curEditProject,list);
   closeRiskEdit();
   openDetail(curNo);
@@ -1452,7 +1532,7 @@ function collectSections(form,project){
       let arr=[]; if(grp)grp.querySelectorAll('input[type=checkbox]:checked').forEach(c=>arr.push(c.value));
       if(f.type==='multi-other'){const o=document.querySelector('#mbody [data-k="'+f.name+'__other"]'); if(o&&o.value.trim())arr.push('其他：'+o.value.trim());}
       form[f.name]=arr.join('、');
-    }     else if(f.type==='photo'||f.type==='pdf'||f.type==='doc'){ /* 状态由各自上传/生成处理器写入 */ }
+    }     else if(f.type==='photo'||f.type==='pdf'||f.type==='word'||f.type==='doc'){ /* 状态由各自上传/生成处理器写入 */ }
     else if(f.type==='docs'){ const box=document.querySelector('#mbody [data-doc="'+f.name+'"]'); const names=box?[...box.querySelectorAll('.docname')].map(d=>d.textContent):[]; form[f.name]=names.join('、'); }
     else { const el=document.querySelector('#mbody [data-k="'+f.name+'"]'); if(el)form[f.name]=el.value; }
   }));
@@ -1464,6 +1544,7 @@ function upField(name){const el=document.getElementById('ff_'+idk(name)); if(el)
 function readFileDataURL(file,cb){const fr=new FileReader();fr.onload=()=>cb(fr.result);fr.onerror=()=>cb('');fr.readAsDataURL(file);}
 function onUpField(name,inp){const f=inp.files&&inp.files[0]; if(!f)return; readFileDataURL(f,d=>{curReport.form[name]={mode:'pdf',name:f.name,data:d}; saveReports(); openDetail(curNo); toast('已上传文件');});}
 function onUpFieldDoc(name,inp){const f=inp.files&&inp.files[0]; if(!f)return; curReport.form[name]=f.name; saveReports(); openDetail(curNo); toast('已上传文件');}
+function onUpFieldWord(name,inp){const f=inp.files&&inp.files[0]; if(!f)return; readFileDataURL(f,d=>{curReport.form[name]={mode:'word',from:'upload',name:f.name,data:d,text:''}; saveReports(); openDetail(curNo); toast('已上传 Word 文件：'+f.name);});}
 function pickDocOrg(btn){
   const input=document.getElementById('docInputOrg');
   input._box=btn.closest('.docs');
@@ -1482,6 +1563,42 @@ function removeDocOrg(el){ el.parentElement.remove(); }
 function previewFile(dataURL,name){ if(!dataURL){toast('暂无可预览的文件');return;} openPdfModal(); const f=$('#pdfframe'); f.src=dataURL; f.style.display='block'; $('#pdfload').style.display='none'; const dl=$('#pdfDl'); dl.style.display=''; dl.onclick=()=>downloadDataURL(dataURL,name||'文件.pdf'); $('#pdfmask')._fileMode=true; }
 function downloadDataURL(dataURL,name){ try{const a=document.createElement('a');a.href=dataURL;a.download=name;document.body.appendChild(a);a.click();a.remove();}catch(e){toast('下载失败');} }
 function genField(name){curReport.form[name]={mode:'gen',text:(name==='演练方案'?'已根据演练信息生成演练方案大纲，请人工补充完善。':'已根据前项内容生成，请人工编辑完善。')}; saveReports(); openDetail(curNo); toast('已生成，可人工编辑');}
+/* 演练方案：大模型根据前项内容生成 Word 文件（对齐小程序端 genWord） */
+function genWordField(name){
+  collectAll();
+  const fm=curReport.form||{};
+  const g=k=>(fm[k]!=null&&fm[k]!=='')?String(fm[k]):'—';
+  const rows=[
+    ['演练目的',g('演练目的')],['演练形式',g('演练形式')],['演练地点',g('演练地点')],
+    ['演练方式',g('演练方式')],['演练主题',g('演练主题')],['总指挥',g('总指挥')],
+    ['组织人员',g('组织人员')],['参与对象',g('参与对象')],
+    ['应急组织架构',g('应急组织架构')],['演练流程',g('演练流程')],
+    ['演练场景',g('演练场景')],['演练物资',g('演练物资')]
+  ];
+  const text='演练方案\n'+rows.map(([k,v])=>`${k}：${v}`).join('\n');
+  curReport.form[name]={mode:'word',from:'ai',name:'演练方案_报告.docx',text,data:''};
+  saveReports(); openDetail(curNo); toast('大模型已生成 Word 文件，可预览 / 编辑 / 删除');
+}
+function previewWordField(name){
+  const st=(curReport.form||{})[name]; if(!st)return;
+  $('#wordTitle').textContent='预览 · '+name;
+  $('#wordBody').innerHTML=`<div class="wpaper"><div class="wp-t">${esc(st.name||'报告.docx')}</div>${esc(st.text||'（本地上传的 Word 文件，原型中不解析正文内容）')}</div>`;
+  $('#wordFoot').innerHTML=`<button class="btn" type="button" onclick="closeWordBox()">关闭</button><button class="btn primary" type="button" onclick="editWordField('${esc(name)}')">编辑文件</button><button class="btn" type="button" onclick="delWordField('${esc(name)}')">删除</button>`;
+  $('#wordmask').classList.add('show');
+}
+function editWordField(name){
+  const st=(curReport.form||{})[name]; if(!st)return;
+  $('#wordTitle').textContent='编辑 · '+name;
+  $('#wordBody').innerHTML=`<textarea class="wta" id="wordFieldEditArea">${esc(st.text||'')}</textarea>`;
+  $('#wordFoot').innerHTML=`<button class="btn" type="button" onclick="closeWordBox()">取消</button><button class="btn primary" type="button" onclick="saveWordField('${esc(name)}')">保存</button>`;
+  $('#wordmask').classList.add('show');
+}
+function saveWordField(name){
+  const st=(curReport.form||{})[name]; if(!st)return;
+  const v=($('#wordFieldEditArea')||{}).value||''; if(!v.trim()){toast('内容不能为空');return;}
+  st.text=v; st.mode='word'; saveReports(); closeWordBox(); openDetail(curNo); toast('Word 文件已保存');
+}
+function delWordField(name){ delete curReport.form[name]; saveReports(); closeWordBox(); openDetail(curNo); toast('已删除 Word 文件'); }
 /* 演练总结：大模型根据演练评估字段生成（对齐小程序端 genSummary） */
 function genSummaryField(name){
   collectAll();
@@ -1499,17 +1616,133 @@ function genSummaryField(name){
   saveReports(); openDetail(curNo); toast('已根据评估字段生成演练总结');
 }
 function upBlock(sec){const el=document.getElementById('bf_'+idk(sec)); if(el)el.click();}
-function onUpBlock(sec,inp){const f=inp.files&&inp.files[0]; if(!f)return; readFileDataURL(f,d=>{curReport.form.blocks=curReport.form.blocks||{}; const def=(PROJECT_DEF[curReport.project]||{}).blocks||[]; const bd=def.find(x=>x.sec===sec); const isWord=!!(bd&&bd.word); curReport.form.blocks[sec]={mode:isWord?'doc':'pdf',name:f.name,data:d}; saveReports(); openDetail(curNo); toast(isWord?'已上传 Word 文件':'已上传文件');});}
-function genBlock(sec){curReport.form.blocks=curReport.form.blocks||{}; const def=(PROJECT_DEF[curReport.project]||{}).blocks||[]; const bd=def.find(x=>x.sec===sec); const isWord=!!(bd&&bd.word); curReport.form.blocks[sec]={mode:isWord?'word':'gen',text:genBlockText(sec),name:isWord?(sec+'_报告.docx'):undefined}; saveReports(); openDetail(curNo); toast(isWord?'已生成 Word 文件':'已生成，可人工编辑');}
+function onUpBlock(sec,inp){
+  const f=inp.files&&inp.files[0]; if(!f)return;
+  readFileDataURL(f,d=>{
+    curReport.form.blocks=curReport.form.blocks||{};
+    const def=(PROJECT_DEF[curReport.project]||{}).blocks||[]; const bd=def.find(x=>x.sec===sec);
+    const isWord=!!(bd&&bd.word); const prev=curReport.form.blocks[sec]||{};
+    curReport.form.blocks[sec]=(bd&&bd.fileCard)?{mode:'word',from:'upload',name:f.name,data:d,text:prev.text||''}:{mode:isWord?'doc':'pdf',name:f.name,data:d};
+    saveReports(); openDetail(curNo); toast(isWord?'已上传 Word 文件':'已上传文件');
+  });
+}
+function autoSaveBlock(sec){
+  const el=document.getElementById('barea_'+idk(sec)); if(!el)return;
+  const v=el.value; const prev=(curReport.form.blocks||{})[sec]||{};
+  curReport.form.blocks=curReport.form.blocks||{};
+  curReport.form.blocks[sec]={mode:v.trim()?'text':'',text:v,name:prev.name};
+  saveReports(); blockCnt(sec);
+}
+function genBlock(sec){
+  curReport.form.blocks=curReport.form.blocks||{};
+  const def=(PROJECT_DEF[curReport.project]||{}).blocks||[]; const bd=def.find(x=>x.sec===sec);
+  const isWord=!!(bd&&bd.word);
+  if(bd&&bd.fileCard){
+    const prev=curReport.form.blocks[sec]||{};
+    curReport.form.blocks[sec]={mode:'word',from:'ai',name:prev.from==='ai'&&prev.name?prev.name:(sec+'_报告.docx'),text:genBlockText(sec)};
+    if(curReport.project==='安全生产应急预案编制'){
+      if(sec==='生产安全事故风险评估报告')curReport.form.blocks['生产安全事故风险分析']={mode:'text',text:genAnalysisText('risk')};
+      if(sec==='应急资源调查报告')curReport.form.blocks['应急资源差距分析']={mode:'text',text:genAnalysisText('gap')};
+    }
+    saveReports(); openDetail(curNo);
+    toast(curReport.project==='安全生产应急预案编制'?'大模型已生成 Word 文件，并同步生成对应分析':'已生成 Word 文件');
+    return;
+  }
+  curReport.form.blocks[sec]={mode:isWord?'word':'gen',text:genBlockText(sec),name:isWord?(sec+'_报告.docx'):undefined}; saveReports(); openDetail(curNo); toast(isWord?'已生成 Word 文件':'已生成，可人工编辑');
+}
 function genBlockText(sec){
-  if(sec==='应急资源调查报告')return '已根据企业基本情况生成应急资源调查报告，请人工补充完善。';
-  if(sec==='生产安全事故风险评估报告')return '已根据风险辨识评估结果生成风险评估报告，请人工补充完善。';
-  if(sec==='应急预案')return '已根据应急资源与风险评估生成应急预案，请人工补充完善。';
-  if(sec==='生产安全事故风险分析')return '已根据企业生产工艺与危险有害因素辨识，生成生产安全事故风险分析，请人工补充完善。';
-  if(sec==='应急资源差距分析')return '已根据现有应急资源与可能事故类型对比，生成应急资源差距分析，请人工补充完善。';
+  if(sec==='应急资源调查报告')return `应急资源调查报告
+（依据本次事故预防服务「应急预案编制信息采集」前项内容整理）
+
+一、调查范围
+覆盖企业生产经营场所及可能发生的事故场景，结合现场采集的当前位置、风险场景等信息，明确应急资源的配置点位与保障能力。
+二、应急物资
+依据采集的应急物资清单，对企业配备的消防、急救、防护、照明、警戒等器材进行逐项核查，确认数量、有效期与存放位置满足预案要求。
+三、应急队伍
+结合应急组织架构及人员分工，核实应急指挥、抢险、救护、疏散等岗位人员到位情况，明确联系方式与替补机制。
+四、外部依托
+登记周边可依托的消防、医疗、公安等社会救援力量及联动电话。
+五、结论
+现有应急资源总体可支撑所列应急预案的初期响应需求，个别缺口已列明整改建议并纳入闭环管理。`;
+  if(sec==='生产安全事故风险评估报告')return `生产安全事故风险评估报告
+（依据「应急预案编制信息采集」前项内容开展风险评估）
+
+一、评估对象
+针对企业辨识出的风险场景与事故种类进行逐项评估。
+二、风险辨识
+汇总各作业环节可能导致生产安全事故的致害因素（物体打击、触电、火灾、高处坠落等），标注发生可能性与后果严重性。
+三、风险分析
+结合现场工艺、设备与人员活动，分析事故链与扩大条件，确定关键控制点。
+四、风险评价
+采用风险矩阵对辨识出的风险进行分级，形成重大风险与较大风险清单。
+五、管控建议
+针对重大风险提出工程技术与管理措施，并衔接事故响应程序形成闭环。`;
+  if(sec==='应急预案')return `应急预案
+（依据「应急预案编制信息采集」前项内容编制）
+
+一、总则
+明确编制目的、依据、适用范围与工作原则。
+二、应急组织机构及职责
+依据应急组织架构及人员分工，设立应急指挥部及下设小组，细化各岗位职责与汇报关系。
+三、风险与资源
+衔接风险评估与资源调查结论，明确响应所需的资源保障。
+四、预警与信息报告
+规定事故预警条件、内部报告程序与外部报送要求。
+五、应急响应
+依据事故响应程序，分级别描述响应启动、指挥协调、现场处置、人员疏散与医疗救护流程。
+六、后期处置
+包括善后、调查与恢复生产。
+七、预案管理
+明确培训、演练与修订要求。`;
+  if(sec==='生产安全事故风险分析')return genAnalysisText('risk');
+  if(sec==='应急资源差距分析')return genAnalysisText('gap');
   return '已根据前项内容生成，请人工编辑完善。';
 }
-function delGenBlock(sec){curReport.form.blocks=curReport.form.blocks||{}; delete curReport.form.blocks[sec]; saveReports(); openDetail(curNo); toast('已删除生成文件');}
+function genAnalysisText(kind){
+  if(kind==='risk')return `生产安全事故风险分析
+（依据「应急预案编制信息采集」前项内容开展风险分析）
+一、风险概述
+结合现场采集的设备名单、作业行为与工艺流程，识别各生产环节潜在的致害因素，形成系统化的风险清单。
+二、主要风险
+重点关注物体打击、触电、火灾、高处坠落、机械致害等高发事故类型，结合危险化学品清单评估泄漏、爆炸与中毒风险。
+三、事故链分析
+围绕"设备/作业因原因导致事故"的逻辑，梳理触发条件与扩大路径，明确关键控制节点。
+四、风险等级
+依据可能性与严重性进行初步分级，标识重大风险与较大风险，作为应急预案编制的重点对象。
+五、防控要点
+针对重大风险提出工程技术与管理措施，并与事故响应程序、应急资源保障相衔接，形成闭环。`;
+  return `应急资源差距分析
+（依据「应急预案编制信息采集」前项内容与资源调查结论）
+一、物资差距
+对照预案需求核查消防、急救、防护、照明、警戒等器材的数量、有效期与分布，列明缺口与补配计划。
+二、队伍差距
+核实应急组织架构与人员分工的到位情况，识别关键岗位替补与专业技能短板。
+三、外部依托
+评估周边医疗机构、救援机构的可达性与联动效率，明确改进措施。
+四、综合结论
+汇总关键差距项，形成整改清单与完成时限，纳入闭环管理并跟踪验证。`;
+}
+function delGenBlock(sec){curReport.form.blocks=curReport.form.blocks||{}; delete curReport.form.blocks[sec]; saveReports(); openDetail(curNo); toast('已删除文件');}
+function closeWordBox(){ $('#wordmask').classList.remove('show'); }
+function previewWord(sec){
+  const st=(curReport.form.blocks||{})[sec]; if(!st)return;
+  $('#wordTitle').textContent='预览 · '+sec;
+  $('#wordBody').innerHTML=`<div class="wpaper"><div class="wp-t">${esc(st.name||'报告.docx')}</div>${esc(st.text||'（本地上传的 Word 文件，原型中不解析正文内容）')}</div>`;
+  $('#wordFoot').innerHTML=`<button class="btn" type="button" onclick="closeWordBox()">关闭</button><button class="btn primary" type="button" onclick="editWord('${esc(sec)}')">编辑文件</button>`;
+  $('#wordmask').classList.add('show');
+}
+function editWord(sec){
+  const st=(curReport.form.blocks||{})[sec]; if(!st)return;
+  $('#wordTitle').textContent='编辑 · '+sec;
+  $('#wordBody').innerHTML=`<textarea class="wta" id="wordEditArea">${esc(st.text||'')}</textarea>`;
+  $('#wordFoot').innerHTML=`<button class="btn" type="button" onclick="closeWordBox()">取消</button><button class="btn primary" type="button" onclick="saveWord('${esc(sec)}')">保存</button>`;
+  $('#wordmask').classList.add('show');
+}
+function saveWord(sec){
+  const st=(curReport.form.blocks||{})[sec]; if(!st)return;
+  const v=($('#wordEditArea')||{}).value||''; if(!v.trim()){toast('内容不能为空');return;}
+  st.text=v; st.mode='word'; saveReports(); closeWordBox(); openDetail(curNo); toast('Word 文件已保存');
+}
 function saveBlock(sec){const t=document.getElementById('barea_'+idk(sec)).value; curReport.form.blocks=curReport.form.blocks||{}; const prev=curReport.form.blocks[sec]||{}; const isWord=prev.mode==='word'; curReport.form.blocks[sec]={mode:isWord?'word':'gen',text:t,name:isWord?(prev.name||sec+'_报告.docx'):undefined}; saveReports(); openDetail(curNo); toast(isWord?'Word 编辑结果已保存':'已保存编辑');}
 function blockCnt(sec){const ta=document.getElementById('barea_'+idk(sec)); const c=document.getElementById('bcount_'+idk(sec)); if(ta&&c)c.textContent=(ta.value.length)+'/'+(ta.getAttribute('maxlength')||500);}
 function addPatrol(project){const inp=document.getElementById('patrolAdd'); const v=inp&&inp.value.trim(); if(!v)return toast('请输入排查表名称'); const list=patrolLoad(project); list.push({name:v,done:true}); patrolSave(project,list); openDetail(curNo); toast('已添加排查表');}
@@ -1521,7 +1754,7 @@ function submitAudit(){
   collectAll();
   const def=PROJECT_DEF[r.project];
   const missing=[];
-  if(def&&def.type==='blocks') def.blocks.forEach(b=>{ if(b.req && !((r.form.blocks&&r.form.blocks[b.sec])||{}).mode) missing.push(b.sec); });
+  if(def&&def.type==='blocks') def.blocks.forEach(b=>{ const st=(r.form.blocks&&r.form.blocks[b.sec])||{}; if(b.req && (!st.mode || (b.mode==='text' && !(st.text||'').trim()))) missing.push(b.sec); });
   if(needServicePhoto(r.project) && photoCount('现场服务照片')<=0) missing.push('现场服务照片');
   if(missing.length){ openDetail(curNo); toast('请先完成必填项：'+missing.join('、')); return; }
   r.status='已提交审核'; saveReports(); pushToReview(r); renderTable(); closeModal();
@@ -1535,10 +1768,20 @@ function pushToReview(r){
     submitTime:nowStr(),status:'待初审',content:{sections:reportSectionsForReview(r),hazards:[]},reviews:{}});
   try{localStorage.setItem('org_review_reports',JSON.stringify(arr));}catch(e){}
 }
+function sectionValText(f,v){
+  if(v==null)return f.def!=null?f.def:'—';
+  if(typeof v==='object'){
+    if(v.mode==='word')return (v.from==='upload'?'已上传 Word：':'大模型生成 Word 文件：')+(v.name||'报告.docx');
+    if(v.mode==='pdf')return '已上传 PDF：'+(v.name||'');
+    if(v.mode==='doc')return '已上传文件：'+(v.name||'');
+    return v.text||'—';
+  }
+  return v||'—';
+}
 function reportSectionsForReview(r){
   const form=r.form||{}; const def=PROJECT_DEF[r.project]; const out=[];
-  if(def.type==='blocks'){ def.blocks.forEach(b=>{const st=(form.blocks&&form.blocks[b.sec])||{}; const s=st.mode?(st.mode==='doc'?('已上传 Word：'+(st.name||'')):(st.mode==='word'?('大模型生成 Word 文件：'+(st.name||'报告.docx')):(st.mode==='pdf'?('已上传PDF：'+(st.name||'')):(b.mode==='text'?('已填写（'+(st.text||'').length+' 字）'):'大模型生成并编辑')))):'未整理'; out.push({title:esc(b.sec),rows:[['整理状态',s]]});}); }
-  else if(def.type==='sections'){ def.sections.forEach(sec=>{const rows=sec.fields.filter(f=>f.type!=='photo').map(f=>[f.name, form[f.name]!=null?form[f.name]:(f.def!=null?f.def:'—')]); out.push({title:esc(sec.title),rows});}); }
+  if(def.type==='blocks'){ def.blocks.forEach(b=>{const st=(form.blocks&&form.blocks[b.sec])||{}; const wf=st.from==='upload'?'已上传 Word：':'大模型生成 Word 文件：'; const s=st.mode?(st.mode==='doc'?(wf+(st.name||'')):(st.mode==='word'?(wf+(st.name||'报告.docx')):(st.mode==='pdf'?('已上传PDF：'+(st.name||'')):(b.mode==='text'?('已填写（'+(st.text||'').length+' 字）'):'大模型生成并编辑')))):'未整理'; out.push({title:esc(b.sec),rows:[['整理状态',s]]});}); }
+  else if(def.type==='sections'){ def.sections.forEach(sec=>{const rows=sec.fields.filter(f=>f.type!=='photo').map(f=>[f.name, sectionValText(f,form[f.name])]); out.push({title:esc(sec.title),rows});}); }
   else if(def.type==='cards'){ def.cards.forEach(c=>{ if(c.kind==='patrol'){const list=patrolLoad(r.project); out.push({title:esc(c.title),rows:list.map((x,i)=>[(i+1)+'', x.name+'（已完成）'])});} else {const list=c.store==='hazard'?loadHazards(r.project):loadRisks(r.project); out.push({title:esc(c.title),rows:list.map((x,i)=>[(i+1)+'', c.store==='hazard'?((x.name||'')+' · '+(x.level||'')):((x.name||'')+' · '+(x.accType||x.effect||'')+' · '+(x.level||''))])});} }); }
   return out;
 }
@@ -1565,9 +1808,9 @@ function buildPdfHtml(r){
   const def=PROJECT_DEF[r.project];
   let body='';
   if(def.type==='blocks'){
-    body=def.blocks.map(b=>{const st=(form.blocks&&form.blocks[b.sec])||{}; const s=st.mode?(st.mode==='doc'?('已上传 Word：'+(st.name||'')):(st.mode==='word'?('大模型生成 Word 文件：'+(st.name||'报告.docx')):(st.mode==='pdf'?('已上传 PDF：'+(st.name||'')):(b.mode==='text'?('已填写（'+(st.text||'').length+' 字）'):('大模型生成并编辑（'+(st.text||'').length+' 字）'))))):'未整理'; return `<h3>${esc(b.sec)}</h3><table class="kv"><tr><td class="k">整理状态</td><td>${esc(s)}</td></tr></table>`;}).join('');
+    body=def.blocks.map(b=>{const st=(form.blocks&&form.blocks[b.sec])||{}; const wf=st.from==='upload'?'已上传 Word：':'大模型生成 Word 文件：'; const s=st.mode?(st.mode==='doc'?(wf+(st.name||'')):(st.mode==='word'?(wf+(st.name||'报告.docx')):(st.mode==='pdf'?('已上传 PDF：'+(st.name||'')):(b.mode==='text'?('已填写（'+(st.text||'').length+' 字）'):('大模型生成并编辑（'+(st.text||'').length+' 字）'))))):'未整理'; return `<h3>${esc(b.sec)}</h3><table class="kv"><tr><td class="k">整理状态</td><td>${esc(s)}</td></tr></table>`;}).join('');
   } else if(def.type==='sections'){
-    body=def.sections.map(sec=>`<h3>${esc(sec.title)}</h3><table class="kv">`+sec.fields.filter(f=>f.type!=='photo').map(f=>{let v=form[f.name]; if(v==null)v=(f.def!=null?f.def:'—'); if(!v)v='—'; return `<tr><td class="k">${esc(f.name)}</td><td>${esc(v)}</td></tr>`;}).join('')+`</table>`).join('');
+    body=def.sections.map(sec=>`<h3>${esc(sec.title)}</h3><table class="kv">`+sec.fields.filter(f=>f.type!=='photo').map(f=>`<tr><td class="k">${esc(f.name)}</td><td>${esc(sectionValText(f,form[f.name]))}</td></tr>`).join('')+`</table>`).join('');
   } else if(def.type==='cards'){
     body=def.cards.map(c=>{
       if(c.kind==='patrol'){const list=patrolLoad(r.project); return `<h3>${esc(c.title)}</h3><table class="kv">`+list.map((x,i)=>`<tr><td class="k">${i+1}</td><td>${esc(x.name)}（已完成）</td></tr>`).join('')+`</table>`;}

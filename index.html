@@ -165,7 +165,24 @@ wrap.innerHTML=GROUPS.map(g=>`<div class="group${g.name==='小程序端'?' xcx':
 
 /* ===== 版本说明（可编辑，后续修改按日期追加） ===== */
 const VER_KEY='index_ver_notes';
-const VER_DEFAULT=`【2026-11-19 原型优化】
+const VER_TODAY=`【2026-11-24 原型优化】
+报告整理 - 安全生产应急预案编制（小程序端 / PC端 技术人员端、服务机构端）：
+1、生产安全事故风险评估报告、应急资源调查报告：Word 上传 或 大模型生成 Word 文件；大模型生成结果以 Word 文件卡片展示，支持预览 / 编辑 / 删除
+2、报告生成时同步生成对应的风险分析 / 应急资源差距分析；两个分析字段初始为空，支持手动填写并自动保存
+3、生产安全事故风险评估报告、应急资源调查报告、应急预案设为必填项；顺序调整为 风险报告 → 风险分析 → 资源报告 → 差距分析 → 应急预案
+
+报告整理 - 安全风险辨识、评估、评价（PC端 技术人员端 / 服务机构端）：
+1、编辑风险信息弹窗：同步小程序端字段顺序，风险位置后新增一键大模型生成，评价方法按分组标题展示，事故诱因 / 管控措施支持 500 字
+2、编辑风险信息弹窗：所有字段设置为必填项（含矩阵法 L/S、LEC 法 L/E/C 动态评分项），保存前统一校验
+
+报告整理 - 安全生产应急救援演练（小程序端 / PC端 技术人员端、服务机构端）：
+1、演练方案：由 PDF 上传改为 Word 上传，大模型生成结果为 Word 文件；PC 两端以 Word 文件卡片展示，支持预览 / 编辑 / 删除
+2、小程序端演练方案：参照生产安全事故风险评估报告调整为文档卡片样式（标题 + 状态徽标 + 并排按钮 + Word 文件卡片）
+
+`;
+const VER_DEFAULT = VER_TODAY + `
+
+【2026-11-19 原型优化】
 报告整理 - 安全生产标准化管理体系建设（小程序端 / PC端 技术人员端、服务机构端）：
 1、评分明细：仅支持 Word 文件上传（去除 PDF），小程序端改为卡片样式（标题 + 上传状态徽标 + Word 上传）
 2、自评报告及改进建议：Word 上传 或 大模型生成 Word 文件；大模型生成结果以 Word 文件卡片展示，去除可编辑文本框（可重新生成 / 删除）
@@ -266,10 +283,15 @@ const VER_DEFAULT=`【2026-11-19 原型优化】
 
 `;
 function verStored(){ try{ return localStorage.getItem(VER_KEY); }catch(e){ return null; } }
-function renderVer(){ const el=document.getElementById('verBody'); if(el) el.textContent = verStored() || VER_DEFAULT; }
+function verWithToday(raw){
+  const s = raw || VER_DEFAULT;
+  if(s.indexOf('【2026-11-24 原型优化】')>=0) return s;
+  return VER_TODAY + '\n\n' + s;
+}
+function renderVer(){ const el=document.getElementById('verBody'); if(el) el.textContent = verWithToday(verStored()); }
 function verEdit(){
   const a=document.getElementById('verEditArea');
-  a.value = verStored() || VER_DEFAULT;
+  a.value = verWithToday(verStored());
   document.getElementById('verBody').style.display='none';
   a.style.display='block';
   document.getElementById('verEdit').style.display='none';

@@ -67,7 +67,7 @@
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font-size:24px;flex:none}
   .add span{font-size:11px;font-weight:400}
 
-  /* PDF 上传 */
+  /* Word 上传 */
   .upload{display:flex;align-items:center;gap:10px}
   .up-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:9px;font-size:13.5px;cursor:pointer;font-weight:600}
   .up-btn svg{display:block}
@@ -83,6 +83,38 @@
   .ai-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 16px;border:none;
     background:#7c3aed;color:#fff;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer}
   .ai-btn:active{opacity:.9}
+
+  /* 文档卡片（对齐应急预案编制页） */
+  .ftitle{display:flex;align-items:center;gap:7px;font-size:14.5px;font-weight:700;color:var(--text);padding:0 0 4px}
+  .ftitle i{width:3px;height:15px;border-radius:2px;background:var(--blue);display:block}
+  .badge{margin-left:auto;font-size:11px;font-weight:600;padding:2px 9px;border-radius:10px;background:#f1f3f8;color:#9aa0ad}
+  .badge.done{background:#e9f6ef;color:#2f9e6b}
+  .word-note{color:var(--sub);font-size:12px;margin-bottom:8px}
+  .doc-actions{display:flex;gap:10px;margin:4px 0 2px}
+  .act{flex:1;height:38px;border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:inherit}
+  .act:active{background:#eef2fc}
+  .act.gen{border-color:var(--pur);background:var(--pur);color:#fff}
+  .act.gen:active{background:#6d28d9;border-color:#6d28d9}
+  .wordfile{display:flex;align-items:center;gap:10px;background:#f4f6fb;border-radius:9px;padding:10px 11px;margin-top:8px;cursor:pointer}
+  .wordfile:active{background:#eef2fc}
+  .wordfile .wicon{width:32px;height:32px;border-radius:6px;background:#2b5ce6;color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+  .wordfile .wmeta{flex:1;min-width:0}
+  .wordfile .wname{font-size:13px;color:#2b3242;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .wordfile .wtype{font-size:11.5px;color:#9aa3b2;margin-top:3px}
+  .wordfile .wdel{width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;font-size:14px;text-align:center;line-height:19px;flex:none}
+  /* Word 预览 / 编辑弹层 */
+  .wmask{position:absolute;inset:0;background:rgba(16,22,38,.55);z-index:75;display:none;align-items:center;justify-content:center;padding:20px}
+  .wmask.show{display:flex}
+  .wbox{width:100%;max-height:80%;background:#fff;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+  .wbox-head{flex:none;padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:700;color:var(--text)}
+  .wbox-head .x{font-size:20px;color:#9aa3b2;cursor:pointer;line-height:1}
+  .wbox-body{flex:1;overflow:auto;padding:16px}
+  .wpaper{background:#fff;border:1px solid #e6e9f0;border-radius:6px;padding:18px 16px;font-size:13px;line-height:1.8;color:var(--val);white-space:pre-wrap;min-height:160px}
+  .wpaper .wp-t{font-size:16px;font-weight:700;color:var(--text);text-align:center;margin-bottom:14px}
+  .wbox-foot{flex:none;padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:10px}
+  .wbox-foot button{flex:1;height:40px;border:none;border-radius:9px;background:var(--blue);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+  .wbox-foot button.ghost{border:1px solid var(--blue);background:#fff;color:var(--blue)}
+  .wta{width:100%;min-height:220px;border:1px solid #e0e5ef;border-radius:9px;padding:10px 12px;font-size:13px;line-height:1.7;color:var(--val);outline:none;font-family:inherit;resize:vertical}
 
   .footer{flex:none;padding:10px 16px 24px;background:var(--bg);display:flex;gap:10px}
   .btn-main{flex:1;height:46px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px rgba(43,92,230,.28)}
@@ -195,6 +227,15 @@
     </div>
   </div>
 
+  <!-- Word 预览 / 编辑弹层 -->
+  <div class="wmask" id="wmask">
+    <div class="wbox">
+      <div class="wbox-head"><span id="wtitle">Word 文件</span><span class="x" onclick="closeWBox()">✕</span></div>
+      <div class="wbox-body" id="wbody"></div>
+      <div class="wbox-foot" id="wfoot"></div>
+    </div>
+  </div>
+
   <!-- 固定版式报告文档（离屏，用于生成 PDF） -->
   <div id="reportHost"><div id="reportDoc" class="rpt"></div></div>
 
@@ -202,7 +243,7 @@
   <div class="toast" id="toast"></div>
 </div>
 
-<input type="file" id="pdfInput" accept="application/pdf" style="display:none">
+<input type="file" id="wordInput" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none">
 <input type="file" id="docInput" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple style="display:none">
 
 <script src="html2canvas.min.js"></script>
@@ -223,7 +264,7 @@ const SECTIONS = [
     {type:'text', name:'演练流程', max:500, area:true, ph:'请填写演练流程（500字以内）', req:true},
     {type:'text', name:'演练场景', max:500, area:true, ph:'请填写演练场景（500字以内）', req:true},
     {type:'text', name:'演练物资', max:500, area:true, ph:'请填写演练物资（500字以内）', req:true},
-    {type:'pdf', name:'演练方案', note:'PDF 上传 / 大模型生成 Word', ai:'word', req:true},
+    {type:'word', name:'演练方案', note:'Word 上传 / 大模型生成 Word 文件', ai:'word', req:true},
     {type:'photo', name:'签到表', max:9, sources:['拍照','引用现场检查照片','手机相册'], req:true},
     {type:'photo', name:'演练物资', max:9, sources:['拍照','引用现场检查照片'], req:true},
     {type:'photo', name:'现场服务照片', max:6, sources:['拍照','引用现场检查照片'], req:true},
@@ -250,8 +291,15 @@ const SRC_STYLE = {
 };
 
 const q = new URLSearchParams(location.search);
-document.getElementById('ctxNo').textContent   = q.get('no') || 'YF2131900';
+const drillNo = q.get('no') || 'YF2131900';
+document.getElementById('ctxNo').textContent   = drillNo;
 document.getElementById('ctxProj').textContent = q.get('project') || '安全生产应急救援演练';
+
+/* 演练方案 Word 状态：{mode:'word', from:'upload'|'ai', name, text} */
+const WORD_KEY = 'report_演练方案_' + drillNo;
+let wordState = loadWordState();
+function loadWordState(){ try{ return JSON.parse(localStorage.getItem(WORD_KEY) || '{}'); }catch(e){ return {}; } }
+function saveWordState(){ try{ localStorage.setItem(WORD_KEY, JSON.stringify(wordState)); }catch(e){} }
 
 /* 当期技术服务人员：优先取 URL ?staff=，其次按工单号映射演示工单，回退默认 */
 const TECH_STAFF = {'YF20260014':'赵强'};
@@ -313,6 +361,7 @@ function render(){
 }
 
 function fieldHTML(f){
+  if(f.type==='word') return wordFieldHTML(f);
   let inner = '';
   if(f.type==='single'){
     inner = `<div class="chips" data-type="single">${f.opts.map(o=>`<span class="chip${f.def===o?' on':''}" data-v="${o}">${o}</span>`).join('')}</div>`;
@@ -332,13 +381,6 @@ function fieldHTML(f){
   } else if(f.type==='photo'){
     inner = `<div class="photos" data-max="${f.max}" data-sources="${f.sources.join('|')}"><div class="add" onclick="openSheetFor(this)">+<span>添加</span></div></div>`;
     if(f.note) inner += `<div class="ctr"><span style="margin-left:auto">${f.note}</span></div>`;
-  } else if(f.type==='pdf'){
-    const up = `<span class="up-btn" onclick="pickPDF(this)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2b5ce6" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>上传 PDF</span><span class="fname">未选择文件</span>`;
-    if(f.ai==='word'){
-      inner = `<div class="upload">${up}</div><div class="ai-row"><button class="ai-btn" onclick="genWord(this)">✦ 大模型生成 Word 文档</button></div>`;
-    } else {
-      inner = `<div class="upload">${up}</div>`;
-    }
   } else if(f.type==='docs'){
     inner = `<div class="docs"><button class="up-btn" type="button" onclick="pickDoc(this)"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2b5ce6" stroke-width="1.5"><path d="M8 11V3M5 6l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>添加文档</button><div class="doclist"></div></div>`;
   }
@@ -346,7 +388,32 @@ function fieldHTML(f){
   const note = (f.type!=='photo' && f.note)?`<span class="note">${f.note}</span>`:'';
   return `<div class="field"><div class="flbl">${req}${f.name}${note}</div>${inner}</div>`;
 }
+function wordFieldHTML(f){
+  const st = wordState['演练方案'];
+  const badge = st ? `<span class="badge done">${st.from==='ai'?'已生成':'已上传'}</span>` : `<span class="badge">未上传</span>`;
+  const fname = st ? esc(st.name||'') : '未选择文件';
+  const from = st && st.from==='ai' ? '大模型生成 Word 文件' : '已上传 Word 文件';
+  const fileCard = st ? `<div class="wordfile" onclick="previewWordFile()"><div class="wicon">W</div><div class="wmeta"><div class="wname">${fname}</div><div class="wtype">${from}</div></div><span class="wdel" title="删除" onclick="event.stopPropagation();delWordFile()">×</span></div>` : '';
+  return `<div class="field">
+    <div class="ftitle"><i></i>${f.name}${f.req?'<span class="req">*</span>':''}${badge}</div>
+    <div class="word-note">Word 上传 或 大模型生成 Word 文件</div>
+    <div class="flbl" style="display:none">${f.name}</div>
+    <div class="upload" style="display:none"><span class="fname">${fname}</span></div>
+    <div class="doc-actions">
+      <button class="act" type="button" onclick="uploadWord()">${st?'替换':''}Word 上传</button>
+      <button class="act gen" type="button" onclick="genWord(this)"><svg width="14" height="14" viewBox="0 0 16 16" fill="#fff"><path d="M8 0.6l1.75 4.65L14.4 7l-4.65 1.75L8 13.4l-1.75-4.65L1.6 7l4.65-1.75z"/></svg>大模型生成</button>
+    </div>
+    ${fileCard}
+  </div>`;
+}
 
+function refreshWordField(){
+  const def = SECTIONS.flatMap(s=>s.fields).find(x=>x.name==='演练方案');
+  const old = [...document.querySelectorAll('#body .field')].find(el=>{
+    const l = el.querySelector('.flbl'); return l && l.textContent.trim()==='演练方案';
+  });
+  if(def && old) old.outerHTML = wordFieldHTML(def);
+}
 function updCount(el){
   const max = el.maxLength || 0;
   const ctr = el.parentElement.querySelector('.ctr span');
@@ -413,13 +480,41 @@ function removeThumb(el){
   if(box.querySelectorAll('.thumb').length < +box.dataset.max) box.querySelector('.add').style.display = 'flex';
 }
 
-function pickPDF(btn){
-  const input = document.getElementById('pdfInput');
-  input._fname = btn.parentElement.querySelector('.fname');
+function uploadWord(){
+  const input = document.getElementById('wordInput');
   input.onchange = ()=>{
-    if(input.files && input.files[0]) input._fname.textContent = input.files[0].name;
+    const f = input.files && input.files[0];
+    if(f){
+      wordState['演练方案'] = {mode:'word', from:'upload', name:f.name, text:''};
+      saveWordState(); refreshWordField(); toast('已上传 Word 文件：'+f.name);
+    }
+    input.value = '';
   };
   input.click();
+}
+function closeWBox(){ document.getElementById('wmask').classList.remove('show'); }
+function previewWordFile(){
+  const st = wordState['演练方案']; if(!st)return;
+  document.getElementById('wtitle').textContent = '预览 · 演练方案';
+  document.getElementById('wbody').innerHTML = `<div class="wpaper"><div class="wp-t">${esc(st.name||'')}</div>${esc(st.text||'（本地上传的 Word 文件，原型中不解析正文内容）')}</div>`;
+  document.getElementById('wfoot').innerHTML = `<button class="ghost" onclick="closeWBox()">关闭</button><button onclick="editWordFile()">编辑文件</button>`;
+  document.getElementById('wmask').classList.add('show');
+}
+function editWordFile(){
+  const st = wordState['演练方案']; if(!st)return;
+  document.getElementById('wtitle').textContent = '编辑 · 演练方案';
+  document.getElementById('wbody').innerHTML = `<textarea class="wta" id="wordEditArea">${esc(st.text||'')}</textarea>`;
+  document.getElementById('wfoot').innerHTML = `<button class="ghost" onclick="closeWBox()">取消</button><button onclick="saveWordFile()">保存</button>`;
+  document.getElementById('wmask').classList.add('show');
+}
+function saveWordFile(){
+  const st = wordState['演练方案']; if(!st)return;
+  const v = (document.getElementById('wordEditArea')||{}).value||'';
+  if(!v.trim()){ toast('内容不能为空'); return; }
+  st.text = v; st.mode = 'word'; saveWordState(); closeWBox(); refreshWordField(); toast('Word 文件已保存');
+}
+function delWordFile(){
+  delete wordState['演练方案']; saveWordState(); closeWBox(); refreshWordField(); toast('已删除 Word 文件');
 }
 
 function pickDoc(btn){
@@ -467,12 +562,13 @@ function genWord(btn){
     ['应急组织架构', g('应急组织架构')], ['演练流程', g('演练流程')],
     ['演练场景', g('演练场景')], ['演练物资', g('演练物资')]
   ];
-  const body = rows.map(([k,v])=>`<p><b>${k}：</b>${v}</p>`).join('');
-  const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head><body><h2>演练方案</h2>${body}</body></html>`;
-  const blob = new Blob([html], {type:'application/msword'});
-  btn.closest('.field').querySelector('.fname').textContent = '演练方案_大模型生成.doc';
+  const text = '演练方案\n' + rows.map(([k,v])=>`${k}：${v}`).join('\n');
+  const blob = new Blob([text], {type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+  const prev = wordState['演练方案'] || {};
+  wordState['演练方案'] = {mode:'word', from:'ai', name:prev.from==='ai'&&prev.name?prev.name:'演练方案_报告.docx', text};
+  saveWordState(); refreshWordField();
   window._drillWord = blob;
-  toast('已生成演练方案 Word 文档');
+  toast('大模型已生成 Word 文件，可预览 / 编辑 / 删除');
 }
 
 /* 演练总结：大模型根据评估字段生成（500字） */
